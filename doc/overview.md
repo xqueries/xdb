@@ -9,7 +9,11 @@ The output is a structured representation of the query known as an abstract synt
 
 ## Codegen
 
+<<<<<<< HEAD
 xdb executes queries in a virtual machine like environment. This machine has a specific and defined representation known as the intermediary representation (IR), which can be understood as a UST. The IR is generated from an AST. This allows for better separation between the execution and query layers of the database and also makes multi-level optimization more easy.
+=======
+LBADD executes queries in a virtual machine like environment. This machine has a specific and defined representation known as the intermediary representation (IR), which can be understood as a UST. The IR is generated from an AST. This allows for better separation between the execution and query layers of the database and also makes multi-level optimization more easy.
+>>>>>>> 57c03a12442ace3901b0bc5aeb14549d21f22229
 
 The codegen step in particular takes an abstract syntax tree and transforms it into the intermediary representation which can be executed by the virtual machine.
 

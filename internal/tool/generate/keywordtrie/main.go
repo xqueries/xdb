@@ -41,8 +41,8 @@ func defaultKeywordsRule(s RuneScanner) (token.Type, bool) {
 	if !ok {
 		return token.Unknown, false
 	}
-	peek, noEof := s.Lookahead()
-	if noEof && defaultLiteral.Matches(peek) { // keywords must be terminated with a whitespace
+	peek, noEOF := s.Lookahead()
+	if noEOF && defaultLiteral.Matches(peek) { // keywords must be terminated with a whitespace
 		return token.Unknown, false
 	}
 	return tok, ok

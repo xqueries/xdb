@@ -12,5 +12,4 @@ func Test_generateScannerInputAndExpectedOutput(t *testing.T) {
 	fmt.Printf("took %v\n", time.Since(start).Round(time.Millisecond))
 
 	t.Log(scIn)
-	// t.Fail()
 }

@@ -1,6 +1,10 @@
 MIT License
 
+<<<<<<< HEAD
 Copyright (c) 2019 - today Tim Satke
+=======
+Copyright (c) 2019 - today Tom Arrell
+>>>>>>> 57c03a12442ace3901b0bc5aeb14549d21f22229
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

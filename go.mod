@@ -3,6 +3,7 @@ module github.com/xqueries/xdb
 go 1.13
 
 require (
+	github.com/golang/protobuf v1.4.1
 	github.com/google/go-cmp v0.5.1
 	github.com/kr/text v0.2.0 // indirect
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
@@ -16,5 +17,7 @@ require (
 	golang.org/x/sync v0.0.0-20200317015054-43a5402ce75a
 	golang.org/x/text v0.3.3
 	golang.org/x/tools v0.0.0-20200521211927-2b542361a4fc
+	google.golang.org/protobuf v1.25.0
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
+	gotest.tools v2.2.0+incompatible
 )
