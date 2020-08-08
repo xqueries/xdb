@@ -1,9 +1,4 @@
 .DS_Store
 *.log
-<<<<<<< HEAD
 /xdb
 /xdb-fuzz.zip
-=======
-/lbadd
-/lbadd-fuzz.zip
->>>>>>> 57c03a12442ace3901b0bc5aeb14549d21f22229
