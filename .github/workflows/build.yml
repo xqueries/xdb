@@ -1,0 +1,36 @@
+name: Build
+on:
+  push:
+    branches:
+      - master
+      - develop
+      - release/*
+  pull_request:
+jobs:
+
+  test:
+    name: Build for OS ${{ matrix.goos }} with ARCH ${{ matrix.goarch }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go_version: [1.14]
+        goos: [darwin, linux, windows]
+        goarch: [386, amd64]
+    steps:
+    - name: Set up Go ${{ matrix.go_version }}
+      uses: actions/setup-go@v1
+      with:
+        go-version: ${{ matrix.go_version }}
+      id: go
+    - uses: actions/checkout@v1
+    - name: Build
+      run: |
+        GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -o ./bin/xdb -ldflags="-s -w -X 'main.Version=${GITHUB_REF}'" ./cmd/xdb
+    - uses: actions-github/upx@master
+      with:
+        dir: ./bin
+        upx_args: '--ultra-brute'
+    - uses: actions/upload-artifact@master
+      with:
+        name: binaries
+        path: ./bin
