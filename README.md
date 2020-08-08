@@ -2,7 +2,7 @@
 <p align="center">
     <img src="./.github/logo.png" width="100"></img>
     <h1 align="center">xdb</h1>
-    <p align="center">a distributed database.</p>
+    <p align="center">An experimental database.</p>
     <p align="center">
         <a href="https://github.com/xqueries/xdb/actions"><img src="https://github.com/xqueries/xdb/workflows/Build/badge.svg"></a>
         <a href="https://github.com/xqueries/xdb/actions"><img src="https://github.com/xqueries/xdb/workflows/Tests/badge.svg"></a>
@@ -31,10 +31,12 @@ Inspiration has been taken from the brilliantly documented codebase of [SQLite](
 
 Work has also already been done to build a distributed version of SQLite called [rqlite](https://github.com/rqlite/rqlite). The project uses [raft](https://github.com/hashicorp/raft) consensus in order to keep nodes consistent across the network.
 
-xdb aims to replicate these in a single project. xdb doesn't aim to be nearly as performant as SQLite nor rqlite, and hopefully trades this instead for slightly more clarity and simplicity.
+xdb doesn't aim to be nearly as performant as SQLite nor rqlite, and hopefully trades this instead for slightly more clarity and simplicity.
+
+xdb originates from [lbadd](github.com/tomarrell/lbadd), but it was branched to follow slightly different goals. xdb will always be free to use and open source.
 
 ## Contributing
-Contributors are more than welcome and much appreciated. Please feel free to open a PR to improve anything you don't like, or would like to xdb. No PR is too small! Go check out our [contributing guide](./CONTRIBUTING.md) for more detailed info about how to get started with a contribution.
+Contributors are more than welcome and much appreciated. Please feel free to open a PR to improve anything you don't like, or would like to add. No PR is too small! Go check out our [contributing guide](./CONTRIBUTING.md) for more detailed info about how to get started with a contribution.
 
 ## License
 This project is licensed under the MIT license.
