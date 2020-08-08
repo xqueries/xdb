@@ -33,7 +33,7 @@ Work has also already been done to build a distributed version of SQLite called 
 
 xdb doesn't aim to be nearly as performant as SQLite nor rqlite, and hopefully trades this instead for slightly more clarity and simplicity.
 
-xdb originates from [lbadd](github.com/tomarrell/lbadd), but it was branched to follow slightly different goals. xdb will always be free to use and open source.
+xdb originates from [lbadd](http://github.com/tomarrell/lbadd), but it was branched to follow slightly different goals. xdb will always be free to use and open source.
 
 ## Contributing
 Contributors are more than welcome and much appreciated. Please feel free to open a PR to improve anything you don't like, or would like to add. No PR is too small! Go check out our [contributing guide](./CONTRIBUTING.md) for more detailed info about how to get started with a contribution.
