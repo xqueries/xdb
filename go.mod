@@ -12,9 +12,9 @@ require (
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/stretchr/testify v1.6.1
-	golang.org/x/net v0.0.0-20200505041828-1ed23360d12c
-	golang.org/x/sync v0.0.0-20200317015054-43a5402ce75a
+	golang.org/x/net v0.0.0-20200707034311-ab3426394381
+	golang.org/x/sync v0.0.0-20200625203802-6e8e738ad208
 	golang.org/x/text v0.3.3
-	golang.org/x/tools v0.0.0-20200521211927-2b542361a4fc
+	golang.org/x/tools v0.0.0-20200807235657-19738be007ce
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
 )
