@@ -2,7 +2,7 @@
 <p align="center">
     <img src="./.github/logo.png" width="100"></img>
     <h1 align="center">xdb</h1>
-    <p align="center">An experimental database.</p>
+    <p align="center">An experimental, distributed database.</p>
     <p align="center">
         <a href="https://github.com/xqueries/xdb/actions"><img src="https://github.com/xqueries/xdb/workflows/Build/badge.svg"></a>
         <a href="https://github.com/xqueries/xdb/actions"><img src="https://github.com/xqueries/xdb/workflows/Tests/badge.svg"></a>
@@ -14,7 +14,7 @@
 
 ---
 
-`xdb` is an experimental SQL database, written in Go.
+`xdb` is an experimental, distributed SQL database, written in Go.
 
 The goal of this project is to build a database from scratch which is well documented, fully tested, and easy to understand. Implementing as much as possible from the ground up.
 
