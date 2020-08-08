@@ -1,2 +1,4 @@
 # global code owners
 *   @TimSatke
+
+internal/parser @SUMUKHA-PK
