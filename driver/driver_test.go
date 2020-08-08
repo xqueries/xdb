@@ -25,7 +25,7 @@ func TestMain(m *testing.M) {
 
 func TestDriverRegister(t *testing.T) {
 	t.Logf("local database address: %v", LocalDatabaseAddress)
-	assert.Contains(t, sql.Drivers(), "add")
+	assert.Contains(t, sql.Drivers(), "xdb")
 }
 
 func TestStatement(t *testing.T) {
