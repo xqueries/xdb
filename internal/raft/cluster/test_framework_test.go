@@ -7,6 +7,7 @@ import (
 
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
+	"github.com/xqueries/xdb/internal/network"
 )
 
 // TestNetwork encompasses the entire network on which
@@ -31,8 +32,10 @@ func NewTCPTestNetwork(t *testing.T, num int) *TCPTestNetwork {
 			assert.FailNow("timeout")
 		}
 
-		if len(clusters) > 0 {
-			c.Join(ctx, clusters[0].server.Addr().String())
+		for _, otherCluster := range clusters {
+			conn, err := network.DialTCP(ctx, c.OwnID(), otherCluster.server.Addr().String())
+			assert.NoError(err)
+			c.AddConnection(conn)
 		}
 		clusters = append(clusters, c)
 	}
