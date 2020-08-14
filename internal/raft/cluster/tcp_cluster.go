@@ -45,6 +45,10 @@ type incomingPayload struct {
 // NewTCPCluster creates a new cluster that uses TCP connections to communicate
 // with other nodes.
 func NewTCPCluster(log zerolog.Logger) Cluster {
+	return newTCPCluster(log)
+}
+
+func newTCPCluster(log zerolog.Logger) *tcpCluster {
 	return &tcpCluster{
 		log:           log.With().Str("cluster", "tcp").Logger(),
 		onConnect:     func(c Cluster, conn network.Conn) { c.AddConnection(conn) },
