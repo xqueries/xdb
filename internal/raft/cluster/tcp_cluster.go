@@ -59,6 +59,8 @@ func newTCPCluster(log zerolog.Logger) *tcpCluster {
 	}
 }
 
+// OnConnect sets a connect hook that will be executed after a cluster-join
+// handshake has been performed.
 func (c *tcpCluster) OnConnect(handler ConnHandler) {
 	c.onConnect = handler
 }
@@ -192,6 +194,11 @@ func (c *tcpCluster) RemoveConnection(conn network.Conn) {
 	}
 }
 
+func (c *tcpCluster) handshake(conn network.Conn) {
+	// TODO: implement
+	c.AddConnection(conn)
+}
+
 func (c *tcpCluster) sendMessage(ctx context.Context, conn network.Conn, msg message.Message) error {
 	msgData, err := message.Marshal(msg)
 	if err != nil {
@@ -207,6 +214,7 @@ func (c *tcpCluster) sendMessage(ctx context.Context, conn network.Conn, msg mes
 func (c *tcpCluster) start() {
 	// On connect, execute the on-connect hook.
 	c.server.OnConnect(func(conn network.Conn) {
+		c.handshake(conn)
 		if c.onConnect != nil {
 			c.onConnect(c, conn)
 		}
