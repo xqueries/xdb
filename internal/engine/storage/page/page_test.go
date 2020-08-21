@@ -4,60 +4,59 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
 )
 
-func TestPage_StoreRecordCell(t *testing.T) {
-	assert := assert.New(t)
+func TestPageSuite(t *testing.T) {
+	suite.Run(t, new(PageSuite))
+}
 
-	p, err := load(make([]byte, 32))
-	assert.NoError(err)
+// PageSuite is a test suite that holds a page for use of every test. Before
+// every run, the page will be set up completely new, with a page ID of 1 and no
+// cells. The page is not dirty.
+type PageSuite struct {
+	suite.Suite
 
+	// page is freshly set up for every test with ID=1 and not dirty.
+	page *Page
+}
+
+func (suite *PageSuite) SetupTest() {
+	p, err := New(1)
+	suite.NoError(err)
+
+	suite.EqualValues(1, p.ID())
+	suite.False(p.Dirty())
+
+	suite.page = p
+}
+
+func (suite *PageSuite) TestPage_StoreRecordCell() {
 	c := RecordCell{
 		Key:    []byte{0xAB},
 		Record: []byte{0xCA, 0xFE, 0xBA, 0xBE},
 	}
 
-	err = p.StoreRecordCell(c)
-	assert.NoError(err)
-	assert.Equal([]byte{
-		0x00, 0x00, 0x00, 0x00, 0x00, 0x01, // header
-		0x00, 0x12, 0x00, 0x0E, // offset
-		0x00, 0x00, 0x00, 0x00, // reserved for next offset
-		0x00, 0x00, 0x00, 0x00, // free slot #0
-		0x01,                   // cell type
-		0x00, 0x00, 0x00, 0x01, // key frame
-		0xAB,                   // key
-		0x00, 0x00, 0x00, 0x04, // record frame
-		0xCA, 0xFE, 0xBA, 0xBE, // record
-	}, p.data)
+	err := suite.page.StoreRecordCell(c)
+	suite.NoError(err)
+	suite.EqualValues(1, suite.page.CellCount())
+	suite.Equal(Slot{
+		Offset: 14, // first free byte in slot
+		Size:   BodySize - SlotByteSize - 14,
+	}, suite.page.freeBlock())
 
-	freeSlots := p.FreeSlots()
-	assert.Len(freeSlots, 1)
-	// offset must skipt reserved space for offset, as the offset is not free
-	// space
-	assert.Equal(Slot{
-		Offset: 14,
-		Size:   4,
-	}, freeSlots[0])
+	overflowPageID, ok := suite.page.overflowPageID()
+	suite.False(ok) // page must not have an overflow page allocated
+	suite.EqualValues(0, overflowPageID)
 
-	pageData := make([]byte, len(p.data))
-	copy(pageData, p.data)
+	gotCell, ok := suite.page.Cell(c.Key)
+	suite.True(ok)
+	suite.Equal(c, gotCell)
 
-	anotherCell := RecordCell{
-		Key:    []byte("large key"),
-		Record: []byte("way too large record"),
-	}
-	err = p.StoreRecordCell(anotherCell)
-	assert.Equal(ErrPageFull, err)
-	assert.Equal(pageData, p.data) // page must not have been modified
+	suite.True(suite.page.Dirty())
 }
 
-func TestPage_StoreRecordCell_Multiple(t *testing.T) {
-	assert := assert.New(t)
-
-	p, err := load(make([]byte, 60))
-	assert.NoError(err)
-
+func (suite *PageSuite) TestPage_StoreRecordCell_Multiple() {
 	cells := []RecordCell{
 		{
 			Key:    []byte{0x11},
@@ -72,79 +71,161 @@ func TestPage_StoreRecordCell_Multiple(t *testing.T) {
 			Record: []byte{0xFF},
 		},
 	}
-	assert.NoError(p.storeRecordCell(cells[0]))
-	assert.NoError(p.storeRecordCell(cells[1]))
-	assert.NoError(p.storeRecordCell(cells[2]))
-	assert.Equal([]byte{
-		0x00, 0x00, 0x00, 0x00, 0x00, 0x03, // header
-		0x00, 0x2E, 0x00, 0x0E, // offset #0
-		0x00, 0x17, 0x00, 0x0B, // offset #2
-		0x00, 0x22, 0x00, 0x0C, // offset #1
-		0x00, 0x00, 0x00, 0x00, 0x00, // free space
-		// cell #3
-		0x01,                   // cell #3 type
-		0x00, 0x00, 0x00, 0x01, // cell #3 key frame
-		0x22,                   // cell #3 key
-		0x00, 0x00, 0x00, 0x01, // cell #3 record frame
-		0xFF, // cell #3 record
-		// cell #2
-		0x01,                   // cell #2 type
-		0x00, 0x00, 0x00, 0x01, // cell #2 key frame
-		0x33,                   // cell #2 key
-		0x00, 0x00, 0x00, 0x02, // cell #2 record frame
-		0xD1, 0xCE, // cell #2 record
-		// cell #1
-		0x01,                   // cell #1 type
-		0x00, 0x00, 0x00, 0x01, // cell #1 key frame
-		0x11,                   // cell #1 key
-		0x00, 0x00, 0x00, 0x04, // cell #1 record frame
-		0xCA, 0xFE, 0xBA, 0xBE, // cell #1 record
-	}, p.data)
+	suite.NoError(suite.page.StoreRecordCell(cells[0]))
+	suite.NoError(suite.page.StoreRecordCell(cells[1]))
+	suite.NoError(suite.page.StoreRecordCell(cells[2]))
+
+	suite.True(suite.page.Dirty())
+
+	var ct CellTyper
+	var ok bool
+	ct, ok = suite.page.Cell(cells[0].Key)
+	suite.True(ok)
+	suite.Equal(cells[0], ct)
+	ct, ok = suite.page.Cell(cells[1].Key)
+	suite.True(ok)
+	suite.Equal(cells[1], ct)
+	ct, ok = suite.page.Cell(cells[2].Key)
+	suite.True(ok)
+	suite.Equal(cells[2], ct)
+
+	cellDataLength := uint16(14 + 12 + 11)
+	suite.EqualValues(BodySize-3*SlotByteSize-cellDataLength, suite.page.freeBlock().Size)
+	suite.EqualValues(suite.page.freeBlock().Offset, cellDataLength)
+	suite.EqualValues(3, suite.page.CellCount())
 }
 
-func TestPage_OccupiedSlots(t *testing.T) {
-	assert := assert.New(t)
-
-	// create a completely empty page
-	p, err := load(make([]byte, Size))
-	assert.NoError(err)
-
-	// create the offset source data
-	offsetCount := 3
-	offsetData := []byte{
-		// offset[0]
-		0x01, 0x12, // offset
-		0x23, 0x34, // size
-		// offset[1]
-		0x45, 0x56, // offset
-		0x67, 0x78, // size
-		// offset[2]
-		0x89, 0x9A, // offset
-		0xAB, 0xBC, // size
+func (suite *PageSuite) TestPage_DeleteCell() {
+	// setup: insert three record cells
+	cells := []RecordCell{
+		{
+			Key:    []byte{0x11},
+			Record: []byte{0xCA, 0xFE, 0xBA, 0xBE},
+		},
+		{
+			Key:    []byte{0x33},
+			Record: []byte{0xD1, 0xCE},
+		},
+		{
+			Key:    []byte{0x22},
+			Record: []byte{0xFF},
+		},
 	}
-	// quick check if we made a mistake in the test
-	assert.EqualValues(SlotByteSize, len(offsetData)/offsetCount)
+	suite.NoError(suite.page.StoreRecordCell(cells[0]))
+	suite.NoError(suite.page.StoreRecordCell(cells[1]))
+	suite.NoError(suite.page.StoreRecordCell(cells[2]))
 
-	// inject the offset data
-	p.incrementCellCount(3)               // set the cell count
-	copy(p.data[HeaderSize:], offsetData) // copy the offset data
+	suite.True(suite.page.Dirty())
+	suite.page.ClearDirty()
+	suite.False(suite.page.Dirty())
 
-	// actual test can start
+	// test: remove the cells
+	cellDataLength := uint16(14 + 12 + 11)
+	suite.EqualValues(suite.page.freeBlock().Offset, cellDataLength)
+	suite.EqualValues(BodySize-3*SlotByteSize-cellDataLength, suite.page.freeBlock().Size)
+	suite.EqualValues(3, suite.page.CellCount())
 
-	offsets := p.OccupiedSlots()
-	assert.Len(offsets, 3)
-	assert.Equal(Slot{
-		Offset: 0x0112,
-		Size:   0x2334,
-	}, offsets[0])
-	assert.Equal(Slot{
-		Offset: 0x4556,
-		Size:   0x6778,
-	}, offsets[1])
-	assert.Equal(Slot{
-		Offset: 0x899A,
-		Size:   0xABBC,
-	}, offsets[2])
+	ok, err := suite.page.DeleteCell(cells[2].Key)
+	suite.NoError(err)
+	suite.True(ok)
+	suite.True(suite.page.Dirty())
+
+	cellDataLength = uint16(14 + 12)
+	suite.EqualValues(suite.page.freeBlock().Offset, cellDataLength)
+	suite.EqualValues(BodySize-2*SlotByteSize-cellDataLength, suite.page.freeBlock().Size)
+	suite.EqualValues(2, suite.page.CellCount())
+}
+
+func (suite *PageSuite) TestPage_findCell() {
+	cells := []CellTyper{
+		PointerCell{
+			Key:     []byte("001 first"),
+			Pointer: ID(1),
+		},
+		PointerCell{
+			Key:     []byte("002 second"),
+			Pointer: ID(2),
+		},
+		PointerCell{
+			Key:     []byte("003 third"),
+			Pointer: ID(3),
+		},
+		PointerCell{
+			Key:     []byte("004 fourth"),
+			Pointer: ID(4),
+		},
+	}
+	for _, cell := range cells {
+		switch c := cell.(type) {
+		case RecordCell:
+			suite.NoError(suite.page.StoreRecordCell(c))
+		case PointerCell:
+			suite.NoError(suite.page.StorePointerCell(c))
+		default:
+			suite.FailNow("unknown cell type")
+		}
+	}
+
+	// actual tests
+
+	tests := []struct {
+		name          string
+		key           string
+		wantSlotIndex uint16
+		wantSlot      Slot
+		wantCell      CellTyper
+		wantFound     bool
+	}{
+		{
+			name:          "first",
+			key:           "001 first",
+			wantSlotIndex: 0,
+			wantSlot:      Slot{Offset: 0, Size: 18},
+			wantCell:      cells[0],
+			wantFound:     true,
+		},
+		{
+			name:          "second",
+			key:           "002 second",
+			wantSlotIndex: 1,
+			wantSlot:      Slot{Offset: 18, Size: 19},
+			wantCell:      cells[1],
+			wantFound:     true,
+		},
+		{
+			name:          "third",
+			key:           "003 third",
+			wantSlotIndex: 2,
+			wantSlot:      Slot{Offset: 37, Size: 18},
+			wantCell:      cells[2],
+			wantFound:     true,
+		},
+		{
+			name:          "fourth",
+			key:           "004 fourth",
+			wantSlotIndex: 3,
+			wantSlot:      Slot{Offset: 55, Size: 19},
+			wantCell:      cells[3],
+			wantFound:     true,
+		},
+		{
+			name:          "missing cell",
+			key:           "some key that doesn't exist",
+			wantSlotIndex: 0,
+			wantSlot:      Slot{Offset: 0, Size: 0},
+			wantCell:      nil,
+			wantFound:     false,
+		},
+	}
+	for _, tt := range tests {
+		suite.Run(tt.name, func() {
+			slotIndex, slot, cell, found := suite.page.findCell([]byte(tt.key))
+			suite.Equal(tt.wantSlotIndex, slotIndex, "slot indices don't match")
+			suite.Equal(tt.wantSlot, slot, "cell slot don't match")
+			suite.Equal(tt.wantCell, cell, "cell don't match")
+			suite.Equal(tt.wantFound, found, "found don't match")
+		})
+	}
 }
 
 func TestPage_moveAndZero(t *testing.T) {
@@ -237,6 +318,12 @@ func TestPage_moveAndZero(t *testing.T) {
 			args{3, 3, 2},
 			[]byte{1, 1, 2, 2, 2, 0, 1, 1, 1, 1},
 		},
+		{
+			"no length",
+			[]byte{1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+			args{4, 0, 2},
+			[]byte{1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -247,336 +334,6 @@ func TestPage_moveAndZero(t *testing.T) {
 			}
 			p.moveAndZero(tt.args.offset, tt.args.size, tt.args.target)
 			assert.Equal(tt.want, p.data)
-		})
-	}
-}
-
-func TestPage_FindFreeSlotForSize(t *testing.T) {
-	assert := assert.New(t)
-
-	p, err := load(make([]byte, 100))
-	assert.NoError(err)
-
-	occupiedSlots := []Slot{
-		{90, 10},
-		// 1 byte
-		{80, 9},
-		// 25 bytes
-		{50, 5},
-		// 10 bytes
-		{30, 10},
-	}
-
-	for i, slot := range occupiedSlots {
-		slot.encodeInto(p.data[HeaderSize+i*int(SlotByteSize):])
-	}
-	p.incrementCellCount(uint16(len(occupiedSlots)))
-
-	slot, ok := p.FindFreeSlotForSize(1)
-	assert.True(ok)
-	assert.Equal(Slot{89, 1}, slot)
-
-	slot, ok = p.FindFreeSlotForSize(15)
-	assert.True(ok)
-	assert.Equal(Slot{55, 25}, slot)
-
-	slot, ok = p.FindFreeSlotForSize(25)
-	assert.True(ok)
-	assert.Equal(Slot{55, 25}, slot)
-
-	slot, ok = p.FindFreeSlotForSize(10)
-	assert.True(ok)
-	assert.Equal(Slot{40, 10}, slot)
-
-	slot, ok = p.FindFreeSlotForSize(5)
-	assert.True(ok)
-	assert.Equal(Slot{40, 10}, slot)
-}
-
-func TestPage_FreeSlots(t *testing.T) {
-	assert := assert.New(t)
-
-	p, err := load(make([]byte, 100))
-	assert.NoError(err)
-
-	occupiedSlots := []Slot{
-		// 2 bytes
-		{28, 8},
-		// 10 bytes
-		{46, 5},
-		// 25 bytes
-		{76, 9},
-		// 1 byte
-		{86, 10},
-	}
-
-	for i, slot := range occupiedSlots {
-		slot.encodeInto(p.data[HeaderSize+i*int(SlotByteSize):])
-	}
-	p.incrementCellCount(uint16(len(occupiedSlots)))
-
-	assert.EqualValues([]Slot{
-		{26, 2},
-		{36, 10},
-		{51, 25},
-		{85, 1},
-	}, p.FreeSlots())
-}
-
-func TestPage_Defragment(t *testing.T) {
-	tests := []struct {
-		name   string
-		before []byte
-		after  []byte
-	}{
-		{
-			"small 2 cells",
-			[]byte{
-				/* 0x00 */ 0x00, 0x00, 0x00, 0x01, 0x00, 0x02, // header
-				/* 0x06 */ 0x00, 0x12, 0x00, 0x04, // offset #0
-				/* 0x0a */ 0x00, 0x1A, 0x00, 0x04, // offset #1
-				/* 0x0e */ 0x00, 0x00, 0x00, 0x00, // free space
-				/* 0x12 */ 0x01, 0x01, 0x01, 0x01, // cell #0
-				/* 0x16 */ 0x00, 0x00, 0x00, 0x00, // free space
-				/* 0x1a */ 0x02, 0x02, 0x02, 0x02, // cell #1
-			},
-			[]byte{
-				/* 0x00 */ 0x00, 0x00, 0x00, 0x01, 0x00, 0x02, // header
-				/* 0x06 */ 0x00, 0x16, 0x00, 0x04, // offset #0
-				/* 0x0a */ 0x00, 0x1A, 0x00, 0x04, // offset #1
-				/* 0x0e */ 0x00, 0x00, 0x00, 0x00, // free space
-				/* 0x12 */ 0x00, 0x00, 0x00, 0x00, // free space
-				/* 0x16 */ 0x01, 0x01, 0x01, 0x01, // cell #0
-				/* 0x1a */ 0x02, 0x02, 0x02, 0x02, // cell #1
-			},
-		},
-		{
-			"small 2 cells free end",
-			[]byte{
-				/* 0x00 */ 0x00, 0x00, 0x00, 0x01, 0x00, 0x02, // header
-				/* 0x06 */ 0x00, 0x12, 0x00, 0x04, // offset #0
-				/* 0x0a */ 0x00, 0x1A, 0x00, 0x04, // offset #1
-				/* 0x0e */ 0x00, 0x00, 0x00, 0x00, // free space
-				/* 0x12 */ 0x01, 0x01, 0x01, 0x01, // cell #0
-				/* 0x16 */ 0x00, 0x00, 0x00, 0x00, // free space
-				/* 0x1a */ 0x02, 0x02, 0x02, 0x02, // cell #1
-				/* 0x1e */ 0x00, 0x00, 0x00, 0x00, // free space
-			},
-			[]byte{
-				/* 0x00 */ 0x00, 0x00, 0x00, 0x01, 0x00, 0x02, // header
-				/* 0x06 */ 0x00, 0x1A, 0x00, 0x04, // offset #0
-				/* 0x0a */ 0x00, 0x1E, 0x00, 0x04, // offset #1
-				/* 0x0e */ 0x00, 0x00, 0x00, 0x00, // free space
-				/* 0x12 */ 0x00, 0x00, 0x00, 0x00, // free space
-				/* 0x16 */ 0x00, 0x00, 0x00, 0x00, // free space
-				/* 0x1a */ 0x01, 0x01, 0x01, 0x01, // cell #0
-				/* 0x1e */ 0x02, 0x02, 0x02, 0x02, // cell #1
-			},
-		},
-		{
-			"full page",
-			[]byte{
-				/* 0x00 */ 0x00, 0x00, 0x00, 0x01, 0x00, 0x02, // header
-				/* 0x06 */ 0x00, 0x0E, 0x00, 0x04, // offset #0
-				/* 0x0a */ 0x00, 0x12, 0x00, 0x04, // offset #1
-				/* 0x0e */ 0x01, 0x01, 0x01, 0x01, // cell #0
-				/* 0x12 */ 0x02, 0x02, 0x02, 0x02, // cell #1
-			},
-			[]byte{
-				/* 0x00 */ 0x00, 0x00, 0x00, 0x01, 0x00, 0x02, // header
-				/* 0x06 */ 0x00, 0x0E, 0x00, 0x04, // offset #0
-				/* 0x0a */ 0x00, 0x12, 0x00, 0x04, // offset #1
-				/* 0x0e */ 0x01, 0x01, 0x01, 0x01, // cell #0
-				/* 0x12 */ 0x02, 0x02, 0x02, 0x02, // cell #1
-			},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			assert := assert.New(t)
-
-			p, err := load(tt.before)
-			assert.NoError(err)
-
-			assert.Equal(tt.before, p.data)
-			p.Defragment()
-			assert.Equal(tt.after, p.data)
-		})
-	}
-}
-
-func TestPage_DeleteCell(t *testing.T) {
-	tests := []struct {
-		name      string
-		before    []byte
-		deleteKey []byte
-		after     []byte
-		ok        bool
-	}{
-		{
-			"small 2 cells delete front",
-			[]byte{
-				0x00, 0x00, 0x00, 0x01, 0x00, 0x02, // header
-				0x00, 0x12, 0x00, 0x0A, // offset #0
-				0x00, 0x20, 0x00, 0x0A, // offset #1
-				0x00, 0x00, 0x00, 0x00, // free space
-				0x01, 0x00, 0x00, 0x00, 0x01, 0x0A, 0x00, 0x00, 0x00, 0x00, // cell #0
-				0x00, 0x00, 0x00, 0x00, // free space
-				0x01, 0x00, 0x00, 0x00, 0x01, 0x0B, 0x00, 0x00, 0x00, 0x00, // cell #1
-			},
-			[]byte{0x0A},
-			[]byte{
-				0x00, 0x00, 0x00, 0x01, 0x00, 0x01, // header
-				0x00, 0x20, 0x00, 0x0A, // offset #1
-				0x00, 0x00, 0x00, 0x00, // free space
-				0x00, 0x00, 0x00, 0x00, // free space
-				0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // free space
-				0x00, 0x00, 0x00, 0x00, // free space
-				0x01, 0x00, 0x00, 0x00, 0x01, 0x0B, 0x00, 0x00, 0x00, 0x00, // cell #1
-			},
-			true,
-		},
-		{
-			"small 2 cells delete end",
-			[]byte{
-				0x00, 0x00, 0x00, 0x01, 0x00, 0x02, // header
-				0x00, 0x12, 0x00, 0x0A, // offset #0
-				0x00, 0x20, 0x00, 0x0A, // offset #1
-				0x00, 0x00, 0x00, 0x00, // free space
-				0x01, 0x00, 0x00, 0x00, 0x01, 0x0A, 0x00, 0x00, 0x00, 0x00, // cell #0
-				0x00, 0x00, 0x00, 0x00, // free space
-				0x01, 0x00, 0x00, 0x00, 0x01, 0x0B, 0x00, 0x00, 0x00, 0x00, // cell #1
-			},
-			[]byte{0x0B},
-			[]byte{
-				0x00, 0x00, 0x00, 0x01, 0x00, 0x01, // header
-				0x00, 0x12, 0x00, 0x0A, // offset #0
-				0x00, 0x00, 0x00, 0x00, // free space
-				0x00, 0x00, 0x00, 0x00, // free space
-				0x01, 0x00, 0x00, 0x00, 0x01, 0x0A, 0x00, 0x00, 0x00, 0x00, // cell #0
-				0x00, 0x00, 0x00, 0x00, // free space
-				0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // free space
-			},
-			true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			assert := assert.New(t)
-
-			p, err := load(tt.before)
-			assert.NoError(err)
-
-			assert.Equal(tt.before, p.data)
-			ok, err := p.DeleteCell(tt.deleteKey)
-			assert.Equal(tt.ok, ok)
-			assert.NoError(err)
-			assert.Equal(tt.after, p.data)
-		})
-	}
-}
-
-func TestPage_findCell(t *testing.T) {
-	pageID := ID(0)
-	p := New(pageID)
-	cells := []CellTyper{
-		// these cells should remain sorted, as sorted insertion is tested
-		// somewhere else, and by being sorted, the tests are more readable
-		// regarding the offset indexes
-		PointerCell{
-			Key:     []byte("001 first"),
-			Pointer: ID(1),
-		},
-		PointerCell{
-			Key:     []byte("002 second"),
-			Pointer: ID(2),
-		},
-		PointerCell{
-			Key:     []byte("003 third"),
-			Pointer: ID(3),
-		},
-		PointerCell{
-			Key:     []byte("004 fourth"),
-			Pointer: ID(4),
-		},
-	}
-	for _, cell := range cells {
-		switch c := cell.(type) {
-		case RecordCell:
-			assert.NoError(t, p.StoreRecordCell(c))
-		case PointerCell:
-			assert.NoError(t, p.StorePointerCell(c))
-		default:
-			assert.FailNow(t, "unknown cell type")
-		}
-	}
-
-	// actual tests
-
-	tests := []struct {
-		name            string
-		p               *Page
-		key             string
-		wantOffsetIndex uint16
-		wantCellSlot    Slot
-		wantCell        CellTyper
-		wantFound       bool
-	}{
-		{
-			name:            "first",
-			p:               p,
-			key:             "001 first",
-			wantOffsetIndex: 6,
-			wantCellSlot:    Slot{Offset: 16366, Size: 18},
-			wantCell:        cells[0],
-			wantFound:       true,
-		},
-		{
-			name:            "second",
-			p:               p,
-			key:             "002 second",
-			wantOffsetIndex: 10,
-			wantCellSlot:    Slot{Offset: 16347, Size: 19},
-			wantCell:        cells[1],
-			wantFound:       true,
-		},
-		{
-			name:            "third",
-			p:               p,
-			key:             "003 third",
-			wantOffsetIndex: 14,
-			wantCellSlot:    Slot{Offset: 16329, Size: 18},
-			wantCell:        cells[2],
-			wantFound:       true,
-		},
-		{
-			name:            "fourth",
-			p:               p,
-			key:             "004 fourth",
-			wantOffsetIndex: 18,
-			wantCellSlot:    Slot{Offset: 16310, Size: 19},
-			wantCell:        cells[3],
-			wantFound:       true,
-		},
-		{
-			name:            "missing cell",
-			p:               p,
-			key:             "some key that doesn't exist",
-			wantOffsetIndex: 0,
-			wantCellSlot:    Slot{Offset: 0, Size: 0},
-			wantCell:        nil,
-			wantFound:       false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			assert := assert.New(t)
-
-			offsetIndex, cellSlot, cell, found := p.findCell([]byte(tt.key))
-			assert.Equal(tt.wantOffsetIndex, offsetIndex, "offset indexes don't match")
-			assert.Equal(tt.wantCellSlot, cellSlot, "cell slot don't match")
-			assert.Equal(tt.wantCell, cell, "cell don't match")
-			assert.Equal(tt.wantFound, found, "found don't match")
 		})
 	}
 }

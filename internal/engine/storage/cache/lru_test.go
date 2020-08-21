@@ -13,7 +13,9 @@ func TestLRUCache(t *testing.T) {
 
 	pages := make([]*page.Page, 6)
 	for i := range pages {
-		pages[i] = page.New(uint32(i))
+		p, err := page.New(uint32(i))
+		assert.NoError(err)
+		pages[i] = p
 	}
 
 	secondaryStorage := new(MockSecondaryStorage)
