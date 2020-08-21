@@ -76,7 +76,7 @@ func (m *PageManager) WritePage(p *page.Page) error {
 		m.pageOffsets[p.ID()] = offset
 	}
 
-	data := p.RawData()
+	data := p.CopyOfData()
 	_, err := m.file.WriteAt(data, offset)
 	if err != nil {
 		return fmt.Errorf("write at: %w", err)
@@ -93,7 +93,7 @@ func (m *PageManager) WritePage(p *page.Page) error {
 func (m *PageManager) AllocateNew() (*page.Page, error) {
 	id := atomic.AddUint32(&m.largestID, 1) - 1
 
-	p := page.New(id)
+	p, _ := page.New(id)
 	if err := m.WritePage(p); err != nil {
 		return nil, fmt.Errorf("write new page: %w", err)
 	}
