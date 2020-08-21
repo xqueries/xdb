@@ -93,7 +93,10 @@ func (m *PageManager) WritePage(p *page.Page) error {
 func (m *PageManager) AllocateNew() (*page.Page, error) {
 	id := atomic.AddUint32(&m.largestID, 1) - 1
 
-	p, _ := page.New(id)
+	p, err := page.New(id)
+	if err != nil {
+		return nil, fmt.Errorf("new page: %w", err)
+	}
 	if err := m.WritePage(p); err != nil {
 		return nil, fmt.Errorf("write new page: %w", err)
 	}
