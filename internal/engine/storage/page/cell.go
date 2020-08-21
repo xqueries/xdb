@@ -108,6 +108,8 @@ func decodePointerCell(data []byte) PointerCell {
 	}
 }
 
+// frame frames the given data with a uint32 representing the length of the given data.
+// The length of the returned byte slice is the length of the given byte slice + 4.
 func frame(data []byte) []byte {
 	// this allocation can be optimized, however, it would mess up the API, but
 	// it should be considered in the future
