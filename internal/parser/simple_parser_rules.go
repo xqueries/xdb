@@ -1798,7 +1798,7 @@ func (p *simpleParser) parseExpr13(expr *ast.Expr, tokenNot token.Token, r repor
 
 			periodOrDelimiter, ok := p.optionalLookahead(r)
 			if !ok || next.Type() == token.EOF || next.Type() == token.StatementSeparator {
-				p.parseExpr13Sub2(exprParent, nil, nil, schemaOrTableName, r)
+				p.parseExpr13Sub2(exprParent, nil, nil, schemaOrTableName)
 				return exprParent
 			}
 			if periodOrDelimiter.Value() == "." {
@@ -1811,13 +1811,13 @@ func (p *simpleParser) parseExpr13(expr *ast.Expr, tokenNot token.Token, r repor
 					p.consumeToken()
 					next, ok = p.optionalLookahead(r)
 					if !ok || next.Type() == token.EOF || next.Type() == token.StatementSeparator {
-						p.parseExpr13Sub2(exprParent, schemaOrTableName, periodOrDelimiter, literal, r)
+						p.parseExpr13Sub2(exprParent, schemaOrTableName, periodOrDelimiter, literal)
 						return exprParent
 					}
 					if next.Type() == token.Delimiter && next.Value() == "(" {
 						p.parseExpr13Sub3(exprParent, schemaOrTableName, periodOrDelimiter, literal, r)
 					} else {
-						p.parseExpr13Sub2(exprParent, schemaOrTableName, periodOrDelimiter, literal, r)
+						p.parseExpr13Sub2(exprParent, schemaOrTableName, periodOrDelimiter, literal)
 					}
 				} else {
 					r.unexpectedToken(token.Literal)
@@ -1825,7 +1825,7 @@ func (p *simpleParser) parseExpr13(expr *ast.Expr, tokenNot token.Token, r repor
 			} else if periodOrDelimiter.Type() == token.Delimiter && periodOrDelimiter.Value() == "(" {
 				p.parseExpr13Sub3(exprParent, nil, nil, schemaOrTableName, r)
 			} else {
-				p.parseExpr13Sub2(exprParent, nil, nil, schemaOrTableName, r)
+				p.parseExpr13Sub2(exprParent, nil, nil, schemaOrTableName)
 			}
 		}
 	}
@@ -1842,7 +1842,7 @@ func (p *simpleParser) parseExpr13(expr *ast.Expr, tokenNot token.Token, r repor
 }
 
 // parseExpr13Sub2 parses the sub-line 2 of line 13 in expr.
-func (p *simpleParser) parseExpr13Sub2(exprParent *ast.Expr, schemaName, period, tableName token.Token, r reporter) {
+func (p *simpleParser) parseExpr13Sub2(exprParent *ast.Expr, schemaName, period, tableName token.Token) {
 	exprParent.SchemaName = schemaName
 	exprParent.Period1 = period
 	exprParent.TableName = tableName
@@ -3386,7 +3386,7 @@ func (p *simpleParser) parseRecursiveCte(r reporter) (recursiveCte *ast.Recursiv
 }
 
 // parseCteTableName parses the cte-table-name stmt as defined in:
-//https://sqlite.org/syntax/cte-table-name.html
+// https://sqlite.org/syntax/cte-table-name.html
 func (p *simpleParser) parseCteTableName(r reporter) (cteTableName *ast.CteTableName) {
 	cteTableName = &ast.CteTableName{}
 	next, ok := p.lookahead(r)
