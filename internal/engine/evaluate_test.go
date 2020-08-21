@@ -5,6 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/xqueries/xdb/internal/compiler/command"
+	"github.com/xqueries/xdb/internal/engine/table"
 	"github.com/xqueries/xdb/internal/engine/types"
 )
 
@@ -20,7 +21,7 @@ func TestFullTableScan(t *testing.T) {
 		},
 	})
 	assert.NoError(err)
-	assert.Equal(Table{}, result)
+	assert.Equal(table.Table{}, result)
 }
 
 func TestEngine_evaluateProjection(t *testing.T) {
@@ -28,7 +29,7 @@ func TestEngine_evaluateProjection(t *testing.T) {
 		name    string
 		ctx     ExecutionContext
 		proj    command.Project
-		want    Table
+		want    table.Table
 		wantErr string
 	}{
 		{
@@ -43,9 +44,9 @@ func TestEngine_evaluateProjection(t *testing.T) {
 					},
 				},
 			},
-			Table{
-				Cols: []Col{},
-				Rows: []Row{},
+			table.Table{
+				Cols: []table.Col{},
+				Rows: []table.Row{},
 			},
 			"",
 		},
@@ -65,14 +66,14 @@ func TestEngine_evaluateProjection(t *testing.T) {
 					},
 				},
 			},
-			Table{
-				Cols: []Col{
+			table.Table{
+				Cols: []table.Col{
 					{
 						QualifiedName: "column2",
 						Type:          types.String,
 					},
 				},
-				Rows: []Row{
+				Rows: []table.Row{
 					{
 						Values: []types.Value{types.NewString("world")},
 					},
@@ -100,15 +101,15 @@ func TestEngine_evaluateProjection(t *testing.T) {
 					},
 				},
 			},
-			Table{
-				Cols: []Col{
+			table.Table{
+				Cols: []table.Col{
 					{
 						QualifiedName: "column2",
 						Alias:         "foo",
 						Type:          types.String,
 					},
 				},
-				Rows: []Row{
+				Rows: []table.Row{
 					{
 						Values: []types.Value{types.NewString("world")},
 					},
@@ -135,7 +136,7 @@ func TestEngine_evaluateProjection(t *testing.T) {
 					},
 				},
 			},
-			Table{},
+			table.Table{},
 			"no column with name or alias 'foo'",
 		},
 	}
@@ -160,7 +161,7 @@ func TestEngine_evaluateSelection(t *testing.T) {
 		name    string
 		ctx     ExecutionContext
 		sel     command.Select
-		want    Table
+		want    table.Table
 		wantErr string
 	}{
 		{
@@ -175,8 +176,8 @@ func TestEngine_evaluateSelection(t *testing.T) {
 					},
 				},
 			},
-			Table{
-				Cols: []Col{
+			table.Table{
+				Cols: []table.Col{
 					{
 						QualifiedName: "column1",
 						Type:          types.String,
@@ -190,7 +191,7 @@ func TestEngine_evaluateSelection(t *testing.T) {
 						Type:          types.Bool,
 					},
 				},
-				Rows: []Row{
+				Rows: []table.Row{
 					{
 						Values: []types.Value{types.NewString("hello"), types.NewInteger(5), types.NewBool(true)},
 					},
@@ -206,8 +207,10 @@ func TestEngine_evaluateSelection(t *testing.T) {
 			newEmptyExecutionContext(),
 			command.Select{
 				Filter: command.EqualityExpr{
-					Left:  command.LiteralExpr{Value: "column2"},
-					Right: command.LiteralExpr{Value: "7"},
+					BinaryBase: command.BinaryBase{
+						Left:  command.LiteralExpr{Value: "column2"},
+						Right: command.LiteralExpr{Value: "7"},
+					},
 				},
 				Input: command.Values{
 					Values: [][]command.Expr{
@@ -216,8 +219,8 @@ func TestEngine_evaluateSelection(t *testing.T) {
 					},
 				},
 			},
-			Table{
-				Cols: []Col{
+			table.Table{
+				Cols: []table.Col{
 					{
 						QualifiedName: "column1",
 						Type:          types.String,
@@ -231,7 +234,7 @@ func TestEngine_evaluateSelection(t *testing.T) {
 						Type:          types.Bool,
 					},
 				},
-				Rows: []Row{
+				Rows: []table.Row{
 					{
 						Values: []types.Value{types.NewString("foo"), types.NewInteger(7), types.NewBool(false)},
 					},
@@ -251,7 +254,7 @@ func TestEngine_evaluateSelection(t *testing.T) {
 					},
 				},
 			},
-			Table{},
+			table.Table{},
 			"cannot use command.LiteralExpr as filter",
 		},
 		{
@@ -259,8 +262,10 @@ func TestEngine_evaluateSelection(t *testing.T) {
 			newEmptyExecutionContext(),
 			command.Select{
 				Filter: command.EqualityExpr{
-					Left:  command.LiteralExpr{Value: "column2"},
-					Right: command.LiteralExpr{Value: "column1"},
+					BinaryBase: command.BinaryBase{
+						Left:  command.LiteralExpr{Value: "column2"},
+						Right: command.LiteralExpr{Value: "column1"},
+					},
 				},
 				Input: command.Values{
 					Values: [][]command.Expr{
@@ -269,8 +274,8 @@ func TestEngine_evaluateSelection(t *testing.T) {
 					},
 				},
 			},
-			Table{
-				Cols: []Col{
+			table.Table{
+				Cols: []table.Col{
 					{
 						QualifiedName: "column1",
 						Type:          types.String,
@@ -280,7 +285,7 @@ func TestEngine_evaluateSelection(t *testing.T) {
 						Type:          types.String,
 					},
 				},
-				Rows: []Row{
+				Rows: []table.Row{
 					{
 						Values: []types.Value{types.NewString("foo"), types.NewString("foo")},
 					},
@@ -293,8 +298,10 @@ func TestEngine_evaluateSelection(t *testing.T) {
 			newEmptyExecutionContext(),
 			command.Select{
 				Filter: command.EqualityExpr{
-					Left:  command.LiteralExpr{Value: "column2"},
-					Right: command.LiteralExpr{Value: "world"},
+					BinaryBase: command.BinaryBase{
+						Left:  command.LiteralExpr{Value: "column2"},
+						Right: command.LiteralExpr{Value: "world"},
+					},
 				},
 				Input: command.Values{
 					Values: [][]command.Expr{
@@ -303,8 +310,8 @@ func TestEngine_evaluateSelection(t *testing.T) {
 					},
 				},
 			},
-			Table{
-				Cols: []Col{
+			table.Table{
+				Cols: []table.Col{
 					{
 						QualifiedName: "column1",
 						Type:          types.String,
@@ -314,7 +321,7 @@ func TestEngine_evaluateSelection(t *testing.T) {
 						Type:          types.String,
 					},
 				},
-				Rows: []Row{
+				Rows: []table.Row{
 					{
 						Values: []types.Value{types.NewString("hello"), types.NewString("world")},
 					},

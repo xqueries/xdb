@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/xqueries/xdb/internal/id"
 	"golang.org/x/net/context"
 	"golang.org/x/sync/errgroup"
 )
@@ -49,7 +50,7 @@ func DialTCP(ctx context.Context, addr string) (Conn, error) {
 		_ = tcpConn.Close()
 		return nil, fmt.Errorf("receive ID: %w", err)
 	}
-	parsedID, err := parseID(myID)
+	parsedID, err := id.Parse(myID)
 	if err != nil {
 		_ = tcpConn.Close()
 		return nil, fmt.Errorf("parse ID: %w", err)
@@ -61,7 +62,7 @@ func DialTCP(ctx context.Context, addr string) (Conn, error) {
 }
 
 func newTCPConn(underlying net.Conn) *tcpConn {
-	id := createID()
+	id := id.Create()
 	conn := &tcpConn{
 		id:         id,
 		underlying: underlying,
