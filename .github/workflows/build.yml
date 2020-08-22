@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        go_version: [1.14]
+        go_version: [ 1.15 ]
         goos: [darwin, linux, windows]
         goarch: [386, amd64]
     steps:
