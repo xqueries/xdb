@@ -8,7 +8,7 @@ on:
   pull_request:
 jobs:
 
-  test:
+  build:
     name: Build for OS ${{ matrix.goos }} with ARCH ${{ matrix.goarch }}
     runs-on: ubuntu-latest
     strategy:
