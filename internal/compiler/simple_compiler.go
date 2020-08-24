@@ -140,7 +140,7 @@ func (c *simpleCompiler) compileInsert(stmt *ast.InsertStmt) (command.Insert, er
 	if len(stmt.ColumnName) != 0 {
 		for _, col := range stmt.ColumnName {
 			cols = append(cols, command.Column{
-				Column: command.LiteralExpr{Value: col.Value()},
+				Name: command.LiteralExpr{Value: col.Value()},
 			})
 		}
 	}
@@ -499,8 +499,8 @@ func (c *simpleCompiler) compileResultColumn(col *ast.ResultColumn) (command.Col
 			tableName = col.TableName.Value()
 		}
 		return command.Column{
-			Table:  tableName,
-			Column: command.LiteralExpr{Value: "*"},
+			Table: tableName,
+			Name:  command.LiteralExpr{Value: "*"},
 		}, nil
 	}
 
@@ -515,8 +515,8 @@ func (c *simpleCompiler) compileResultColumn(col *ast.ResultColumn) (command.Col
 	}
 
 	return command.Column{
-		Alias:  alias,
-		Column: expr,
+		Alias: alias,
+		Name:  expr,
 	}, nil
 }
 

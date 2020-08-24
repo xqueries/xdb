@@ -207,7 +207,7 @@ func generateKeywordColumn(offset int) token.Token {
 	return genTok{
 		offset: offset,
 		typ:    token.KeywordColumn,
-		value:  caseShuffle("Column"),
+		value:  caseShuffle("Name"),
 	}
 }
 func generateKeywordCommit(offset int) token.Token {

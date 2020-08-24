@@ -83,14 +83,16 @@ func (e Engine) evaluateBinaryExpr(ctx ExecutionContext, expr command.BinaryExpr
 	}
 
 	switch expr.(type) {
+	case command.EqualityExpr:
+		return types.NewBool(e.eq(left, right)), nil
 	case command.LessThanExpr:
 		return types.NewBool(e.lt(left, right)), nil
 	case command.GreaterThanExpr:
-		return types.NewBool(e.lt(left, right)), nil
+		return types.NewBool(e.gt(left, right)), nil
 	case command.LessThanOrEqualToExpr:
-		return types.NewBool(e.lt(left, right)), nil
+		return types.NewBool(e.lteq(left, right)), nil
 	case command.GreaterThanOrEqualToExpr:
-		return types.NewBool(e.lt(left, right)), nil
+		return types.NewBool(e.gteq(left, right)), nil
 	case command.AddExpression:
 		return e.add(ctx, left, right)
 	case command.SubExpression:

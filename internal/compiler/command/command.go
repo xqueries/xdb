@@ -217,8 +217,8 @@ type (
 		// this is a representation derived from the AST. If this is empty, the
 		// executor has to interpolate the table from the execution context.
 		Table string
-		// Column is the name of the column.
-		Column Expr
+		// Name is the name of the column.
+		Name Expr
 		// Alias is the alias name for this table. May be empty.
 		Alias string
 	}
@@ -394,9 +394,9 @@ func (u UpdateSetter) String() string {
 
 func (c Column) String() string {
 	if c.Alias == "" {
-		return c.Column.String()
+		return c.Name.String()
 	}
-	return fmt.Sprintf("%v AS %v", c.Column, c.Alias)
+	return fmt.Sprintf("%v AS %v", c.Name, c.Alias)
 }
 
 func (j Join) String() string {
