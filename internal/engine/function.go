@@ -7,9 +7,9 @@ import (
 func (e Engine) evaluateFunction(ctx ExecutionContext, fn types.FunctionValue) (types.Value, error) {
 	switch fn.Name {
 	case "NOW":
-		return builtinNow(e.timeProvider)
+		return e.builtinNow(e.timeProvider)
 	case "RANDOM":
-		return builtinRand(e.randomProvider)
+		return e.builtinRand(e.randomProvider)
 	}
 	return nil, ErrNoSuchFunction(fn.Name)
 }

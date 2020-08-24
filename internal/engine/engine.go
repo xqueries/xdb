@@ -46,13 +46,16 @@ func New(dbFile *storage.DBFile, opts ...Option) (Engine, error) {
 // Evaluate evaluates the given command. This may mutate the state of the
 // database, and changes may occur to the database file.
 func (e Engine) Evaluate(cmd command.Command) (table.Table, error) {
-	defer e.profiler.Enter(EvtEvaluate).Exit()
-
 	_ = e.eq
 	_ = e.lt
 	_ = e.gt
 	_ = e.lteq
 	_ = e.gteq
+	_ = e.builtinCount
+	_ = e.builtinUCase
+	_ = e.builtinLCase
+	_ = e.builtinMin
+	_ = e.builtinMax
 
 	ctx := newEmptyExecutionContext()
 
@@ -77,5 +80,7 @@ func (e Engine) Closed() bool {
 
 // Close closes the underlying database file.
 func (e Engine) Close() error {
+	defer e.profiler.Enter("close").Exit()
+
 	return e.dbFile.Close()
 }

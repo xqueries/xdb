@@ -102,6 +102,7 @@ func runAndCompare(t *testing.T, tt Test) {
 
 	result, err := e.Evaluate(cmd)
 	assert.NoError(err, "evaluate")
+	assert.NoError(e.Close())
 
 	t.Logf("evaluate: %v", time.Since(evalStart))
 	t.Logf("TOTAL: %v", time.Since(totalStart))
