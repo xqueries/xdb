@@ -19,11 +19,13 @@ func Benchmark_OptHalfJoin(b *testing.B) {
 		},
 		Input: command.Select{
 			Filter: command.EqualityExpr{
-				Left: command.LiteralExpr{
-					Value: "foobar",
-				},
-				Right: command.LiteralExpr{
-					Value: "snafu",
+				BinaryBase: command.BinaryBase{
+					Left: command.LiteralExpr{
+						Value: "foobar",
+					},
+					Right: command.LiteralExpr{
+						Value: "snafu",
+					},
 				},
 				Invert: true,
 			},

@@ -1,12 +1,10 @@
-package engine
+package table
 
 import (
 	"bytes"
 	"fmt"
 	"strings"
 	"text/tabwriter"
-
-	"github.com/xqueries/xdb/internal/engine/types"
 )
 
 var (
@@ -21,19 +19,6 @@ var (
 type Table struct {
 	Cols []Col
 	Rows []Row
-}
-
-// Col is a header for a single column in a table, containing the qualified name
-// of the col, a possible alias and the col data type.
-type Col struct {
-	QualifiedName string
-	Alias         string
-	Type          types.Type
-}
-
-// Row is a one-dimensional collection of values.
-type Row struct {
-	Values []types.Value
 }
 
 // RemoveColumnByQualifiedName will remove the first column with the given
@@ -80,12 +65,15 @@ func (t Table) RemoveColumn(index int) Table {
 // over to a new table, which will then be returned. The keep function is fed
 // with one row at a time, but always all columns from the original table, to
 // facilitate checking values by index.
-func (t Table) FilterRows(keep func([]Col, Row) (bool, error)) (Table, error) {
+func (t Table) FilterRows(keep func(RowWithColInfo) (bool, error)) (Table, error) {
 	newTable := Table{
 		Cols: t.Cols,
 	}
 	for _, row := range t.Rows {
-		shouldKeep, err := keep(t.Cols, row)
+		shouldKeep, err := keep(RowWithColInfo{
+			Cols: t.Cols,
+			Row:  row,
+		})
 		if err != nil {
 			return Table{}, err
 		}
@@ -94,6 +82,19 @@ func (t Table) FilterRows(keep func([]Col, Row) (bool, error)) (Table, error) {
 		}
 	}
 	return newTable, nil
+}
+
+// Validate checks, whether all values in the table are of the correct type that the table indicates.
+// If not, an error is returned and the validation is aborted.
+func (t Table) Validate() error {
+	for rowIndex, row := range t.Rows {
+		for colIndex, value := range row.Values {
+			if !value.Is(t.Cols[colIndex].Type) {
+				return fmt.Errorf("invalid value type in row %v, expected %v (from table) but got %v (from row)", rowIndex, t.Cols[colIndex].Type, value.Type())
+			}
+		}
+	}
+	return nil
 }
 
 func (t Table) String() string {

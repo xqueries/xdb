@@ -10,6 +10,7 @@ import (
 	"github.com/xqueries/xdb/internal/engine/profile"
 	"github.com/xqueries/xdb/internal/engine/storage"
 	"github.com/xqueries/xdb/internal/engine/storage/cache"
+	"github.com/xqueries/xdb/internal/engine/table"
 )
 
 type timeProvider func() time.Time
@@ -44,7 +45,7 @@ func New(dbFile *storage.DBFile, opts ...Option) (Engine, error) {
 
 // Evaluate evaluates the given command. This may mutate the state of the
 // database, and changes may occur to the database file.
-func (e Engine) Evaluate(cmd command.Command) (Table, error) {
+func (e Engine) Evaluate(cmd command.Command) (table.Table, error) {
 	defer e.profiler.Enter(EvtEvaluate).Exit()
 
 	_ = e.eq
@@ -62,7 +63,7 @@ func (e Engine) Evaluate(cmd command.Command) (Table, error) {
 
 	result, err := e.evaluate(ctx, cmd)
 	if err != nil {
-		return Table{}, fmt.Errorf("evaluate: %w", err)
+		return table.Table{}, fmt.Errorf("evaluate: %w", err)
 	}
 	return result, nil
 }

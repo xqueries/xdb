@@ -7,3 +7,11 @@ package types
 type Caster interface {
 	Cast(Value) (Value, error)
 }
+
+// Cast attempts to cast the given value to the given target type. If the caster
+// cannot cast the given value, false will be returned, otherwise, the casted
+// value will be returned. To obtain the casting error, call (Caster).Cast instead.
+func Cast(val Value, target Caster) (Value, bool) {
+	castedVal, err := target.Cast(val)
+	return castedVal, err == nil
+}
