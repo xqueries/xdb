@@ -8,14 +8,17 @@ on:
   pull_request:
 jobs:
 
-  test:
+  build:
     name: Build for OS ${{ matrix.goos }} with ARCH ${{ matrix.goarch }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
         go_version: [ 1.15 ]
-        goos: [darwin, linux, windows]
-        goarch: [386, amd64]
+        goos: [ darwin, linux, windows ]
+        goarch: [ 386, amd64 ]
+        exclude:
+          - goos: darwin
+            goarch: 386
     steps:
     - name: Set up Go ${{ matrix.go_version }}
       uses: actions/setup-go@v1
