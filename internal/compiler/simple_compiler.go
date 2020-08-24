@@ -532,10 +532,27 @@ func (c *simpleCompiler) compileExpr(expr *ast.Expr) (command.Expr, error) {
 		if err != nil {
 			return nil, fmt.Errorf("expr1: %w", err)
 		}
-		return command.UnaryExpr{
-			Operator: expr.UnaryOperator.Value(),
-			Value:    val,
-		}, nil
+		unaryBase := command.UnaryBase{
+			Value: val,
+		}
+		switch expr.UnaryOperator.Value() {
+		case "+":
+			// + is a no-op and is removed here
+			return val, nil
+		case "-":
+			return command.UnaryNegativeExpr{
+				UnaryBase: unaryBase,
+			}, nil
+		case "~":
+			return command.UnaryBitwiseNegationExpr{
+				UnaryBase: unaryBase,
+			}, nil
+		case "NOT":
+			return command.UnaryNegationExpr{
+				UnaryBase: unaryBase,
+			}, nil
+		}
+		return nil, fmt.Errorf("unsupported unary operator %v", expr.UnaryOperator.Value())
 	case expr.BinaryOperator != nil:
 		left, err := c.compileExpr(expr.Expr1)
 		if err != nil {
@@ -545,20 +562,59 @@ func (c *simpleCompiler) compileExpr(expr *ast.Expr) (command.Expr, error) {
 		if err != nil {
 			return nil, fmt.Errorf("expr2: %w", err)
 		}
-		switch expr.BinaryOperator.Value() {
-		case "=":
-			return command.EqualityExpr{
-				Invert: expr.Not != nil,
-				Left:   left,
-				Right:  right,
-			}, nil
-		default:
+
+		binaryBase := command.BinaryBase{
+			Left:  left,
+			Right: right,
 		}
-		return command.BinaryExpr{
-			Operator: expr.BinaryOperator.Value(),
-			Left:     left,
-			Right:    right,
-		}, nil
+		switch expr.BinaryOperator.Value() {
+		case "=", "==":
+			return command.EqualityExpr{
+				BinaryBase: binaryBase,
+				Invert:     expr.Not != nil,
+			}, nil
+		case "<":
+			return command.LessThanExpr{
+				BinaryBase: binaryBase,
+			}, nil
+		case "<=":
+			return command.LessThanOrEqualToExpr{
+				BinaryBase: binaryBase,
+			}, nil
+		case ">":
+			return command.GreaterThanExpr{
+				BinaryBase: binaryBase,
+			}, nil
+		case ">=":
+			return command.GreaterThanOrEqualToExpr{
+				BinaryBase: binaryBase,
+			}, nil
+		case "+":
+			return command.AddExpression{
+				BinaryBase: binaryBase,
+			}, nil
+		case "-":
+			return command.SubExpression{
+				BinaryBase: binaryBase,
+			}, nil
+		case "*":
+			return command.MulExpression{
+				BinaryBase: binaryBase,
+			}, nil
+		case "/":
+			return command.DivExpression{
+				BinaryBase: binaryBase,
+			}, nil
+		case "%":
+			return command.ModExpression{
+				BinaryBase: binaryBase,
+			}, nil
+		case "**":
+			return command.PowExpression{
+				BinaryBase: binaryBase,
+			}, nil
+		}
+		return nil, fmt.Errorf("unsupported binary operator %v", expr.BinaryOperator.Value())
 	case expr.FunctionName != nil:
 		if !(expr.FilterClause == nil && expr.OverClause == nil) {
 			return nil, fmt.Errorf("filter or over on function: %w", ErrUnsupported)

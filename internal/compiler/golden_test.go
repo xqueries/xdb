@@ -31,6 +31,7 @@ func RunGolden(t *testing.T, input string) {
 }
 
 func runGolden(t *testing.T, input string) {
+	t.Helper()
 	t.Logf("testcase:\nname: %v\ninput: \"%v\"", t.Name(), input)
 
 	require := require.New(t)

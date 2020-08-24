@@ -1,15 +1,10 @@
 package engine
 
-import "github.com/xqueries/xdb/internal/compiler/command"
+import (
+	"github.com/xqueries/xdb/internal/compiler/command"
+	"github.com/xqueries/xdb/internal/engine/table"
+)
 
-func (e Engine) scanSimpleTable(ctx ExecutionContext, table command.SimpleTable) (Table, error) {
-	tableName := table.QualifiedName()
-
-	// only perform scan if not already scanned
-	if table, alreadyScanned := ctx.getScannedTable(tableName); alreadyScanned {
-		return table, nil
-	}
-
-	ctx.putScannedTable(table.QualifiedName(), Table{})
-	return Table{}, ErrUnimplemented("scan simple table")
+func (e Engine) scanSimpleTable(ctx ExecutionContext, tbl command.SimpleTable) (table.Table, error) {
+	return table.Table{}, ErrUnimplemented("scan simple table")
 }
