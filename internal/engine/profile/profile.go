@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"text/tabwriter"
 	"time"
 )
 
@@ -16,9 +17,10 @@ type Profile struct {
 
 func (p Profile) String() string {
 	var buf bytes.Buffer
+	w := tabwriter.NewWriter(&buf, 5, 4, 3, ' ', tabwriter.AlignRight)
 
 	evts := p.Events
-	sort.Slice(evts, func(i, j int) bool { return strings.Compare(evts[i].Object.String(), evts[j].Object.String()) < 0 })
+	sort.Slice(evts, func(i, j int) bool { return strings.Compare(evts[i].Name, evts[j].Name) < 0 })
 
 	firstEvt, lastEvt := evts[0], evts[0]
 	for _, evt := range evts {
@@ -30,31 +32,29 @@ func (p Profile) String() string {
 		}
 	}
 
-	startTime := firstEvt.Start
-	endTime := lastEvt.Start.Add(lastEvt.Duration)
-
-	_, _ = fmt.Fprintf(&buf, "Profile\n\tfrom %v\n\tto   %v\n\ttook %v\n", fmtTime(startTime), fmtTime(endTime), endTime.Sub(startTime))
-	_, _ = fmt.Fprintf(&buf, "Events (%v):\n", len(evts))
-
 	buckets := make(map[string][]Event)
 	for _, evt := range evts {
-		str := evt.Object.String()
-		buckets[str] = append(buckets[str], evt)
+		buckets[evt.Name] = append(buckets[evt.Name], evt)
 	}
 
-	for bucket, bucketEvts := range buckets {
-		_, _ = fmt.Fprintf(&buf, "\t%v (%v events)\n", bucket, len(bucketEvts))
+	_, _ = fmt.Fprintf(w, "%v\t\t%v\t%v\t%v\t\n", "event", "min", "avg", "max")
+	for _, bucketEvts := range buckets {
 		totalDuration := 0 * time.Second
+		minBucketDur := bucketEvts[0].Duration
+		maxBucketDur := bucketEvts[0].Duration
 		for _, bucketEvt := range bucketEvts {
 			totalDuration += bucketEvt.Duration
-			_, _ = fmt.Fprintf(&buf, "\t\t- %v took %v\n", fmtTime(bucketEvt.Start), bucketEvt.Duration)
+			if bucketEvt.Duration < minBucketDur {
+				minBucketDur = bucketEvt.Duration
+			}
+			if bucketEvt.Duration > maxBucketDur {
+				maxBucketDur = bucketEvt.Duration
+			}
 		}
-		_, _ = fmt.Fprintf(&buf, "\t\taverage %v, total %v\n", totalDuration/time.Duration(len(bucketEvts)), totalDuration)
+		avgBucketDur := totalDuration / time.Duration(len(bucketEvts))
+		_, _ = fmt.Fprintf(w, "%v\t\t%v\t%v\t%v\t\n", bucketEvts[0].Name, minBucketDur, avgBucketDur, maxBucketDur)
 	}
 
+	_ = w.Flush()
 	return buf.String()
-}
-
-func fmtTime(t time.Time) string {
-	return t.Format(time.RFC3339Nano)
 }

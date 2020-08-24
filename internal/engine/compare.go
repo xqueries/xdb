@@ -21,7 +21,7 @@ const (
 // as left<right. If left and right cannot be compared, e.g. because they have
 // different types, cmpUncomparable will be returned.
 func (e Engine) cmp(left, right types.Value) cmpResult {
-	defer e.profiler.Enter(EvtCompare).Exit()
+	defer e.profiler.Enter("cmp").Exit()
 
 	// types must be equal
 	if !right.Is(left.Type()) {
@@ -49,27 +49,37 @@ func (e Engine) cmp(left, right types.Value) cmpResult {
 // eq checks if left and right are equal. If left and right can't be compared
 // according to (Engine).cmp, false is returned.
 func (e Engine) eq(left, right types.Value) bool {
+	defer e.profiler.Enter("eq").Exit()
+
 	return e.cmp(left, right) == cmpEqual
 }
 
 // lt checks if the left value is less than the right value. For the <= (less
 // than or equal) relation, see (Engine).lteq.
 func (e Engine) lt(left, right types.Value) bool {
+	defer e.profiler.Enter("lt").Exit()
+
 	return e.cmp(left, right) == cmpLessThan
 }
 
 // gt checks if the left value is less than the right value. For the >= (greater
 // than or equal) relation, see (Engine).gteq.
 func (e Engine) gt(left, right types.Value) bool {
+	defer e.profiler.Enter("gt").Exit()
+
 	return e.lt(right, left)
 }
 
 // lteq checks if the left value is smaller than or equal to the right value.
 func (e Engine) lteq(left, right types.Value) bool {
+	defer e.profiler.Enter("lteq").Exit()
+
 	return e.eq(left, right) || e.lt(left, right)
 }
 
 // gteq checks if the right value is smaller than or equal to the left value.
 func (e Engine) gteq(left, right types.Value) bool {
+	defer e.profiler.Enter("gteq").Exit()
+
 	return e.eq(left, right) || e.gt(left, right)
 }

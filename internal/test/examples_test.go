@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/xqueries/xdb/internal/engine"
+	"github.com/xqueries/xdb/internal/engine/profile"
 )
 
 func TestExample01(t *testing.T) {
@@ -30,6 +31,25 @@ func TestExample02(t *testing.T) {
 			engine.WithRandomProvider(func() int64 { return 85734726843 }),
 		},
 	})
+}
+
+func TestExample02WithProfile(t *testing.T) {
+	timestamp, err := time.Parse(time.RFC3339, "2020-07-02T14:03:27Z")
+	assert.NoError(t, err)
+
+	p := profile.NewProfiler()
+
+	RunAndCompare(t, Test{
+		Name:      "example02",
+		Statement: `VALUES (NOW(), RANDOM())`,
+		EngineOptions: []engine.Option{
+			engine.WithTimeProvider(func() time.Time { return timestamp }),
+			engine.WithRandomProvider(func() int64 { return 85734726843 }),
+			engine.WithProfiler(p),
+		},
+	})
+
+	t.Logf("profile:\n%v", p.Profile().String())
 }
 
 func TestExample03(t *testing.T) {

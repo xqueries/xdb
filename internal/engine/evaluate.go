@@ -122,6 +122,8 @@ func (e Engine) evaluateProjection(ctx ExecutionContext, proj command.Project) (
 }
 
 func (e Engine) evaluateValues(ctx ExecutionContext, v command.Values) (tbl table.Table, err error) {
+	defer e.profiler.Enter("values").Exit()
+
 	var colCnt int
 	for _, values := range v.Values {
 		rowValues := make([]types.Value, len(values))
@@ -149,7 +151,7 @@ func (e Engine) evaluateValues(ctx ExecutionContext, v command.Values) (tbl tabl
 }
 
 func (e Engine) evaluateScan(ctx ExecutionContext, s command.Scan) (table.Table, error) {
-	defer e.profiler.Enter(EvtFullTableScan(s.Table.QualifiedName())).Exit()
+	defer e.profiler.Enter("scan").Exit()
 
 	switch tbl := s.Table.(type) {
 	case command.SimpleTable:

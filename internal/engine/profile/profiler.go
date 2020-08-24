@@ -1,15 +1,8 @@
 package profile
 
 import (
-	"fmt"
 	"time"
 )
-
-// Clearer wraps a basic clear method, which will clear the components contents.
-// What exactly is cleared, must be documented by the component.
-type Clearer interface {
-	Clear()
-}
 
 // NewProfiler returns a new, ready to use profiler.
 func NewProfiler() *Profiler {
@@ -25,7 +18,7 @@ type Profiler struct {
 // it originated from.
 type Event struct {
 	origin   *Profiler
-	Object   fmt.Stringer
+	Name     string
 	Start    time.Time
 	Duration time.Duration
 }
@@ -33,14 +26,14 @@ type Event struct {
 // Enter creates a profiling event. Use like this:
 //
 //	defer profiler.Enter(MyEvent).Exit()
-func (p *Profiler) Enter(object fmt.Stringer) Event {
+func (p *Profiler) Enter(name string) Event {
 	if p == nil {
 		return Event{}
 	}
 
 	return Event{
 		origin: p,
-		Object: object,
+		Name:   name,
 		Start:  time.Now(),
 	}
 }
@@ -86,7 +79,7 @@ func (e Event) Exit() {
 
 	e.origin.Exit(Event{
 		origin:   e.origin,
-		Object:   e.Object,
+		Name:     e.Name,
 		Start:    e.Start,
 		Duration: time.Since(e.Start),
 	})

@@ -16,34 +16,33 @@ import (
 	"github.com/xqueries/xdb/internal/engine/types"
 )
 
-var (
-	// suppress warnings, TODO: remove
-	_ = builtinCount
-	_ = builtinUCase
-	_ = builtinLCase
-	_ = builtinMin
-	_ = builtinMax
-)
-
 // builtinNow returns a new date value, containing the timestamp provided by the
 // given timeProvider.
-func builtinNow(tp timeProvider) (types.DateValue, error) {
+func (e Engine) builtinNow(tp timeProvider) (types.DateValue, error) {
+	defer e.profiler.Enter("now").Exit()
+
 	return types.NewDate(tp()), nil
 }
 
-func builtinRand(rp randomProvider) (types.IntegerValue, error) {
+func (e Engine) builtinRand(rp randomProvider) (types.IntegerValue, error) {
+	defer e.profiler.Enter("rand").Exit()
+
 	return types.NewInteger(rp()), nil
 }
 
 // builtinCount returns a new integral value, representing the count of the
 // passed in values.
-func builtinCount(args ...types.Value) (types.IntegerValue, error) {
+func (e Engine) builtinCount(args ...types.Value) (types.IntegerValue, error) {
+	defer e.profiler.Enter("count").Exit()
+
 	return types.NewInteger(int64(len(args))), nil
 }
 
 // builtinUCase maps all passed in string values to new string values with the
 // internal string value folded to upper case.
-func builtinUCase(args ...types.StringValue) ([]types.StringValue, error) {
+func (e Engine) builtinUCase(args ...types.StringValue) ([]types.StringValue, error) {
+	defer e.profiler.Enter("ucase").Exit()
+
 	var output []types.StringValue
 	for _, arg := range args {
 		output = append(output, types.StringValue{Value: strings.ToUpper(arg.Value)})
@@ -53,7 +52,9 @@ func builtinUCase(args ...types.StringValue) ([]types.StringValue, error) {
 
 // builtinLCase maps all passed in string values to new string values with the
 // internal string value folded to lower case.
-func builtinLCase(args ...types.StringValue) ([]types.StringValue, error) {
+func (e Engine) builtinLCase(args ...types.StringValue) ([]types.StringValue, error) {
+	defer e.profiler.Enter("lcase").Exit()
+
 	var output []types.StringValue
 	for _, arg := range args {
 		output = append(output, types.StringValue{Value: strings.ToLower(arg.Value)})
@@ -63,7 +64,9 @@ func builtinLCase(args ...types.StringValue) ([]types.StringValue, error) {
 
 // builtinMax returns the largest value out of all passed in values. The largest
 // value is determined by comparing one element to all others.
-func builtinMax(args ...types.Value) (types.Value, error) {
+func (e Engine) builtinMax(args ...types.Value) (types.Value, error) {
+	defer e.profiler.Enter("max").Exit()
+
 	if len(args) == 0 {
 		return nil, nil
 	}
@@ -92,7 +95,9 @@ func builtinMax(args ...types.Value) (types.Value, error) {
 
 // builtinMin returns the smallest value out of all passed in values. The
 // smallest value is determined by comparing one element to all others.
-func builtinMin(args ...types.Value) (types.Value, error) {
+func (e Engine) builtinMin(args ...types.Value) (types.Value, error) {
+	defer e.profiler.Enter("min").Exit()
+
 	if len(args) == 0 {
 		return nil, nil
 	}
