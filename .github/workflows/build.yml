@@ -10,6 +10,7 @@ jobs:
 
   test:
     name: Build for OS ${{ matrix.goos }} with ARCH ${{ matrix.goarch }}
+    if: ${{ matrix.goos }} != 'darwin' || ${{ matrix.goarch }} != '386'
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -24,16 +25,13 @@ jobs:
       id: go
     - uses: actions/checkout@v1
     - name: Build
-      if: ${{ matrix.goos }} != 'darwin' || ${{ matrix.goarch }} != '386'
       run: |
         GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -o ./bin/xdb -ldflags="-s -w -X 'main.Version=${GITHUB_REF}'" ./cmd/xdb
     - uses: actions-github/upx@master
-      if: ${{ matrix.goos }} != 'darwin' || ${{ matrix.goarch }} != '386'
       with:
         dir: ./bin
         upx_args: '--ultra-brute'
     - uses: actions/upload-artifact@master
-      if: ${{ matrix.goos }} != 'darwin' || ${{ matrix.goarch }} != '386'
       with:
         name: binaries
         path: ./bin
