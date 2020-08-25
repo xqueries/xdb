@@ -39,7 +39,7 @@ func TestEngine(t *testing.T) {
 	assert.Equal(false, rows[1].Values[2].(types.BoolValue).Value)
 }
 
-func createEngineOnEmptyDatabase(t *testing.T) Engine {
+func createEngineOnEmptyDatabase(t assert.TestingT) Engine {
 	assert := assert.New(t)
 
 	fs := afero.NewMemMapFs()

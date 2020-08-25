@@ -65,3 +65,10 @@ func TestExample04(t *testing.T) {
 		Statement: `SELECT * FROM (VALUES (1, 2, 3), (4, 5, 6), (7, 5, 9)) WHERE column2 = 5`,
 	})
 }
+
+func TestExample05(t *testing.T) {
+	RunAndCompare(t, Test{
+		Name:      "example05",
+		Statement: `SELECT column2 AS leftCol, column3 AS rightCol FROM (VALUES (1, 2, 3), (4, 3, 6), (7, 5, 9)) WHERE column2 >= 3`,
+	})
+}
