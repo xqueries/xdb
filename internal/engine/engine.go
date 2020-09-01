@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"encoding/binary"
 	"fmt"
 	"math/rand"
 	"time"
@@ -11,6 +12,10 @@ import (
 	"github.com/xqueries/xdb/internal/engine/storage"
 	"github.com/xqueries/xdb/internal/engine/storage/cache"
 	"github.com/xqueries/xdb/internal/engine/table"
+)
+
+var (
+	byteOrder = binary.BigEndian
 )
 
 type timeProvider func() time.Time
@@ -25,6 +30,8 @@ type Engine struct {
 
 	timeProvider   timeProvider
 	randomProvider randomProvider
+
+	tablesPageContainer PageContainer
 }
 
 // New creates a new engine object and applies the given options to it.
@@ -37,6 +44,7 @@ func New(dbFile *storage.DBFile, opts ...Option) (Engine, error) {
 		timeProvider:   time.Now,
 		randomProvider: func() int64 { return int64(rand.Uint64()) },
 	}
+	e.tablesPageContainer = e.NewPageContainer(e.dbFile.TablesPageID())
 	for _, opt := range opts {
 		opt(&e)
 	}
@@ -66,9 +74,23 @@ func (e Engine) Evaluate(cmd command.Command) (table.Table, error) {
 
 	result, err := e.evaluate(ctx, cmd)
 	if err != nil {
-		return table.Table{}, fmt.Errorf("evaluate: %w", err)
+		return nil, fmt.Errorf("evaluate: %w", err)
 	}
 	return result, nil
+}
+
+// HasTable determines whether the engine has a table with the given name
+// in the currently loaded database file.
+func (e Engine) HasTable(name string) bool {
+	tablesPageID := e.dbFile.TablesPageID()
+	tablesPage, err := e.pageCache.FetchAndPin(tablesPageID)
+	if err != nil {
+		return false
+	}
+	defer e.pageCache.Unpin(tablesPageID)
+
+	_, ok := tablesPage.Cell([]byte(name))
+	return ok
 }
 
 // Closed determines whether the underlying database file was closed. If so,

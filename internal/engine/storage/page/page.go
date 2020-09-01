@@ -121,6 +121,12 @@ func (p *Page) DeleteCell(key []byte) (ok bool, err error) {
 	return true, nil
 }
 
+// CellByString converts the given string to a byte slice and calls
+// Cell with that byte slice. This is a convenience method.
+func (p *Page) CellByString(key string) (CellTyper, bool) {
+	return p.Cell([]byte(key))
+}
+
 // Cell returns a cell from this page with the given key, or false if no such
 // cell exists in this page. In that case, the returned page is also nil.
 func (p *Page) Cell(key []byte) (CellTyper, bool) {
@@ -136,6 +142,11 @@ func (p *Page) Cells() (result []CellTyper) {
 		result = append(result, decodeCell(p.data[offset.Offset:offset.Offset+offset.Size]))
 	}
 	return
+}
+
+// CellAt returns a cell at the given slot.
+func (p *Page) CellAt(slot Slot) CellTyper {
+	return decodeCell(p.body[slot.Offset : slot.Offset+slot.Size])
 }
 
 // OccupiedSlots returns all occupied slots in the page. The slots all point to
@@ -186,7 +197,7 @@ func load(data []byte) (*Page, error) {
 func (p *Page) findCell(key []byte) (slotIndex uint16, cellSlot Slot, cell CellTyper, found bool) {
 	offsets := p.OccupiedSlots()
 	result := sort.Search(len(offsets), func(i int) bool {
-		cell := p.cellAt(offsets[i])
+		cell := p.CellAt(offsets[i])
 		switch c := cell.(type) {
 		case RecordCell:
 			return bytes.Compare(c.Key, key) >= 0
@@ -198,7 +209,7 @@ func (p *Page) findCell(key []byte) (slotIndex uint16, cellSlot Slot, cell CellT
 	if result == len(offsets) {
 		return 0, Slot{}, nil, false
 	}
-	return uint16(result), offsets[result], p.cellAt(offsets[result]), true
+	return uint16(result), offsets[result], p.CellAt(offsets[result]), true
 }
 
 func (p *Page) storePointerCell(cell PointerCell) error {
@@ -252,13 +263,13 @@ func (p *Page) storeCellSlot(slot Slot) {
 	offsets := append(p.OccupiedSlots(), slot)
 	sort.Slice(offsets, func(i, j int) bool {
 		var leftKey, rightKey []byte
-		switch c := p.cellAt(offsets[i]).(type) {
+		switch c := p.CellAt(offsets[i]).(type) {
 		case RecordCell:
 			leftKey = c.Key
 		case PointerCell:
 			leftKey = c.Key
 		}
-		switch c := p.cellAt(offsets[j]).(type) {
+		switch c := p.CellAt(offsets[j]).(type) {
 		case RecordCell:
 			rightKey = c.Key
 		case PointerCell:
@@ -269,10 +280,6 @@ func (p *Page) storeCellSlot(slot Slot) {
 	for i, offset := range offsets {
 		offset.encodeInto(p.body[BodySize-(i+1)*int(SlotByteSize):])
 	}
-}
-
-func (p *Page) cellAt(slot Slot) CellTyper {
-	return decodeCell(p.body[slot.Offset : slot.Offset+slot.Size])
 }
 
 // moveAndZero moves target bytes in the page's raw data from offset to target,

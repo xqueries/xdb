@@ -68,7 +68,7 @@ func (suite *PageManagerSuite) TestPageManager_AllocateNew() {
 
 	mgr, err := NewPageManager(file)
 	suite.NoError(err)
-	defer func() { _ = mgr.Close() }()
+	defer func() { _ = mgr.SyncFile() }()
 
 	var p []*page.Page
 	for i := 0; i < 5; i++ {

@@ -15,13 +15,14 @@ import (
 type Validator struct {
 	file afero.File
 	info os.FileInfo
+	mgr  *PageManager
 }
 
 // NewValidator creates a new validator over the given file.
 func NewValidator(file afero.File) *Validator {
 	return &Validator{
 		file: file,
-		// info is set on every run of Validate()
+		// info, mgr is set on every run of Validate()
 	}
 }
 
@@ -33,6 +34,11 @@ func (v *Validator) Validate() error {
 		return fmt.Errorf("stat: %w", err)
 	}
 	v.info = stat
+	mgr, err := NewPageManager(v.file)
+	if err != nil {
+		return fmt.Errorf("new page manager: %w", err)
+	}
+	v.mgr = mgr
 
 	validations := []struct {
 		name      string
@@ -40,7 +46,7 @@ func (v *Validator) Validate() error {
 	}{
 		{"is file", v.validateIsFile},
 		{"size", v.validateSize},
-		{"page count", v.validatePageCount},
+		{"page 0", v.validatePage0},
 	}
 
 	for _, validation := range validations {
@@ -70,28 +76,25 @@ func (v Validator) validateSize() error {
 	return nil
 }
 
-func (v Validator) validatePageCount() error {
-	mgr, err := NewPageManager(v.file)
+func (v Validator) validatePage0() error {
+	idBuf := make([]byte, 4)
+	_, err := v.file.ReadAt(idBuf, 0)
 	if err != nil {
-		return fmt.Errorf("new page manager: %w", err)
+		return fmt.Errorf("read at 0: %w", err)
+	}
+	if idBuf[0] != 0 ||
+		idBuf[1] != 0 ||
+		idBuf[2] != 0 ||
+		idBuf[3] != 0 {
+		return fmt.Errorf("ID of page at offset 0 is not 0")
 	}
 
-	headerPage, err := mgr.ReadPage(HeaderPageID)
+	page0, err := v.mgr.ReadPage(HeaderPageID)
 	if err != nil {
-		return fmt.Errorf("read header page: %w", err)
+		return fmt.Errorf("read Page 0: %w", err)
 	}
-
-	val, ok := headerPage.Cell([]byte(HeaderPageCount))
-	if !ok {
-		return fmt.Errorf("no page count header field in header page")
-	}
-	pageCountField, ok := val.(page.RecordCell)
-	if !ok {
-		return fmt.Errorf("page count cell is not a record cell (%v)", val.Type())
-	}
-	pageCount := byteOrder.Uint64(pageCountField.Record)
-	if int64(pageCount) != v.info.Size()/page.Size {
-		return fmt.Errorf("page count does not match file size (pageCount=%v,size=%v,expected count=%v)", pageCount, v.info.Size(), v.info.Size()/page.Size)
+	if page0.CellCount() != 2 {
+		return fmt.Errorf("page 0 must have exactly 2 cells")
 	}
 	return nil
 }

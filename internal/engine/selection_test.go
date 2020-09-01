@@ -14,10 +14,7 @@ func TestSelectionSuite(t *testing.T) {
 }
 
 type SelectionSuite struct {
-	suite.Suite
-
-	ctx    ExecutionContext
-	engine Engine
+	EngineSuite
 }
 
 func (suite *SelectionSuite) TestTrivialSelection() {
@@ -31,8 +28,8 @@ func (suite *SelectionSuite) TestTrivialSelection() {
 		},
 	})
 	suite.NoError(err)
-	suite.Equal(table.Table{
-		Cols: []table.Col{
+	suite.EqualTables(table.NewInMemory(
+		[]table.Col{
 			{
 				QualifiedName: "column1",
 				Type:          types.String,
@@ -46,11 +43,11 @@ func (suite *SelectionSuite) TestTrivialSelection() {
 				Type:          types.Bool,
 			},
 		},
-		Rows: []table.Row{
+		[]table.Row{
 			{Values: []types.Value{types.NewString("hello"), types.NewInteger(5), types.NewBool(true)}},
 			{Values: []types.Value{types.NewString("foo"), types.NewInteger(7), types.NewBool(false)}},
 		},
-	}, tbl)
+	), tbl)
 }
 
 func (suite *SelectionSuite) TestSimpleSelection() {
@@ -69,8 +66,8 @@ func (suite *SelectionSuite) TestSimpleSelection() {
 		},
 	})
 	suite.NoError(err)
-	suite.Equal(table.Table{
-		Cols: []table.Col{
+	suite.EqualTables(table.NewInMemory(
+		[]table.Col{
 			{
 				QualifiedName: "column1",
 				Type:          types.String,
@@ -84,10 +81,10 @@ func (suite *SelectionSuite) TestSimpleSelection() {
 				Type:          types.Bool,
 			},
 		},
-		Rows: []table.Row{
+		[]table.Row{
 			{Values: []types.Value{types.NewString("foo"), types.NewInteger(7), types.NewBool(false)}},
 		},
-	}, tbl)
+	), tbl)
 }
 
 func (suite *SelectionSuite) TestComparingSelectionGreaterThan() {
@@ -106,8 +103,8 @@ func (suite *SelectionSuite) TestComparingSelectionGreaterThan() {
 		},
 	})
 	suite.NoError(err)
-	suite.Equal(table.Table{
-		Cols: []table.Col{
+	suite.EqualTables(table.NewInMemory(
+		[]table.Col{
 			{
 				QualifiedName: "column1",
 				Type:          types.String,
@@ -121,10 +118,10 @@ func (suite *SelectionSuite) TestComparingSelectionGreaterThan() {
 				Type:          types.Bool,
 			},
 		},
-		Rows: []table.Row{
+		[]table.Row{
 			{Values: []types.Value{types.NewString("foo"), types.NewInteger(7), types.NewBool(false)}},
 		},
-	}, tbl)
+	), tbl)
 }
 
 func (suite *SelectionSuite) TestComparingSelectionLessThan() {
@@ -143,8 +140,8 @@ func (suite *SelectionSuite) TestComparingSelectionLessThan() {
 		},
 	})
 	suite.NoError(err)
-	suite.Equal(table.Table{
-		Cols: []table.Col{
+	suite.EqualTables(table.NewInMemory(
+		[]table.Col{
 			{
 				QualifiedName: "column1",
 				Type:          types.String,
@@ -158,10 +155,10 @@ func (suite *SelectionSuite) TestComparingSelectionLessThan() {
 				Type:          types.Bool,
 			},
 		},
-		Rows: []table.Row{
+		[]table.Row{
 			{Values: []types.Value{types.NewString("hello"), types.NewInteger(5), types.NewBool(true)}},
 		},
-	}, tbl)
+	), tbl)
 }
 
 func (suite *SelectionSuite) TestComparingSelectionGreaterThanOrEqualTo() {
@@ -180,8 +177,8 @@ func (suite *SelectionSuite) TestComparingSelectionGreaterThanOrEqualTo() {
 		},
 	})
 	suite.NoError(err)
-	suite.Equal(table.Table{
-		Cols: []table.Col{
+	suite.EqualTables(table.NewInMemory(
+		[]table.Col{
 			{
 				QualifiedName: "column1",
 				Type:          types.String,
@@ -195,11 +192,11 @@ func (suite *SelectionSuite) TestComparingSelectionGreaterThanOrEqualTo() {
 				Type:          types.Bool,
 			},
 		},
-		Rows: []table.Row{
+		[]table.Row{
 			{Values: []types.Value{types.NewString("hello"), types.NewInteger(5), types.NewBool(true)}},
 			{Values: []types.Value{types.NewString("foo"), types.NewInteger(7), types.NewBool(false)}},
 		},
-	}, tbl)
+	), tbl)
 }
 
 func (suite *SelectionSuite) TestComparingSelectionLessThanOrEqualTo() {
@@ -218,8 +215,8 @@ func (suite *SelectionSuite) TestComparingSelectionLessThanOrEqualTo() {
 		},
 	})
 	suite.NoError(err)
-	suite.Equal(table.Table{
-		Cols: []table.Col{
+	suite.EqualTables(table.NewInMemory(
+		[]table.Col{
 			{
 				QualifiedName: "column1",
 				Type:          types.String,
@@ -233,11 +230,11 @@ func (suite *SelectionSuite) TestComparingSelectionLessThanOrEqualTo() {
 				Type:          types.Bool,
 			},
 		},
-		Rows: []table.Row{
+		[]table.Row{
 			{Values: []types.Value{types.NewString("hello"), types.NewInteger(5), types.NewBool(true)}},
 			{Values: []types.Value{types.NewString("foo"), types.NewInteger(7), types.NewBool(false)}},
 		},
-	}, tbl)
+	), tbl)
 }
 
 func (suite *SelectionSuite) TestComparingColumns() {
@@ -256,8 +253,8 @@ func (suite *SelectionSuite) TestComparingColumns() {
 		},
 	})
 	suite.NoError(err)
-	suite.Equal(table.Table{
-		Cols: []table.Col{
+	suite.EqualTables(table.NewInMemory(
+		[]table.Col{
 			{
 				QualifiedName: "column1",
 				Type:          types.String,
@@ -267,10 +264,10 @@ func (suite *SelectionSuite) TestComparingColumns() {
 				Type:          types.String,
 			},
 		},
-		Rows: []table.Row{
+		[]table.Row{
 			{Values: []types.Value{types.NewString("foo"), types.NewString("foo")}},
 		},
-	}, tbl)
+	), tbl)
 }
 
 func (suite *SelectionSuite) TestComparingColumnAgainstString() {
@@ -289,8 +286,8 @@ func (suite *SelectionSuite) TestComparingColumnAgainstString() {
 		},
 	})
 	suite.NoError(err)
-	suite.Equal(table.Table{
-		Cols: []table.Col{
+	suite.EqualTables(table.NewInMemory(
+		[]table.Col{
 			{
 				QualifiedName: "column1",
 				Type:          types.String,
@@ -300,10 +297,10 @@ func (suite *SelectionSuite) TestComparingColumnAgainstString() {
 				Type:          types.String,
 			},
 		},
-		Rows: []table.Row{
+		[]table.Row{
 			{Values: []types.Value{types.NewString("hello"), types.NewString("world")}},
 		},
-	}, tbl)
+	), tbl)
 }
 
 func (suite *SelectionSuite) TestInvalidFilter() {
@@ -335,7 +332,7 @@ func (suite *SelectionSuite) TestInvalidFilter() {
 				},
 			},
 		})
-		suite.EqualError(err, "filter: only Bool expressions allowed as filter, got Integer")
-		suite.Zero(tbl)
+		suite.EqualError(err, "cannot use command.AddExpression as filter")
+		suite.Nil(tbl)
 	})
 }

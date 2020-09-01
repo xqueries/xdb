@@ -5,40 +5,32 @@ import (
 
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
-	"github.com/xqueries/xdb/internal/compiler/command"
+	"github.com/stretchr/testify/suite"
 	"github.com/xqueries/xdb/internal/engine/storage"
-	"github.com/xqueries/xdb/internal/engine/types"
+	"github.com/xqueries/xdb/internal/engine/table"
 )
 
-func TestEngine(t *testing.T) {
-	assert := assert.New(t)
-
-	e := createEngineOnEmptyDatabase(t)
-
-	result, err := e.Evaluate(command.Values{
-		Values: [][]command.Expr{
-			{command.LiteralExpr{Value: "hello"}, command.LiteralExpr{Value: "world"}, command.ConstantBooleanExpr{Value: true}},
-			{command.LiteralExpr{Value: "foo"}, command.LiteralExpr{Value: "bar"}, command.ConstantBooleanExpr{Value: false}},
-		},
-	})
-	assert.NoError(err)
-	assert.NotNil(result)
-
-	// check rows
-	rows := result.Rows
-	assert.Len(rows, 2)
-	// row[0]
-	assert.Equal(3, len(rows[0].Values))
-	assert.Equal("hello", rows[0].Values[0].(types.StringValue).Value)
-	assert.Equal("world", rows[0].Values[1].(types.StringValue).Value)
-	assert.Equal(true, rows[0].Values[2].(types.BoolValue).Value)
-	// row[1]
-	assert.Equal(3, len(rows[1].Values))
-	assert.Equal("foo", rows[1].Values[0].(types.StringValue).Value)
-	assert.Equal("bar", rows[1].Values[1].(types.StringValue).Value)
-	assert.Equal(false, rows[1].Values[2].(types.BoolValue).Value)
+func TestEngineSuite(t *testing.T) {
+	suite.Run(t, new(EngineSuite))
 }
 
+type EngineSuite struct {
+	suite.Suite
+
+	ctx    ExecutionContext
+	engine Engine
+	dbFile *storage.DBFile
+}
+
+func (suite *EngineSuite) SetupTest() {
+	suite.ctx = newEmptyExecutionContext()
+	suite.engine = createEngineOnEmptyDatabase(suite.T())
+	suite.dbFile = suite.engine.dbFile
+}
+
+// createEngineOnEmptyDatabase creates a new, clean, ready to use in-memory database file
+// together with a new engine that uses the fresh database. The result is a ready-to-use
+// engine on a completely empty database file that is not on the OS's file system.
 func createEngineOnEmptyDatabase(t assert.TestingT) Engine {
 	assert := assert.New(t)
 
@@ -51,4 +43,22 @@ func createEngineOnEmptyDatabase(t assert.TestingT) Engine {
 	e, err := New(dbFile)
 	assert.NoError(err)
 	return e
+}
+
+func (suite *EngineSuite) EqualTables(expected, got table.Table) {
+	suite.NotNil(got)
+	suite.Equal(expected.Cols(), got.Cols())
+	expectedIt, err := expected.Rows()
+	suite.NoError(err)
+	gotIt, err := got.Rows()
+	suite.NoError(err)
+	for {
+		expectedNext, expectedOk := expectedIt.Next()
+		gotNext, gotOk := gotIt.Next()
+		suite.Equal(expectedNext, gotNext)
+		suite.Equal(expectedOk, gotOk)
+		if !(expectedOk && gotOk) {
+			break
+		}
+	}
 }

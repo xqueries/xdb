@@ -13,6 +13,7 @@ import (
 	"github.com/xqueries/xdb/internal/compiler"
 	"github.com/xqueries/xdb/internal/engine"
 	"github.com/xqueries/xdb/internal/engine/storage"
+	"github.com/xqueries/xdb/internal/engine/table"
 	"github.com/xqueries/xdb/internal/parser"
 )
 
@@ -66,7 +67,7 @@ func runAndCompare(t *testing.T, tt Test) {
 		dbFile, err = storage.Create(f)
 		assert.NoError(err)
 	} else {
-		dbFile = loadDBFile(t, tt.Name, tt.DBFileName)
+		dbFile = loadDBFile(t, tt.DBFileName)
 	}
 
 	totalStart := time.Now()
@@ -102,26 +103,30 @@ func runAndCompare(t *testing.T, tt Test) {
 
 	result, err := e.Evaluate(cmd)
 	assert.NoError(err, "evaluate")
-	assert.NoError(e.Close())
 
 	t.Logf("evaluate: %v", time.Since(evalStart))
 	t.Logf("TOTAL: %v", time.Since(totalStart))
 
-	t.Logf("evaluation result:\n%v", result.String())
+	tableString, err := table.ToString(result)
+	assert.NoError(err)
+
+	assert.NoError(e.Close())
+
+	t.Logf("evaluation result:\n%v", tableString)
 
 	if overwriteExpected {
-		writeExpectedFile(t, tt.Name, result.String())
+		writeExpectedFile(t, tt.Name, tableString)
 	} else {
 		expectedData := loadExpectedFile(t, tt.Name)
-		assert.Equal(string(expectedData), result.String())
+		assert.Equal(string(expectedData), tableString)
 	}
 }
 
-func loadDBFile(t *testing.T, testName, fileName string) *storage.DBFile {
+func loadDBFile(t *testing.T, fileName string) *storage.DBFile {
 	assert := assert.New(t)
 
 	fs := afero.NewBasePathFs(afero.NewOsFs(), "testdata")
-	f, err := fs.Open(filepath.Join(testName, fileName))
+	f, err := fs.OpenFile(fileName, os.O_RDONLY, 0666)
 	assert.NoError(err)
 
 	dbFile, err := storage.Open(f)

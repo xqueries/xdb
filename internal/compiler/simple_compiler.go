@@ -6,19 +6,12 @@ import (
 
 	"github.com/xqueries/xdb/internal/compiler/command"
 	"github.com/xqueries/xdb/internal/compiler/optimization"
+	"github.com/xqueries/xdb/internal/engine/types"
 	"github.com/xqueries/xdb/internal/parser/ast"
 )
 
 type simpleCompiler struct {
 	optimizations []optimization.Optimization
-}
-
-// OptionEnableOptimization is used to enable the given optimization in a
-// compiler.
-func OptionEnableOptimization(opt optimization.Optimization) Option {
-	return func(c *simpleCompiler) {
-		c.optimizations = append(c.optimizations, opt)
-	}
 }
 
 // New creates a new, ready to use compiler with the given options applied.
@@ -30,6 +23,8 @@ func New(opts ...Option) Compiler {
 	return c
 }
 
+// Compile compiles the given AST to an executable command.Command. If compiling fails,
+// the compilation process will abort and the error will be returned.
 func (c *simpleCompiler) Compile(ast *ast.SQLStmt) (command.Command, error) {
 	// compile the ast
 	cmd, err := c.compileInternal(ast)
@@ -56,6 +51,12 @@ func (c *simpleCompiler) compileInternal(ast *ast.SQLStmt) (command.Command, err
 		cmd, err := c.compileSelect(ast.SelectStmt)
 		if err != nil {
 			return nil, fmt.Errorf("select: %w", err)
+		}
+		return cmd, nil
+	case ast.CreateTableStmt != nil:
+		cmd, err := c.compileCreateTable(ast.CreateTableStmt)
+		if err != nil {
+			return nil, fmt.Errorf("create table: %w", err)
 		}
 		return cmd, nil
 	case ast.DeleteStmt != nil:
@@ -102,6 +103,70 @@ func (c *simpleCompiler) compileInternal(ast *ast.SQLStmt) (command.Command, err
 		return cmd, nil
 	}
 	return nil, fmt.Errorf("statement type: %w", ErrUnsupported)
+}
+
+func (c *simpleCompiler) compileCreateTable(stmt *ast.CreateTableStmt) (command.CreateTable, error) {
+	if stmt.Temp != nil || stmt.Temporary != nil {
+		return command.CreateTable{}, fmt.Errorf("temporary table: %w", ErrUnsupported)
+	}
+	if stmt.TableName == nil {
+		return command.CreateTable{}, fmt.Errorf("no table name given")
+	}
+	tableName := stmt.TableName.Value()
+	if stmt.SchemaName != nil {
+		tableName = stmt.SchemaName.Value() + "." + tableName
+	}
+
+	if len(stmt.TableConstraint) != 0 {
+		return command.CreateTable{}, fmt.Errorf("table constraint: %w", ErrUnsupported)
+	}
+	if stmt.Without != nil {
+		return command.CreateTable{}, fmt.Errorf("without ROWID: %w", ErrUnsupported)
+	}
+	if stmt.As != nil {
+		return command.CreateTable{}, fmt.Errorf("AS: %w", ErrUnsupported)
+	}
+
+	var columnDefs []command.ColumnDef
+	for _, def := range stmt.ColumnDef {
+		if def.TypeName == nil {
+			return command.CreateTable{}, fmt.Errorf("column '%v' does not declare a type", def.ColumnName.Value())
+		}
+		if len(def.ColumnConstraint) != 0 {
+			return command.CreateTable{}, fmt.Errorf("column constraint: %w", ErrUnsupported)
+		}
+		if def.TypeName.LeftParen != nil {
+			return command.CreateTable{}, fmt.Errorf("parameterized type: %w", ErrUnsupported)
+		}
+		if len(def.TypeName.Name) != 1 {
+			return command.CreateTable{}, fmt.Errorf("multiple type names: %w", ErrUnsupported)
+		}
+
+		var colType types.Type
+		switch strings.ToLower(def.TypeName.Name[0].Value()) {
+		case "integer":
+			colType = types.Integer
+		case "real":
+			colType = types.Real
+		case "text":
+			colType = types.String
+		case "date":
+			colType = types.Date
+		default:
+			return command.CreateTable{}, fmt.Errorf("unknown type '%v'", def.TypeName.Name[0].Value())
+		}
+
+		columnDefs = append(columnDefs, command.ColumnDef{
+			Name: def.ColumnName.Value(),
+			Type: colType,
+		})
+	}
+
+	return command.CreateTable{
+		Overwrite:  stmt.If != nil,
+		Name:       tableName,
+		ColumnDefs: columnDefs,
+	}, nil
 }
 
 func (c *simpleCompiler) compileInsert(stmt *ast.InsertStmt) (command.Insert, error) {

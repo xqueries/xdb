@@ -11,8 +11,20 @@ func (e Engine) evaluate(ctx ExecutionContext, c command.Command) (table.Table, 
 	switch cmd := c.(type) {
 	case command.List:
 		return e.evaluateList(ctx, cmd)
+	case command.CreateTable:
+		tbl, err := e.evaluateCreateTable(ctx, cmd)
+		if err != nil {
+			return nil, fmt.Errorf("create table: %w", err)
+		}
+		return tbl, nil
+	case command.Insert:
+		tbl, err := e.evaluateInsert(ctx, cmd)
+		if err != nil {
+			return nil, fmt.Errorf("insert into %v: %w", cmd.Table.QualifiedName(), err)
+		}
+		return tbl, nil
 	}
-	return table.Table{}, ErrUnimplemented(c)
+	return nil, ErrUnimplemented(c)
 }
 
 func (e Engine) evaluateList(ctx ExecutionContext, l command.List) (table.Table, error) {
@@ -20,13 +32,13 @@ func (e Engine) evaluateList(ctx ExecutionContext, l command.List) (table.Table,
 	case command.Values:
 		values, err := e.evaluateValues(ctx, list)
 		if err != nil {
-			return table.Table{}, fmt.Errorf("values: %w", err)
+			return nil, fmt.Errorf("values: %w", err)
 		}
 		return values, nil
 	case command.Scan:
-		scanned, err := e.evaluateScan(ctx, list)
+		scanned, err := e.evaluateScan(list)
 		if err != nil {
-			return table.Table{}, fmt.Errorf("scan: %w", err)
+			return nil, fmt.Errorf("scan: %w", err)
 		}
 		return scanned, nil
 	case command.Project:
@@ -34,16 +46,5 @@ func (e Engine) evaluateList(ctx ExecutionContext, l command.List) (table.Table,
 	case command.Select:
 		return e.evaluateSelection(ctx, list)
 	}
-	return table.Table{}, ErrUnimplemented(l)
-}
-
-func (e Engine) evaluateScan(ctx ExecutionContext, s command.Scan) (table.Table, error) {
-	defer e.profiler.Enter("scan").Exit()
-
-	switch tbl := s.Table.(type) {
-	case command.SimpleTable:
-		return e.scanSimpleTable(ctx, tbl)
-	default:
-		return table.Table{}, ErrUnimplemented(fmt.Sprintf("scan %T", tbl))
-	}
+	return nil, ErrUnimplemented(l)
 }

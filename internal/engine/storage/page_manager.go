@@ -103,13 +103,12 @@ func (m *PageManager) AllocateNew() (*page.Page, error) {
 	return p, nil
 }
 
-// Close will sync the file with secondary storage and then close it. If syncing
-// fails, the file will not be closed, and an error will be returned.
-func (m *PageManager) Close() error {
+// SyncFile will sync the file with secondary storage. If syncing
+// fails, the error will be returned.
+func (m *PageManager) SyncFile() error {
 	if err := m.file.Sync(); err != nil {
 		return fmt.Errorf("sync: %w", err)
 	}
-	_ = m.file.Close()
 	return nil
 }
 
