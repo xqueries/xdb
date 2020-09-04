@@ -2,6 +2,7 @@ package compiler
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/xqueries/xdb/internal/compiler/command"
@@ -509,7 +510,22 @@ func (c *simpleCompiler) compileSelectCoreSelect(core *ast.SelectCore) (command.
 		}
 	} else if len(core.TableOrSubquery) == 0 {
 		if core.JoinClause == nil {
-			return nil, fmt.Errorf("nothing to select from")
+			// if there's no table to select from, use the projection columns as values, but keep the aliases
+			var values []command.Expr
+			for _, col := range cols {
+				values = append(values, col.Name)
+			}
+			var projectedCols []command.Column
+			for i, col := range cols {
+				projectedCols = append(projectedCols, command.Column{
+					Name:  command.LiteralExpr{Value: "column" + strconv.Itoa(i+1)},
+					Alias: col.Alias,
+				})
+			}
+			return command.Project{
+				Cols:  projectedCols,
+				Input: command.Values{Values: [][]command.Expr{values}},
+			}, nil
 		}
 
 		join, err := c.compileJoin(core.JoinClause)
