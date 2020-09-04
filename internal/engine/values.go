@@ -8,8 +8,11 @@ import (
 	"github.com/xqueries/xdb/internal/engine/types"
 )
 
-func (e Engine) evaluateValues(ctx ExecutionContext, v command.Values) (tbl table.Table, err error) {
+func (e Engine) evaluateValues(ctx ExecutionContext, v command.Values) (table.Table, error) {
 	defer e.profiler.Enter("values").Exit()
+
+	var rows []table.Row
+	var cols []table.Col
 
 	var colCnt int
 	for _, values := range v.Values {
@@ -18,21 +21,25 @@ func (e Engine) evaluateValues(ctx ExecutionContext, v command.Values) (tbl tabl
 		for x, value := range values {
 			internalValue, err := e.evaluateExpression(ctx, value)
 			if err != nil {
-				return table.Table{}, fmt.Errorf("expr: %w", err)
+				return nil, fmt.Errorf("expr: %w", err)
 			}
 			rowValues[x] = internalValue
 		}
-		tbl.Rows = append(tbl.Rows, table.Row{
+		rows = append(rows, table.Row{
 			Values: rowValues,
 		})
 	}
 
+	if len(rows) == 0 {
+		return table.Empty, nil
+	}
+
 	for i := 1; i <= colCnt; i++ {
-		tbl.Cols = append(tbl.Cols, table.Col{
+		cols = append(cols, table.Col{
 			QualifiedName: fmt.Sprintf("column%d", i),
-			Type:          tbl.Rows[0].Values[i-1].Type(),
+			Type:          rows[0].Values[i-1].Type(),
 		})
 	}
 
-	return
+	return table.NewInMemory(cols, rows), nil
 }

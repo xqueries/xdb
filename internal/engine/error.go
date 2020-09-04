@@ -12,15 +12,15 @@ type Error string
 func (e Error) Error() string { return string(e) }
 
 const (
-	// ErrClosed indicates that the component can not be used anymore, because
-	// it already has been closed.
-	ErrClosed Error = "already closed"
 	// ErrUnsupported indicates that a requested feature is explicitely not
 	// supported. This is different from ErrUnimplemented, since
 	// ErrUnimplemented indicates, that the feature has not been implemented
 	// yet, while ErrUnsupported indicates, that the feature is intentionally
 	// unimplemented.
 	ErrUnsupported Error = "unsupported"
+	// ErrAlreadyExists indicates, that whatever was meant to be created, already
+	// exists, and therefore, the new thing cannot be created.
+	ErrAlreadyExists Error = "already exists"
 )
 
 // ErrNoSuchFunction returns an error indicating that a function with the given

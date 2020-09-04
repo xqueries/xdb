@@ -1,15 +1,14 @@
 package storage
 
 import (
-	"encoding/binary"
 	"fmt"
 	"sync/atomic"
-	"unsafe"
 
 	"github.com/rs/zerolog"
 	"github.com/spf13/afero"
 	"github.com/xqueries/xdb/internal/engine/storage/cache"
 	"github.com/xqueries/xdb/internal/engine/storage/page"
+	"github.com/xqueries/xdb/internal/multierr"
 )
 
 const (
@@ -24,14 +23,8 @@ const (
 
 	// HeaderTables is the string key for the header page's cell "tables"
 	HeaderTables = "tables"
-	// HeaderPageCount is the string key for the header page's cell "pageCount"
-	HeaderPageCount = "pageCount"
 	// HeaderConfig is the string key for the header page's cell "config"
 	HeaderConfig = "config"
-)
-
-var (
-	byteOrder = binary.BigEndian
 )
 
 // DBFile is a database file that can be opened or created. From this file, you
@@ -46,8 +39,9 @@ type DBFile struct {
 	pageManager *PageManager
 	cache       cache.Cache
 
-	headerPage *page.Page
-	configPage *page.Page
+	headerPageID page.ID
+	tablesPageID page.ID
+	configPageID page.ID
 }
 
 // Create creates a new database in the given file with the given options. The
@@ -81,13 +75,6 @@ func Create(file afero.File, opts ...Option) (*DBFile, error) {
 		return nil, fmt.Errorf("allocate tables page: %w", err)
 	}
 
-	// store page count
-	if err := headerPage.StoreRecordCell(page.RecordCell{
-		Key:    []byte(HeaderPageCount),
-		Record: encodeUint64(3), // header, config and tables page
-	}); err != nil {
-		return nil, fmt.Errorf("store page count: %w", err)
-	}
 	// store pointer to config page
 	if err := headerPage.StorePointerCell(page.PointerCell{
 		Key:     []byte(HeaderConfig),
@@ -116,7 +103,7 @@ func Create(file afero.File, opts ...Option) (*DBFile, error) {
 		return nil, fmt.Errorf("write tables page: %w", err)
 	}
 
-	return newDB(file, mgr, headerPage, opts...)
+	return newDB(file, mgr, headerPage, tablesPage, configPage, opts...)
 }
 
 // Open opens and validates a given file and creates a (*DBFile) with the given
@@ -137,7 +124,26 @@ func Open(file afero.File, opts ...Option) (*DBFile, error) {
 		return nil, fmt.Errorf("read header page: %w", err)
 	}
 
-	return newDB(file, mgr, headerPage, opts...)
+	tablesPageID, err := pointerCellValue(headerPage, HeaderTables)
+	if err != nil {
+		return nil, fmt.Errorf("pointer cell value: %w", err)
+	}
+
+	tablesPage, err := mgr.ReadPage(tablesPageID)
+	if err != nil {
+		return nil, fmt.Errorf("read tables page: %w", err)
+	}
+
+	configPageID, err := pointerCellValue(headerPage, HeaderConfig)
+	if err != nil {
+		return nil, fmt.Errorf("pointer cell value: %w", err)
+	}
+	configPage, err := mgr.ReadPage(configPageID)
+	if err != nil {
+		return nil, fmt.Errorf("read config page: %w", err)
+	}
+
+	return newDB(file, mgr, headerPage, tablesPage, configPage, opts...)
 }
 
 // AllocateNewPage allocates and immediately persists a new page in secondary
@@ -150,14 +156,16 @@ func (db *DBFile) AllocateNewPage() (page.ID, error) {
 		return 0, ErrClosed
 	}
 
+	headerPage, err := db.pageManager.ReadPage(db.headerPageID)
+	if err != nil {
+		return 0, fmt.Errorf("read header page: %w", err)
+	}
+
 	page, err := db.pageManager.AllocateNew()
 	if err != nil {
 		return 0, fmt.Errorf("allocate new: %w", err)
 	}
-	if err := db.incrementHeaderPageCount(); err != nil {
-		return 0, fmt.Errorf("increment header page count: %w", err)
-	}
-	if err := db.pageManager.WritePage(db.headerPage); err != nil {
+	if err := db.pageManager.WritePage(headerPage); err != nil {
 		return 0, fmt.Errorf("write header page: %w", err)
 	}
 	return page.ID(), nil
@@ -172,20 +180,20 @@ func (db *DBFile) Cache() cache.Cache {
 	return db.cache
 }
 
+// TablesPageID returns the ID of the tables page in this database file.
+func (db *DBFile) TablesPageID() page.ID {
+	return db.tablesPageID
+}
+
 // Close will close the underlying cache, as well as page manager, as well as
 // the file. Everything will be closed after writing the config and header page.
 func (db *DBFile) Close() error {
-	if err := db.pageManager.WritePage(db.headerPage); err != nil {
-		return fmt.Errorf("write header page: %w", err)
-	}
-	if err := db.pageManager.WritePage(db.configPage); err != nil {
-		return fmt.Errorf("write config page: %w", err)
-	}
-	_ = db.cache.Close()
-	_ = db.pageManager.Close()
-	_ = db.file.Close()
+	errs := multierr.New()
+	errs.CollectIfNotNil(db.cache.Close())
+	errs.CollectIfNotNil(db.pageManager.SyncFile())
+	errs.CollectIfNotNil(db.file.Close())
 	atomic.StoreUint32(&db.closed, 1)
-	return nil
+	return errs.OrNil()
 }
 
 // Closed indicates, whether this file was closed.
@@ -194,63 +202,24 @@ func (db *DBFile) Closed() bool {
 }
 
 // newDB creates a new DBFile from the given objects, and applies all options.
-func newDB(file afero.File, mgr *PageManager, headerPage *page.Page, opts ...Option) (*DBFile, error) {
+func newDB(file afero.File, mgr *PageManager, headerPage, tablesPage, configPage *page.Page, opts ...Option) (*DBFile, error) {
 	db := &DBFile{
 		log:       zerolog.Nop(),
 		cacheSize: DefaultCacheSize,
 
-		file:        file,
-		pageManager: mgr,
-		headerPage:  headerPage,
+		file:         file,
+		pageManager:  mgr,
+		headerPageID: headerPage.ID(),
+		tablesPageID: tablesPage.ID(),
+		configPageID: configPage.ID(),
 	}
 	for _, opt := range opts {
 		opt(db)
 	}
 
-	if err := db.initialize(); err != nil {
-		return nil, fmt.Errorf("initialize: %w", err)
-	}
-
 	db.cache = cache.NewLRUCache(db.cacheSize, mgr)
 
 	return db, nil
-}
-
-func (db *DBFile) initialize() error {
-	// get config page id
-	cfgPageID, err := pointerCellValue(db.headerPage, HeaderConfig)
-	if err != nil {
-		return err
-	}
-
-	// read config page
-	cfgPage, err := db.pageManager.ReadPage(cfgPageID)
-	if err != nil {
-		return fmt.Errorf("can't read config page: %w", err)
-	}
-	db.configPage = cfgPage
-
-	return nil
-}
-
-// incrementHeaderPageCount will increment the 8 byte uint64 in the
-// HeaderPageCount cell by 1.
-func (db *DBFile) incrementHeaderPageCount() error {
-	val, ok := db.headerPage.Cell([]byte(HeaderPageCount))
-	if !ok {
-		return fmt.Errorf("no page count header field")
-	}
-	cell := val.(page.RecordCell)
-	byteOrder.PutUint64(cell.Record, byteOrder.Uint64(cell.Record)+1)
-	return nil
-}
-
-// encodeUint64 will allocate 8 bytes to encode the given uint64 into. This
-// newly allocated byte-slice is then returned.
-func encodeUint64(v uint64) []byte {
-	buf := make([]byte, unsafe.Sizeof(v)) // #nosec
-	byteOrder.PutUint64(buf, v)
-	return buf
 }
 
 func pointerCellValue(p *page.Page, cellKey string) (page.ID, error) {

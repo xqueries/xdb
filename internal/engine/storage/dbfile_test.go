@@ -27,11 +27,7 @@ func TestCreate(t *testing.T) {
 
 	// load the header page, which is the first page (offset 0) in the file
 	headerPage := loadPageFromOffset(assert, f, 0)
-	assert.EqualValues(3, headerPage.CellCount())
-	assert.Equal(
-		encodeUint64(3),
-		mustCell(assert, headerPage, HeaderPageCount).(page.RecordCell).Record,
-	)
+	assert.EqualValues(2, headerPage.CellCount())
 
 	// Allocating a new page must persist it is in the created database file. This
 	// check ensures, that the file is writable.
@@ -45,11 +41,7 @@ func TestCreate(t *testing.T) {
 	// check the header page again, which must have the same amount of cells,
 	// but the page count cell value must have been incremented by 1
 	headerPage = loadPageFromOffset(assert, f, 0)
-	assert.EqualValues(3, headerPage.CellCount())
-	assert.Equal(
-		encodeUint64(4),
-		mustCell(assert, headerPage, HeaderPageCount).(page.RecordCell).Record,
-	)
+	assert.EqualValues(2, headerPage.CellCount())
 
 	assert.NoError(db.Close())
 }
@@ -58,12 +50,6 @@ func mustHaveSize(assert *assert.Assertions, file afero.File, expectedSize int64
 	stat, err := file.Stat()
 	assert.NoError(err)
 	assert.EqualValues(expectedSize, stat.Size())
-}
-
-func mustCell(assert *assert.Assertions, p *page.Page, key string) page.CellTyper {
-	val, ok := p.Cell([]byte(key))
-	assert.Truef(ok, "page must have cell with key %v", key)
-	return val
 }
 
 func loadPageFromOffset(assert *assert.Assertions, rd io.ReaderAt, off int64) *page.Page {

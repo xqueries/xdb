@@ -5,7 +5,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/xqueries/xdb/internal/compiler/command"
-	"github.com/xqueries/xdb/internal/engine/table"
 )
 
 func TestFullTableScan(t *testing.T) {
@@ -20,5 +19,5 @@ func TestFullTableScan(t *testing.T) {
 		},
 	})
 	assert.NoError(err)
-	assert.Equal(table.Table{}, result)
+	assert.Nil(result)
 }

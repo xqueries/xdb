@@ -14,15 +14,7 @@ func TestProjectionSuite(t *testing.T) {
 }
 
 type ProjectionSuite struct {
-	suite.Suite
-
-	ctx    ExecutionContext
-	engine Engine
-}
-
-func (suite *ProjectionSuite) SetupTest() {
-	suite.ctx = newEmptyExecutionContext()
-	suite.engine = createEngineOnEmptyDatabase(suite.T())
+	EngineSuite
 }
 
 func (suite *ProjectionSuite) TestEmptyProjection() {
@@ -36,10 +28,7 @@ func (suite *ProjectionSuite) TestEmptyProjection() {
 		},
 	})
 	suite.NoError(err)
-	suite.Equal(table.Table{
-		Cols: []table.Col{},
-		Rows: []table.Row{},
-	}, tbl)
+	suite.EqualTables(table.Empty, tbl)
 }
 
 func (suite *ProjectionSuite) TestSimpleProjection() {
@@ -55,18 +44,18 @@ func (suite *ProjectionSuite) TestSimpleProjection() {
 		},
 	})
 	suite.NoError(err)
-	suite.Equal(table.Table{
-		Cols: []table.Col{
+	suite.EqualTables(table.NewInMemory(
+		[]table.Col{
 			{
 				QualifiedName: "column2",
 				Type:          types.String,
 			},
 		},
-		Rows: []table.Row{
+		[]table.Row{
 			{Values: []types.Value{types.NewString("world")}},
 			{Values: []types.Value{types.NewString("bar")}},
 		},
-	}, tbl)
+	), tbl)
 }
 
 func (suite *ProjectionSuite) TestSimpleProjectionWithAlias() {
@@ -85,19 +74,19 @@ func (suite *ProjectionSuite) TestSimpleProjectionWithAlias() {
 		},
 	})
 	suite.NoError(err)
-	suite.Equal(table.Table{
-		Cols: []table.Col{
+	suite.EqualTables(table.NewInMemory(
+		[]table.Col{
 			{
 				QualifiedName: "column2",
 				Alias:         "foo",
 				Type:          types.String,
 			},
 		},
-		Rows: []table.Row{
+		[]table.Row{
 			{Values: []types.Value{types.NewString("world")}},
 			{Values: []types.Value{types.NewString("bar")}},
 		},
-	}, tbl)
+	), tbl)
 }
 
 func (suite *ProjectionSuite) TestSimpleProjectionWithMissingColumn() {
@@ -115,5 +104,5 @@ func (suite *ProjectionSuite) TestSimpleProjectionWithMissingColumn() {
 		},
 	})
 	suite.EqualError(err, "no column with name or alias 'foo'")
-	suite.Equal(table.Table{}, tbl)
+	suite.Nil(tbl)
 }

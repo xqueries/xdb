@@ -13,7 +13,7 @@ func (e Engine) evaluateSelection(ctx ExecutionContext, sel command.Select) (tab
 
 	origin, err := e.evaluateList(ctx, sel.Input)
 	if err != nil {
-		return table.Table{}, fmt.Errorf("list: %w", err)
+		return nil, fmt.Errorf("list: %w", err)
 	}
 
 	// filter might have been optimized to constant expression
@@ -23,27 +23,23 @@ func (e Engine) evaluateSelection(ctx ExecutionContext, sel command.Select) (tab
 
 	switch t := sel.Filter.(type) {
 	default:
-		return table.Table{}, fmt.Errorf("cannot use %T as filter", t)
-	case command.BinaryExpression:
+		return nil, fmt.Errorf("cannot use %T as filter", t)
+	case command.EqualityExpr, command.GreaterThanExpr, command.GreaterThanOrEqualToExpr, command.LessThanExpr, command.LessThanOrEqualToExpr:
 	}
 
-	newTable, err := origin.FilterRows(func(r table.RowWithColInfo) (bool, error) {
+	return table.NewFilteredRow(origin, func(r table.RowWithColInfo) bool {
+		defer e.profiler.Enter("selection (lazy)").Exit()
 		switch filter := sel.Filter.(type) {
 		case command.BinaryExpression:
 			val, err := e.evaluateBinaryExpr(ctx.IntermediateRow(r), filter)
 			if err != nil {
-				return false, fmt.Errorf("binary expression: %w", err)
+				return false
 			}
 			if !val.Is(types.Bool) {
-				return false, fmt.Errorf("only Bool expressions allowed as filter, got %v", val.Type().Name())
+				return false
 			}
-			return val.(types.BoolValue).Value, nil
+			return val.(types.BoolValue).Value
 		}
-		return false, nil
-	})
-	if err != nil {
-		return table.Table{}, fmt.Errorf("filter: %w", err)
-	}
-
-	return newTable, nil
+		return false
+	}), nil
 }

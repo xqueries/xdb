@@ -59,23 +59,13 @@ func (t StringType) Serialize(v Value) ([]byte, error) {
 	}
 
 	str := v.(StringValue).Value
-	payload := frame([]byte(str))
-	payloadLength := len(payload)
-	data := make([]byte, 1+payloadLength) // string byte length + 1 for the indicator
-	data[0] = byte(TypeIndicatorString)
-	copy(data[1:], str)
-
-	return data, nil
+	return []byte(str), nil
 }
 
 // Deserialize reads the data size from the first 4 passed-in bytes, and then
 // converts the rest of the bytes to a string leveraging the Go runtime.
 func (t StringType) Deserialize(data []byte) (Value, error) {
-	payloadSize := int(byteOrder.Uint32(data[0:]))
-	if payloadSize+4 != len(data) {
-		return nil, ErrDataSizeMismatch(payloadSize+4, len(data))
-	}
-	return NewString(string(data[4:])), nil
+	return NewString(string(data)), nil
 }
 
 // Add concatenates the left and right right value. This only works, if left and

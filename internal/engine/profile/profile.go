@@ -37,7 +37,7 @@ func (p Profile) String() string {
 		buckets[evt.Name] = append(buckets[evt.Name], evt)
 	}
 
-	_, _ = fmt.Fprintf(w, "%v\t\t%v\t%v\t%v\t\n", "event", "min", "avg", "max")
+	_, _ = fmt.Fprintf(w, "%v\t\t%v\t%v\t%v\t%v\t\n", "event", "calls", "min", "avg", "max")
 	for _, bucketEvts := range buckets {
 		totalDuration := 0 * time.Second
 		minBucketDur := bucketEvts[0].Duration
@@ -52,7 +52,7 @@ func (p Profile) String() string {
 			}
 		}
 		avgBucketDur := totalDuration / time.Duration(len(bucketEvts))
-		_, _ = fmt.Fprintf(w, "%v\t\t%v\t%v\t%v\t\n", bucketEvts[0].Name, minBucketDur, avgBucketDur, maxBucketDur)
+		_, _ = fmt.Fprintf(w, "%v\t\t%v\t%v\t%v\t%v\t\n", bucketEvts[0].Name, len(bucketEvts), minBucketDur, avgBucketDur, maxBucketDur)
 	}
 
 	_ = w.Flush()
