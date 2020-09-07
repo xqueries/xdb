@@ -19,6 +19,8 @@ type ruleBasedScanner struct {
 	linefeedDetector   ruleset.DetectorFunc
 	rules              []ruleset.Rule
 
+	singleLineCommentDetector ruleset.DetectorFunc
+
 	state
 }
 
@@ -52,6 +54,7 @@ func NewRuleBased(input string, ruleset ruleset.Ruleset) (Scanner, error) {
 			line:      1,
 			col:       1,
 		},
+		singleLineCommentDetector: ruleset.SingleLineCommentDetector,
 	}, nil
 }
 
@@ -81,7 +84,7 @@ func (s *ruleBasedScanner) done() bool {
 }
 
 func (s *ruleBasedScanner) computeNext() token.Token {
-	s.drainWhitespace()
+	s.drainWhitespacesAndComments()
 
 	if s.done() {
 		return s.eof()
@@ -105,6 +108,15 @@ func (s *ruleBasedScanner) applyRule() token.Token {
 	return s.unexpectedToken()
 }
 
+func (s *ruleBasedScanner) drainWhitespacesAndComments() {
+	for {
+		s.drainWhitespace()
+		if !s.drainComment() {
+			return
+		}
+	}
+}
+
 func (s *ruleBasedScanner) drainWhitespace() {
 	for {
 		next, ok := s.Lookahead()
@@ -114,6 +126,83 @@ func (s *ruleBasedScanner) drainWhitespace() {
 		s.ConsumeRune()
 	}
 	_ = s.token(token.Unknown) // discard consumed tokens
+}
+
+// drainComment will check for comments and discards them
+// Using: https://www.sqlite.org/lang_comment.html
+func (s *ruleBasedScanner) drainComment() bool {
+	chkPoint := s.checkpoint()
+
+	singleLineCmt := func(s *ruleBasedScanner) bool {
+		first, ok := s.Lookahead()
+		if ok && s.singleLineCommentDetector(first) {
+			s.ConsumeRune()
+			next, ok := s.Lookahead()
+			if ok && next == first {
+				for {
+					s.ConsumeRune()
+					next, ok := s.Lookahead()
+					if !ok {
+						return true
+					}
+					if s.linefeedDetector(next) {
+						s.ConsumeRune()
+						return true
+					}
+				}
+			}
+		}
+		return false
+	}
+	multiLineCmt := func(s *ruleBasedScanner) bool {
+		first, ok := s.Lookahead()
+		if ok && first == '/' {
+			s.ConsumeRune()
+			next, ok := s.Lookahead()
+			if ok && next == '*' {
+				s.ConsumeRune()
+				for {
+					next, ok := s.Lookahead()
+					if !ok {
+						return true
+					}
+					s.ConsumeRune()
+					if next == '*' {
+						upNext, ok := s.Lookahead()
+						if !ok || upNext == '/' {
+							s.ConsumeRune()
+							return true
+						}
+					}
+				}
+			}
+		}
+		return false
+	}
+
+	found := false
+	for {
+		notFound := 0
+		if !singleLineCmt(s) {
+			notFound++
+			s.restore(chkPoint)
+		} else {
+			found = true
+			chkPoint = s.checkpoint()
+		}
+		if !multiLineCmt(s) {
+			notFound++
+			s.restore(chkPoint)
+		} else {
+			found = true
+			chkPoint = s.checkpoint()
+		}
+		if notFound == 2 {
+			break
+		}
+	}
+	_ = s.token(token.Unknown) // discard consumed tokens
+	return found
 }
 
 func (s *ruleBasedScanner) candidate() string {

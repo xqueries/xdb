@@ -9812,6 +9812,97 @@ func TestSingleStatementParse(t *testing.T) {
 				},
 			},
 		},
+		{
+			"COMMIT with comment",
+			"COMMIT -- making a commit",
+			&ast.SQLStmt{
+				CommitStmt: &ast.CommitStmt{
+					Commit: token.New(1, 1, 0, 6, token.KeywordCommit, "COMMIT"),
+				},
+			},
+		},
+		{
+			`Commented FROM clause in SELECT`,
+			"SELECT /** FROM*/ users",
+			&ast.SQLStmt{
+				SelectStmt: &ast.SelectStmt{
+					SelectCore: []*ast.SelectCore{
+						{
+							Select: token.New(1, 1, 0, 6, token.KeywordSelect, "SELECT"),
+							ResultColumn: []*ast.ResultColumn{
+								{
+									Expr: &ast.Expr{
+										LiteralValue: token.New(1, 19, 18, 5, token.Literal, "users"),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			`commenting column`,
+			"SELECT 'commented' /*, 2+3*/ FROM y",
+			&ast.SQLStmt{
+				SelectStmt: &ast.SelectStmt{
+					SelectCore: []*ast.SelectCore{
+						{
+							Select: token.New(1, 1, 0, 6, token.KeywordSelect, "SELECT"),
+							ResultColumn: []*ast.ResultColumn{
+								{
+									Expr: &ast.Expr{
+										LiteralValue: token.New(1, 8, 7, 11, token.Literal, "'commented'"),
+									},
+								},
+							},
+							From: token.New(1, 30, 29, 4, token.KeywordFrom, "FROM"),
+							TableOrSubquery: []*ast.TableOrSubquery{
+								{
+									TableName: token.New(1, 35, 34, 1, token.Literal, "y"),
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			"rename column with comment",
+			"ALTER TABLE users RENAME COLUMN name -- old \n TO username -- new",
+			&ast.SQLStmt{
+				AlterTableStmt: &ast.AlterTableStmt{
+					Alter:         token.New(1, 1, 0, 5, token.KeywordAlter, "ALTER"),
+					Table:         token.New(1, 7, 6, 5, token.KeywordTable, "TABLE"),
+					TableName:     token.New(1, 13, 12, 5, token.Literal, "users"),
+					Rename:        token.New(1, 19, 18, 6, token.KeywordRename, "RENAME"),
+					Column:        token.New(1, 26, 25, 6, token.KeywordColumn, "COLUMN"),
+					ColumnName:    token.New(1, 33, 32, 4, token.Literal, "name"),
+					To:            token.New(2, 2, 46, 2, token.KeywordTo, "TO"),
+					NewColumnName: token.New(2, 5, 49, 8, token.Literal, "username"),
+				},
+			},
+		},
+		{
+			`trailing comment`,
+			"SELECT 2 /* trailing comment",
+			&ast.SQLStmt{
+				SelectStmt: &ast.SelectStmt{
+					SelectCore: []*ast.SelectCore{
+						{
+							Select: token.New(1, 1, 0, 6, token.KeywordSelect, "SELECT"),
+							ResultColumn: []*ast.ResultColumn{
+								{
+									Expr: &ast.Expr{
+										LiteralValue: token.New(1, 8, 7, 1, token.LiteralNumeric, "2"),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 	}
 
 	for _, input := range inputs {
