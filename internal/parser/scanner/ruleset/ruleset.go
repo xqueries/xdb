@@ -12,9 +12,10 @@ type DetectorFunc func(rune) bool
 // slice of rules. A rule based scanner can work with this to create tokens from
 // the given rules.
 type Ruleset struct {
-	WhitespaceDetector DetectorFunc
-	LinefeedDetector   DetectorFunc
-	Rules              []Rule
+	WhitespaceDetector        DetectorFunc
+	LinefeedDetector          DetectorFunc
+	Rules                     []Rule
+	SingleLineCommentDetector DetectorFunc
 }
 
 // Rule describes a single scanner rule that can theoretically be applied. If
