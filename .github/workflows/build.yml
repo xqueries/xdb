@@ -28,7 +28,7 @@ jobs:
     - uses: actions/checkout@v1
     - name: Build
       run: |
-        GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -o ./bin/xdb -ldflags="-s -w -X 'main.Version=${GITHUB_REF}'" ./cmd/xdb
+        GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -o ./bin/xdb_${{ matrix.goos }}_${{ matrix.goarch }} -ldflags="-s -w -X 'main.Version=${GITHUB_REF}'" ./cmd/xdb
     - uses: actions-github/upx@master
       with:
         dir: ./bin
