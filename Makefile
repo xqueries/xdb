@@ -5,9 +5,19 @@ watch: ## Start a file watcher to run tests on change. (requires: watchexec)
 .PHONY: all
 all: lint test build ## test -> lint -> build
 
+.PHONY: deps
+deps: ## Setup or Update linters
+	go get -u github.com/kisielk/errcheck
+	go get -u golang.org/x/lint/golint
+	go get -u github.com/securego/gosec/cmd/gosec
+	go get -u honnef.co/go/tools/cmd/staticcheck
+	go mod tidy
+	go mod download
+	go mod verify
+
 .PHONY: test
 test: ## Runs the unit test suite
-	go test -race ./...
+	gotestsum --debug --format pkgname-and-test-fails -- -race ./...
 
 .PHONY: lint
 lint: ## Runs the linters (including internal ones)
