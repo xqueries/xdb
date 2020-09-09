@@ -42,7 +42,7 @@ jobs:
 
     - name: Build
       run: |
-        go build -ldflags="-s -w -X" ./cmd/xdb
+        go build -ldflags="-s -w" ./cmd/xdb
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v1
