@@ -17,14 +17,14 @@ func (e Engine) evaluateExpression(ctx ExecutionContext, expr command.Expr) (typ
 	}
 
 	switch ex := expr.(type) {
+	case command.BinaryExpression:
+		return e.evaluateBinaryExpr(ctx, ex)
 	case command.ConstantBooleanExpr:
 		return types.NewBool(ex.Value), nil
 	case command.LiteralExpr:
 		return e.evaluateLiteralExpr(ctx, ex)
 	case command.FunctionExpr:
 		return e.evaluateFunctionExpr(ctx, ex)
-	case command.BinaryExpr:
-		return e.evaluateBinaryExpr(ctx, ex)
 	}
 	return nil, ErrUnimplemented(fmt.Sprintf("evaluate %T", expr))
 }
@@ -50,13 +50,16 @@ func (e Engine) evaluateLiteralExpr(ctx ExecutionContext, expr command.LiteralEx
 	if numVal, ok := ToNumericValue(expr.Value); ok {
 		return numVal, nil
 	}
+	value := expr.Value
 	// if not a numeric literal, remove quotes and resolve escapes
 	resolved, err := strconv.Unquote(expr.Value)
-	if err != nil {
-		// use the original string
-		return types.NewString(expr.Value), nil
+	if err == nil {
+		value = resolved
 	}
-	return types.NewString(resolved), nil
+	if val, ok := ctx.intermediateRow.ValueForColName(value); ok {
+		return val, nil
+	}
+	return types.NewString(value), nil
 }
 
 func (e Engine) evaluateFunctionExpr(ctx ExecutionContext, expr command.FunctionExpr) (types.Value, error) {
@@ -69,29 +72,39 @@ func (e Engine) evaluateFunctionExpr(ctx ExecutionContext, expr command.Function
 	return e.evaluateFunction(ctx, function)
 }
 
-func (e Engine) evaluateBinaryExpr(ctx ExecutionContext, expr command.BinaryExpr) (types.Value, error) {
-	left, err := e.evaluateExpression(ctx, expr.Left)
+func (e Engine) evaluateBinaryExpr(ctx ExecutionContext, expr command.BinaryExpression) (types.Value, error) {
+	left, err := e.evaluateExpression(ctx, expr.LeftExpr())
 	if err != nil {
 		return nil, fmt.Errorf("left: %w", err)
 	}
-	right, err := e.evaluateExpression(ctx, expr.Right)
+	right, err := e.evaluateExpression(ctx, expr.RightExpr())
 	if err != nil {
 		return nil, fmt.Errorf("right: %w", err)
 	}
 
-	switch expr.Operator {
-	case "+":
+	switch expr.(type) {
+	case command.EqualityExpr:
+		return types.NewBool(e.eq(left, right)), nil
+	case command.LessThanExpr:
+		return types.NewBool(e.lt(left, right)), nil
+	case command.GreaterThanExpr:
+		return types.NewBool(e.gt(left, right)), nil
+	case command.LessThanOrEqualToExpr:
+		return types.NewBool(e.lteq(left, right)), nil
+	case command.GreaterThanOrEqualToExpr:
+		return types.NewBool(e.gteq(left, right)), nil
+	case command.AddExpression:
 		return e.add(ctx, left, right)
-	case "-":
+	case command.SubExpression:
 		return e.sub(ctx, left, right)
-	case "*":
+	case command.MulExpression:
 		return e.mul(ctx, left, right)
-	case "/":
+	case command.DivExpression:
 		return e.div(ctx, left, right)
-	case "%":
+	case command.ModExpression:
 		return e.mod(ctx, left, right)
-	case "**":
+	case command.PowExpression:
 		return e.pow(ctx, left, right)
 	}
-	return nil, ErrUnimplemented(expr.Operator)
+	return nil, ErrUnimplemented(fmt.Sprintf("%T", expr))
 }

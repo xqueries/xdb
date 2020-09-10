@@ -24,10 +24,23 @@ var (
 		TypeIndicatorReal:    Real,
 		TypeIndicatorString:  String,
 	}
+	indicatorFor = map[Type]TypeIndicator{
+		Bool:    TypeIndicatorBool,
+		Date:    TypeIndicatorDate,
+		Integer: TypeIndicatorInteger,
+		Real:    TypeIndicatorReal,
+		String:  TypeIndicatorString,
+	}
 )
 
 // ByIndicator accepts a type indicator and returns the corresponding type. If
 // the returned type is nil, the type indicator is unknown.
 func ByIndicator(indicator TypeIndicator) Type {
 	return byIndicator[indicator]
+}
+
+// IndicatorFor returns a type indicator for the given Type. If the type is not
+// known, TypeIndicatorUnknown will be returned.
+func IndicatorFor(t Type) TypeIndicator {
+	return indicatorFor[t]
 }

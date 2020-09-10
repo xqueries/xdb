@@ -6,6 +6,8 @@ package command
 import (
 	"fmt"
 	"strings"
+
+	"github.com/xqueries/xdb/internal/engine/types"
 )
 
 var _ Command = (*Explain)(nil)
@@ -186,6 +188,24 @@ type (
 	// schema defined in this command.
 	DropTrigger drop
 
+	// CreateTable instructs the executor to create a table according to this table
+	// definition.
+	CreateTable struct {
+		// Overwrite determines whether an existing table with that name should be
+		// replaced.
+		Overwrite bool
+		// Name is the name of the table to be created.
+		Name string
+		// ColumnDefs are the column definitions of the new table.
+		ColumnDefs []ColumnDef
+	}
+
+	// ColumnDef is a column definition.
+	ColumnDef struct {
+		Name string
+		Type types.Type
+	}
+
 	// Update instructs the executor to update all datasets, for which the
 	// filter expression evaluates to true, with the defined updates.
 	Update struct {
@@ -217,8 +237,8 @@ type (
 		// this is a representation derived from the AST. If this is empty, the
 		// executor has to interpolate the table from the execution context.
 		Table string
-		// Column is the name of the column.
-		Column Expr
+		// Name is the name of the column.
+		Name Expr
 		// Alias is the alias name for this table. May be empty.
 		Alias string
 	}
@@ -380,6 +400,14 @@ func (d DropView) String() string {
 	return fmt.Sprintf("DropView[view=%v,ifexists=%v]()", view, d.IfExists)
 }
 
+func (c CreateTable) String() string {
+	var cols []string
+	for _, def := range c.ColumnDefs {
+		cols = append(cols, def.Name+"("+def.Type.String()+")")
+	}
+	return fmt.Sprintf("CreateTable[name=%v,overwrite=%v,cols=[%v]]()", c.Name, c.Overwrite, strings.Join(cols, ","))
+}
+
 func (u Update) String() string {
 	var sets []string
 	for _, set := range u.Updates {
@@ -394,9 +422,9 @@ func (u UpdateSetter) String() string {
 
 func (c Column) String() string {
 	if c.Alias == "" {
-		return c.Column.String()
+		return c.Name.String()
 	}
-	return fmt.Sprintf("%v AS %v", c.Column, c.Alias)
+	return fmt.Sprintf("%v AS %v", c.Name, c.Alias)
 }
 
 func (j Join) String() string {

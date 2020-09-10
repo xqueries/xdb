@@ -156,6 +156,8 @@ func (s *tcpServer) handleIncomingNetConn(conn net.Conn) {
 	}
 	tcpConn.remoteID = parsedID
 
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	if s.onConnect != nil {
 		s.onConnect(tcpConn)
 	}

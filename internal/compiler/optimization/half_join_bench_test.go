@@ -12,18 +12,20 @@ func Benchmark_OptHalfJoin(b *testing.B) {
 	cmd := command.Project{
 		Cols: []command.Column{
 			{
-				Column: command.LiteralExpr{Value: "col1"},
-				Alias:  "myCol",
+				Name:  command.LiteralExpr{Value: "col1"},
+				Alias: "myCol",
 			},
-			{Column: command.LiteralExpr{Value: "col2"}},
+			{Name: command.LiteralExpr{Value: "col2"}},
 		},
 		Input: command.Select{
 			Filter: command.EqualityExpr{
-				Left: command.LiteralExpr{
-					Value: "foobar",
-				},
-				Right: command.LiteralExpr{
-					Value: "snafu",
+				BinaryBase: command.BinaryBase{
+					Left: command.LiteralExpr{
+						Value: "foobar",
+					},
+					Right: command.LiteralExpr{
+						Value: "snafu",
+					},
 				},
 				Invert: true,
 			},

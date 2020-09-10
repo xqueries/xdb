@@ -8,26 +8,47 @@ import (
 // to the follower node. This function generates the response to be sent to the leader node.
 // This is the response to the contact by the leader to assert it's leadership.
 func (s *SimpleServer) AppendEntriesResponse(req *message.AppendEntriesRequest) *message.AppendEntriesResponse {
+	// leader term is just "term" in the paper, but since
+	// they mean the leader's term, we choose to use this.
 	leaderTerm := req.GetTerm()
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	if s.node == nil {
+		return nil
+	}
+	s.node.PersistentState.mu.Lock()
 	nodePersistentState := s.node.PersistentState
-	nodeTerm := nodePersistentState.CurrentTerm
-	// Return false if term is greater than currentTerm,
-	// if msg Log Index is greater than node commit Index,
-	// if term of msg at PrevLogIndex doesn't match prev Log Term stored by Leader.
-	if nodeTerm > leaderTerm ||
+	currentTerm := nodePersistentState.CurrentTerm
+	selfID := s.node.PersistentState.SelfID.String()
+	s.node.PersistentState.mu.Unlock()
+
+	// Return false if the leader's term is lesser than currentTerm,
+	// because it means that the leader is in a stale state.
+	//
+	// TODO Still confused: if msg Log Index is greater than node commit Index.
+	//
+	// Return false if term of leader in PrevLogIndex doesn't match
+	// the previous Log Term stored by Leader.
+	if len(nodePersistentState.Log) > 0 && (leaderTerm < currentTerm ||
 		req.GetPrevLogIndex() > s.node.VolatileState.CommitIndex ||
-		nodePersistentState.Log[req.PrevLogIndex].Term != req.GetPrevLogTerm() {
+		nodePersistentState.Log[req.GetPrevLogIndex()].Term != req.GetPrevLogTerm()) {
 		s.node.log.
 			Debug().
-			Str("self-id", s.node.PersistentState.SelfID.String()).
+			Str("self-id", selfID).
 			Str("returning failure to append entries to", string(req.GetLeaderID())).
 			Msg("append entries failure")
 		return &message.AppendEntriesResponse{
-			Term:    nodeTerm,
+			Term:    currentTerm,
 			Success: false,
 		}
 	}
 
+	if leaderTerm >= currentTerm {
+		s.node.log.Debug().
+			Str("self-id", selfID).
+			Msg("self term out of date, returning to follower state")
+		s.node.becomeFollower()
+	}
 	entries := req.GetEntries()
 	if len(entries) > 0 {
 		nodePersistentState.mu.Lock()
@@ -58,8 +79,12 @@ func (s *SimpleServer) AppendEntriesResponse(req *message.AppendEntriesRequest) 
 		Str("returning success to append entries to", string(req.GetLeaderID())).
 		Msg("append entries success")
 
+	if s.onAppendEntries != nil {
+		s.onAppendEntries()
+	}
+
 	return &message.AppendEntriesResponse{
-		Term:    nodeTerm,
+		Term:    currentTerm,
 		Success: true,
 	}
 

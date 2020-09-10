@@ -178,9 +178,20 @@ message ConstantBooleanExpr {
     bool Value = 1;
 }
 
-message UnaryExpr {
-    string Operator = 1;
-    Expr Value = 2;
+message UnaryBase {
+    Expr Value = 1;
+}
+
+message UnaryNegativeExpr {
+    UnaryBase Value = 1;
+}
+
+message UnaryBitwiseNegationExpr {
+    UnaryBase Value = 1;
+}
+
+message UnaryNegationExpr }
+    UnaryBase Value = 1;
 }
 
 message BinaryExpr {

@@ -7,6 +7,8 @@ import (
 )
 
 func (e Engine) add(ctx ExecutionContext, left, right types.Value) (types.Value, error) {
+	defer e.profiler.Enter("add").Exit()
+
 	if left == nil || right == nil {
 		return nil, fmt.Errorf("cannot add %T and %T", left, right)
 	}
@@ -22,6 +24,8 @@ func (e Engine) add(ctx ExecutionContext, left, right types.Value) (types.Value,
 }
 
 func (e Engine) sub(ctx ExecutionContext, left, right types.Value) (types.Value, error) {
+	defer e.profiler.Enter("sub").Exit()
+
 	if left == nil || right == nil {
 		return nil, fmt.Errorf("cannot subtract %T and %T", left, right)
 	}
@@ -37,6 +41,8 @@ func (e Engine) sub(ctx ExecutionContext, left, right types.Value) (types.Value,
 }
 
 func (e Engine) mul(ctx ExecutionContext, left, right types.Value) (types.Value, error) {
+	defer e.profiler.Enter("mul").Exit()
+
 	if left == nil || right == nil {
 		return nil, fmt.Errorf("cannot multiplicate %T and %T", left, right)
 	}
@@ -52,6 +58,8 @@ func (e Engine) mul(ctx ExecutionContext, left, right types.Value) (types.Value,
 }
 
 func (e Engine) div(ctx ExecutionContext, left, right types.Value) (types.Value, error) {
+	defer e.profiler.Enter("div").Exit()
+
 	if left == nil || right == nil {
 		return nil, fmt.Errorf("cannot divide %T and %T", left, right)
 	}
@@ -67,6 +75,8 @@ func (e Engine) div(ctx ExecutionContext, left, right types.Value) (types.Value,
 }
 
 func (e Engine) mod(ctx ExecutionContext, left, right types.Value) (types.Value, error) {
+	defer e.profiler.Enter("mod").Exit()
+
 	if left == nil || right == nil {
 		return nil, fmt.Errorf("cannot modulo %T and %T", left, right)
 	}
@@ -82,6 +92,8 @@ func (e Engine) mod(ctx ExecutionContext, left, right types.Value) (types.Value,
 }
 
 func (e Engine) pow(ctx ExecutionContext, left, right types.Value) (types.Value, error) {
+	defer e.profiler.Enter("pow").Exit()
+
 	if left == nil || right == nil {
 		return nil, fmt.Errorf("cannot exponentiate %T and %T", left, right)
 	}

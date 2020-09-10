@@ -2,3 +2,4 @@
 *.log
 /xdb
 /xdb-fuzz.zip
+.idea/

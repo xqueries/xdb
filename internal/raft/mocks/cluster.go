@@ -78,7 +78,7 @@ func (_m *Cluster) OwnID() id.ID {
 	return r0
 }
 
-// Receive provides a mock function with given fields: _a0
+// Receive provides a mock function with given fields: ctx
 func (_m *Cluster) Receive(ctx context.Context) (network.Conn, message.Message, error) {
 	ret := _m.Called(ctx)
 

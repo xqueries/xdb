@@ -2,6 +2,7 @@ package raft
 
 import (
 	"context"
+	"fmt"
 	"sync"
 	"time"
 
@@ -111,7 +112,7 @@ func (t *SimpleRaftTest) BeginTest(ctx context.Context) error {
 		select {
 		case data := <-t.opChannel:
 			log.Debug().
-				Str("executing", string(data.Op)).
+				Str("executing", fmt.Sprint(data.Op)).
 				Msg("beginning execution")
 			go t.execute(data)
 		case <-shutDownTimer.C:
@@ -251,12 +252,11 @@ func (t *SimpleRaftTest) RestartNode(d *OpRestartNode) {
 
 }
 
-func createRaftNodes(log zerolog.Logger, cluster *cluster.TestNetwork) []*SimpleServer {
+func createRaftNodes(log zerolog.Logger, cluster *cluster.TCPTestNetwork) []*SimpleServer {
 	raftNodes := []*SimpleServer{}
 	for i := range cluster.Clusters {
-		node := NewServer(log, cluster.Clusters[i].Cluster)
+		node := NewServer(log, cluster.Clusters[i])
 		raftNodes = append(raftNodes, node)
 	}
-
 	return raftNodes
 }

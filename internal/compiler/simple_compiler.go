@@ -2,23 +2,17 @@ package compiler
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/xqueries/xdb/internal/compiler/command"
 	"github.com/xqueries/xdb/internal/compiler/optimization"
+	"github.com/xqueries/xdb/internal/engine/types"
 	"github.com/xqueries/xdb/internal/parser/ast"
 )
 
 type simpleCompiler struct {
 	optimizations []optimization.Optimization
-}
-
-// OptionEnableOptimization is used to enable the given optimization in a
-// compiler.
-func OptionEnableOptimization(opt optimization.Optimization) Option {
-	return func(c *simpleCompiler) {
-		c.optimizations = append(c.optimizations, opt)
-	}
 }
 
 // New creates a new, ready to use compiler with the given options applied.
@@ -30,6 +24,8 @@ func New(opts ...Option) Compiler {
 	return c
 }
 
+// Compile compiles the given AST to an executable command.Command. If compiling fails,
+// the compilation process will abort and the error will be returned.
 func (c *simpleCompiler) Compile(ast *ast.SQLStmt) (command.Command, error) {
 	// compile the ast
 	cmd, err := c.compileInternal(ast)
@@ -56,6 +52,12 @@ func (c *simpleCompiler) compileInternal(ast *ast.SQLStmt) (command.Command, err
 		cmd, err := c.compileSelect(ast.SelectStmt)
 		if err != nil {
 			return nil, fmt.Errorf("select: %w", err)
+		}
+		return cmd, nil
+	case ast.CreateTableStmt != nil:
+		cmd, err := c.compileCreateTable(ast.CreateTableStmt)
+		if err != nil {
+			return nil, fmt.Errorf("create table: %w", err)
 		}
 		return cmd, nil
 	case ast.DeleteStmt != nil:
@@ -104,6 +106,70 @@ func (c *simpleCompiler) compileInternal(ast *ast.SQLStmt) (command.Command, err
 	return nil, fmt.Errorf("statement type: %w", ErrUnsupported)
 }
 
+func (c *simpleCompiler) compileCreateTable(stmt *ast.CreateTableStmt) (command.CreateTable, error) {
+	if stmt.Temp != nil || stmt.Temporary != nil {
+		return command.CreateTable{}, fmt.Errorf("temporary table: %w", ErrUnsupported)
+	}
+	if stmt.TableName == nil {
+		return command.CreateTable{}, fmt.Errorf("no table name given")
+	}
+	tableName := stmt.TableName.Value()
+	if stmt.SchemaName != nil {
+		tableName = stmt.SchemaName.Value() + "." + tableName
+	}
+
+	if len(stmt.TableConstraint) != 0 {
+		return command.CreateTable{}, fmt.Errorf("table constraint: %w", ErrUnsupported)
+	}
+	if stmt.Without != nil {
+		return command.CreateTable{}, fmt.Errorf("without ROWID: %w", ErrUnsupported)
+	}
+	if stmt.As != nil {
+		return command.CreateTable{}, fmt.Errorf("AS: %w", ErrUnsupported)
+	}
+
+	var columnDefs []command.ColumnDef
+	for _, def := range stmt.ColumnDef {
+		if def.TypeName == nil {
+			return command.CreateTable{}, fmt.Errorf("column '%v' does not declare a type", def.ColumnName.Value())
+		}
+		if len(def.ColumnConstraint) != 0 {
+			return command.CreateTable{}, fmt.Errorf("column constraint: %w", ErrUnsupported)
+		}
+		if def.TypeName.LeftParen != nil {
+			return command.CreateTable{}, fmt.Errorf("parameterized type: %w", ErrUnsupported)
+		}
+		if len(def.TypeName.Name) != 1 {
+			return command.CreateTable{}, fmt.Errorf("multiple type names: %w", ErrUnsupported)
+		}
+
+		var colType types.Type
+		switch strings.ToLower(def.TypeName.Name[0].Value()) {
+		case "integer":
+			colType = types.Integer
+		case "real":
+			colType = types.Real
+		case "text":
+			colType = types.String
+		case "date":
+			colType = types.Date
+		default:
+			return command.CreateTable{}, fmt.Errorf("unknown type '%v'", def.TypeName.Name[0].Value())
+		}
+
+		columnDefs = append(columnDefs, command.ColumnDef{
+			Name: def.ColumnName.Value(),
+			Type: colType,
+		})
+	}
+
+	return command.CreateTable{
+		Overwrite:  stmt.If != nil,
+		Name:       tableName,
+		ColumnDefs: columnDefs,
+	}, nil
+}
+
 func (c *simpleCompiler) compileInsert(stmt *ast.InsertStmt) (command.Insert, error) {
 	if stmt.Replace != nil {
 		return command.Insert{}, fmt.Errorf("replace: %w", ErrUnsupported)
@@ -140,7 +206,7 @@ func (c *simpleCompiler) compileInsert(stmt *ast.InsertStmt) (command.Insert, er
 	if len(stmt.ColumnName) != 0 {
 		for _, col := range stmt.ColumnName {
 			cols = append(cols, command.Column{
-				Column: command.LiteralExpr{Value: col.Value()},
+				Name: command.LiteralExpr{Value: col.Value()},
 			})
 		}
 	}
@@ -444,7 +510,22 @@ func (c *simpleCompiler) compileSelectCoreSelect(core *ast.SelectCore) (command.
 		}
 	} else if len(core.TableOrSubquery) == 0 {
 		if core.JoinClause == nil {
-			return nil, fmt.Errorf("nothing to select from")
+			// if there's no table to select from, use the projection columns as values, but keep the aliases
+			var values []command.Expr
+			for _, col := range cols {
+				values = append(values, col.Name)
+			}
+			var projectedCols []command.Column
+			for i, col := range cols {
+				projectedCols = append(projectedCols, command.Column{
+					Name:  command.LiteralExpr{Value: "column" + strconv.Itoa(i+1)},
+					Alias: col.Alias,
+				})
+			}
+			return command.Project{
+				Cols:  projectedCols,
+				Input: command.Values{Values: [][]command.Expr{values}},
+			}, nil
 		}
 
 		join, err := c.compileJoin(core.JoinClause)
@@ -499,8 +580,8 @@ func (c *simpleCompiler) compileResultColumn(col *ast.ResultColumn) (command.Col
 			tableName = col.TableName.Value()
 		}
 		return command.Column{
-			Table:  tableName,
-			Column: command.LiteralExpr{Value: "*"},
+			Table: tableName,
+			Name:  command.LiteralExpr{Value: "*"},
 		}, nil
 	}
 
@@ -515,8 +596,8 @@ func (c *simpleCompiler) compileResultColumn(col *ast.ResultColumn) (command.Col
 	}
 
 	return command.Column{
-		Alias:  alias,
-		Column: expr,
+		Alias: alias,
+		Name:  expr,
 	}, nil
 }
 
@@ -532,10 +613,27 @@ func (c *simpleCompiler) compileExpr(expr *ast.Expr) (command.Expr, error) {
 		if err != nil {
 			return nil, fmt.Errorf("expr1: %w", err)
 		}
-		return command.UnaryExpr{
-			Operator: expr.UnaryOperator.Value(),
-			Value:    val,
-		}, nil
+		unaryBase := command.UnaryBase{
+			Value: val,
+		}
+		switch expr.UnaryOperator.Value() {
+		case "+":
+			// + is a no-op and is removed here
+			return val, nil
+		case "-":
+			return command.UnaryNegativeExpr{
+				UnaryBase: unaryBase,
+			}, nil
+		case "~":
+			return command.UnaryBitwiseNegationExpr{
+				UnaryBase: unaryBase,
+			}, nil
+		case "NOT":
+			return command.UnaryNegationExpr{
+				UnaryBase: unaryBase,
+			}, nil
+		}
+		return nil, fmt.Errorf("unsupported unary operator %v", expr.UnaryOperator.Value())
 	case expr.BinaryOperator != nil:
 		left, err := c.compileExpr(expr.Expr1)
 		if err != nil {
@@ -545,20 +643,59 @@ func (c *simpleCompiler) compileExpr(expr *ast.Expr) (command.Expr, error) {
 		if err != nil {
 			return nil, fmt.Errorf("expr2: %w", err)
 		}
-		switch expr.BinaryOperator.Value() {
-		case "=":
-			return command.EqualityExpr{
-				Invert: expr.Not != nil,
-				Left:   left,
-				Right:  right,
-			}, nil
-		default:
+
+		binaryBase := command.BinaryBase{
+			Left:  left,
+			Right: right,
 		}
-		return command.BinaryExpr{
-			Operator: expr.BinaryOperator.Value(),
-			Left:     left,
-			Right:    right,
-		}, nil
+		switch expr.BinaryOperator.Value() {
+		case "=", "==":
+			return command.EqualityExpr{
+				BinaryBase: binaryBase,
+				Invert:     expr.Not != nil,
+			}, nil
+		case "<":
+			return command.LessThanExpr{
+				BinaryBase: binaryBase,
+			}, nil
+		case "<=":
+			return command.LessThanOrEqualToExpr{
+				BinaryBase: binaryBase,
+			}, nil
+		case ">":
+			return command.GreaterThanExpr{
+				BinaryBase: binaryBase,
+			}, nil
+		case ">=":
+			return command.GreaterThanOrEqualToExpr{
+				BinaryBase: binaryBase,
+			}, nil
+		case "+":
+			return command.AddExpression{
+				BinaryBase: binaryBase,
+			}, nil
+		case "-":
+			return command.SubExpression{
+				BinaryBase: binaryBase,
+			}, nil
+		case "*":
+			return command.MulExpression{
+				BinaryBase: binaryBase,
+			}, nil
+		case "/":
+			return command.DivExpression{
+				BinaryBase: binaryBase,
+			}, nil
+		case "%":
+			return command.ModExpression{
+				BinaryBase: binaryBase,
+			}, nil
+		case "**":
+			return command.PowExpression{
+				BinaryBase: binaryBase,
+			}, nil
+		}
+		return nil, fmt.Errorf("unsupported binary operator %v", expr.BinaryOperator.Value())
 	case expr.FunctionName != nil:
 		if !(expr.FilterClause == nil && expr.OverClause == nil) {
 			return nil, fmt.Errorf("filter or over on function: %w", ErrUnsupported)

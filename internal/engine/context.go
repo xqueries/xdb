@@ -1,45 +1,29 @@
 package engine
 
 import (
-	"sync"
-
+	"github.com/xqueries/xdb/internal/engine/table"
 	"github.com/xqueries/xdb/internal/id"
 )
 
 // ExecutionContext is a context that is passed down throughout a complete
 // evaluation. It may be populated further.
 type ExecutionContext struct {
-	*executionContext
-}
+	id id.ID
 
-type executionContext struct {
-	id                id.ID
-	scannedTablesLock sync.Mutex
-	scannedTables     map[string]Table
+	intermediateRow table.RowWithColInfo
 }
 
 func newEmptyExecutionContext() ExecutionContext {
 	return ExecutionContext{
-		executionContext: &executionContext{
-			id:            id.Create(),
-			scannedTables: make(map[string]Table),
-		},
+		id: id.Create(),
 	}
 }
 
-func (c ExecutionContext) putScannedTable(name string, table Table) {
-	c.scannedTablesLock.Lock()
-	defer c.scannedTablesLock.Unlock()
-
-	c.scannedTables[name] = table
-}
-
-func (c ExecutionContext) getScannedTable(name string) (Table, bool) {
-	c.scannedTablesLock.Lock()
-	defer c.scannedTablesLock.Unlock()
-
-	tbl, ok := c.scannedTables[name]
-	return tbl, ok
+// IntermediateRow sets the current intermediate row that might be needed for evaluating expressions
+// in the context, and returns the context.
+func (c ExecutionContext) IntermediateRow(row table.RowWithColInfo) ExecutionContext {
+	c.intermediateRow = row
+	return c
 }
 
 func (c ExecutionContext) String() string {

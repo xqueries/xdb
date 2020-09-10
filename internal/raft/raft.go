@@ -5,6 +5,7 @@ import (
 	"io"
 	"math/rand"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/rs/zerolog"
@@ -55,6 +56,7 @@ type PersistentState struct {
 type VolatileState struct {
 	CommitIndex int32
 	LastApplied int32
+	Votes       int32
 }
 
 // VolatileStateLeader describes the volatile state data that exists on a raft leader.
@@ -78,6 +80,8 @@ type SimpleServer struct {
 	onLeaderElected    func()
 	onAppendEntries    func()
 	onCompleteOneRound func()
+
+	timerReset chan struct{}
 }
 
 // incomingData describes every request that the server gets.
@@ -95,10 +99,12 @@ func newServer(log zerolog.Logger, cluster Cluster, timeoutProvider func(*Node) 
 	if timeoutProvider == nil {
 		timeoutProvider = randomTimer
 	}
+	resetChan := make(chan struct{}, 2)
 	return &SimpleServer{
 		log:             log.With().Str("component", "raft").Logger(),
 		cluster:         cluster,
 		timeoutProvider: timeoutProvider,
+		timerReset:      resetChan,
 	}
 }
 
@@ -110,12 +116,15 @@ func NewRaftNode(cluster Cluster) *Node {
 		nextIndex = append(nextIndex, -1)
 		matchIndex = append(matchIndex, -1)
 	}
+
 	connIDMap := make(map[id.ID]int)
 	for i := range cluster.Nodes() {
 		connIDMap[cluster.Nodes()[i].RemoteID()] = i
 	}
+
 	node := &Node{
-		State: StateCandidate.String(),
+		// All servers start as followers, on timeouts, they become candidates.
+		State: StateFollower.String(),
 		PersistentState: &PersistentState{
 			CurrentTerm: 0,
 			VotedFor:    nil,
@@ -126,6 +135,7 @@ func NewRaftNode(cluster Cluster) *Node {
 		VolatileState: &VolatileState{
 			CommitIndex: -1,
 			LastApplied: -1,
+			Votes:       0,
 		},
 		VolatileStateLeader: &VolatileStateLeader{
 			NextIndex:  nextIndex,
@@ -168,6 +178,7 @@ func (s *SimpleServer) Start(ctx context.Context) (err error) {
 			if err != nil {
 				return
 			}
+
 			if msg != nil {
 				node.log.
 					Debug().
@@ -188,19 +199,28 @@ func (s *SimpleServer) Start(ctx context.Context) (err error) {
 	for {
 		// If any sort of request (heartbeat,appendEntries,requestVote)
 		// isn't received by the server(node) it restarts leader election.
+		if s.node == nil {
+			return
+		}
 		select {
 		case <-s.timeoutProvider(node).C:
 			s.lock.Lock()
 			if s.node == nil {
+				s.lock.Unlock()
 				return
 			}
-			s.lock.Unlock()
-			// One round is said to be complete when leader election
-			// is started for all terms except the first term.
-			if s.node.PersistentState.CurrentTerm != 1 && s.onCompleteOneRound != nil {
-				s.onCompleteOneRound()
+			// If this node is already the leader the time-outs are irrelevant.
+			if s.node.PersistentState.LeaderID != s.node.PersistentState.SelfID {
+				// One round is said to be complete when leader election
+				// is started for all terms except the first term.
+				if s.node.PersistentState.CurrentTerm != 1 && s.onCompleteOneRound != nil {
+					s.onCompleteOneRound()
+				}
+				s.lock.Unlock()
+				s.StartElection(ctx)
+			} else {
+				s.lock.Unlock()
 			}
-			s.StartElection(ctx)
 		case data := <-liveChan:
 			err = s.processIncomingData(data)
 			if err != nil {
@@ -208,6 +228,10 @@ func (s *SimpleServer) Start(ctx context.Context) (err error) {
 			}
 		case <-ctx.Done():
 			return
+		case <-s.timerReset:
+			// When a timer reset signal is received, this
+			// select loop is restarted, effectively restarting
+			// the timer.
 		}
 	}
 }
@@ -261,8 +285,7 @@ func randomTimer(node *Node) *time.Timer {
 		Str("self-id", node.PersistentState.SelfID.String()).
 		Int("random timer set to", randomInt).
 		Msg("heart beat timer")
-	ticker := time.NewTimer(time.Duration(randomInt) * time.Millisecond)
-	return ticker
+	return time.NewTimer(time.Duration(randomInt) * time.Millisecond)
 }
 
 // processIncomingData is responsible for parsing the incoming data and calling
@@ -274,14 +297,56 @@ func (s *SimpleServer) processIncomingData(data *incomingData) error {
 	switch data.msg.Kind() {
 	case message.KindRequestVoteRequest:
 		requestVoteRequest := data.msg.(*message.RequestVoteRequest)
-		requestVoteResponse := s.node.RequestVoteResponse(requestVoteRequest)
+		requestVoteResponse := s.RequestVoteResponse(requestVoteRequest)
 		payload, err := message.Marshal(requestVoteResponse)
 		if err != nil {
 			return err
 		}
+
 		err = data.conn.Send(ctx, payload)
 		if err != nil {
 			return err
+		}
+	case message.KindRequestVoteResponse:
+		requestVoteResponse := data.msg.(*message.RequestVoteResponse)
+		if requestVoteResponse.GetVoteGranted() {
+			s.lock.Lock()
+			s.node.log.
+				Debug().
+				Str("received vote from", "someone").
+				Msg("voting from peer")
+			selfID := s.node.PersistentState.SelfID
+			s.lock.Unlock()
+			votesRecieved := atomic.AddInt32(&s.node.VolatileState.Votes, 1)
+
+			// Check whether this node has already voted.
+			// Else it can vote for itself.
+			s.node.PersistentState.mu.Lock()
+			defer s.node.PersistentState.mu.Unlock()
+
+			if s.node.PersistentState.VotedFor == nil {
+				s.node.PersistentState.VotedFor = selfID
+				s.node.log.
+					Debug().
+					Str("self-id", selfID.String()).
+					Msg("node voting for itself")
+				votesRecieved = atomic.AddInt32(&s.node.VolatileState.Votes, 1)
+			}
+			// Election win criteria, votes this node has is majority in the cluster and
+			// this node is not already the Leader.
+			if votesRecieved > int32(len(s.node.PersistentState.PeerIPs)/2) && s.node.State != StateLeader.String() {
+				// This node has won the election.
+				s.node.State = StateLeader.String()
+				s.node.PersistentState.LeaderID = selfID
+				s.node.log.
+					Debug().
+					Str("self-id", selfID.String()).
+					Msg("node elected leader")
+				// Reset the votes of this term once its elected leader.
+				s.node.VolatileState.Votes = 0
+				s.startLeader(selfID.String())
+				return nil
+			}
 		}
 	case message.KindAppendEntriesRequest:
 
@@ -297,6 +362,12 @@ func (s *SimpleServer) processIncomingData(data *incomingData) error {
 		}
 	// When the leader gets a forwarded append input message from one of it's followers.
 	case message.KindLogAppendRequest:
+		// This log append request was meant to the leader ONLY.
+		// This handles issues where the leader changed in the transit.
+		if s.node.PersistentState.LeaderID != s.node.PersistentState.SelfID {
+			s.relayDataToServer(data.msg.(*message.LogAppendRequest))
+			return nil
+		}
 		logAppendRequest := data.msg.(*message.LogAppendRequest)
 		input := logAppendRequest.Data
 		logData := message.NewLogData(s.node.PersistentState.CurrentTerm, input)

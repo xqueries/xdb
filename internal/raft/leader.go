@@ -8,21 +8,22 @@ import (
 )
 
 // startLeader begins the leaders operations.
-// The node passed as argument is the leader node.
+// The selfID is passed as an argument for two reasons,
+// one it acts as a double check that this node is inturn the leader,
+// and second, tit reduces locks to find out the selfID in the future.
+//
 // The leader begins by sending append entries RPC to the nodes.
 // The leader sends periodic append entries request to the
 // followers to keep them alive.
 // Empty append entries request are also called heartbeats.
 // The data that goes in the append entries request is determined by
 // existance of data in the LogChannel channel.
-func (s *SimpleServer) startLeader() {
+func (s *SimpleServer) startLeader(selfID string) {
 
-	s.lock.Lock()
 	s.node.log.
 		Debug().
-		Str("self-id", s.node.PersistentState.SelfID.String()).
+		Str("self-id", selfID).
 		Msg("starting leader election proceedings")
-	s.lock.Unlock()
 
 	go func() {
 		// The loop that the leader stays in until it's functioning properly.
@@ -47,7 +48,7 @@ func (s *SimpleServer) startLeader() {
 			}
 			s.node.PersistentState.mu.Unlock()
 
-			s.node.sendHeartBeats()
+			s.node.sendHeartBeats(selfID)
 			s.lock.Unlock()
 
 			if s.onAppendEntries != nil {
@@ -57,24 +58,21 @@ func (s *SimpleServer) startLeader() {
 	}()
 }
 
-func (node *Node) sendHeartBeats() {
+func (node *Node) sendHeartBeats(selfIDString string) {
 	ctx := context.TODO()
 
 	node.PersistentState.mu.Lock()
 	savedCurrentTerm := node.PersistentState.CurrentTerm
 	node.PersistentState.mu.Unlock()
 
-	var appendEntriesRequest *message.AppendEntriesRequest
-
 	// Parallely send AppendEntriesRPC to all followers.
 	for i := range node.PersistentState.PeerIPs {
 		node.log.
 			Debug().
-			Str("self-id", node.PersistentState.SelfID.String()).
+			Str("self-id", selfIDString).
 			Msg("sending heartbeats")
 		go func(i int) {
 			node.PersistentState.mu.Lock()
-			defer node.PersistentState.mu.Unlock()
 
 			nextIndex := node.VolatileStateLeader.NextIndex[i]
 			prevLogIndex := nextIndex
@@ -83,16 +81,17 @@ func (node *Node) sendHeartBeats() {
 				prevLogTerm = int(node.PersistentState.Log[prevLogIndex].Term)
 			}
 			commitIndex := node.VolatileState.CommitIndex
+			conn := node.PersistentState.PeerIPs[i]
 			selfID := node.PersistentState.SelfID
-
 			// Logs are included from the nextIndex value to the current appended values
 			// in the leader node. If there are none, no logs will be appended.
 			var entries []*message.LogData
 			if nextIndex >= 0 {
 				entries = node.PersistentState.Log[nextIndex:]
 			}
+			node.PersistentState.mu.Unlock()
 
-			appendEntriesRequest = message.NewAppendEntriesRequest(
+			appendEntriesRequest := message.NewAppendEntriesRequest(
 				savedCurrentTerm,
 				selfID,
 				int32(prevLogIndex),
@@ -105,31 +104,31 @@ func (node *Node) sendHeartBeats() {
 			if err != nil {
 				node.log.
 					Err(err).
-					Str("Node", node.PersistentState.SelfID.String()).
+					Str("Node", selfIDString).
 					Msg("error")
 				return
 			}
 
-			err = node.PersistentState.PeerIPs[i].Send(ctx, payload)
+			err = conn.Send(ctx, payload)
 			if err != nil {
 				node.log.
 					Err(err).
-					Str("Node", selfID.String()).
+					Str("Node", selfIDString).
 					Msg("error")
 				return
 			}
 
 			node.log.
 				Debug().
-				Str("self-id", selfID.String()).
-				Str("sent to", node.PersistentState.PeerIPs[i].RemoteID().String()).
+				Str("self-id", selfIDString).
+				Str("sent to", conn.RemoteID().String()).
 				Msg("sent heartbeat to peer")
 
-			res, err := node.PersistentState.PeerIPs[i].Receive(ctx)
+			res, err := conn.Receive(ctx)
 			if err != nil {
 				node.log.
 					Err(err).
-					Str("Node", selfID.String()).
+					Str("Node", selfIDString).
 					Msg("error")
 				return
 			}
@@ -138,7 +137,7 @@ func (node *Node) sendHeartBeats() {
 			if err != nil {
 				node.log.
 					Err(err).
-					Str("Node", selfID.String()).
+					Str("Node", selfIDString).
 					Msg("error")
 				return
 			}
@@ -150,25 +149,26 @@ func (node *Node) sendHeartBeats() {
 			// from being a leader.
 			if appendEntriesResponse.Term > savedCurrentTerm {
 				node.log.Debug().
-					Str(node.PersistentState.SelfID.String(), "stale term").
-					Str("following newer node", node.PersistentState.PeerIPs[i].RemoteID().String())
+					Str(selfIDString, "stale term").
+					Str("following newer node", conn.RemoteID().String())
 				node.becomeFollower()
 				return
 			}
 
 			if node.State == StateLeader.String() && appendEntriesResponse.Term == savedCurrentTerm {
 				if appendEntriesResponse.Success {
+					node.PersistentState.mu.Lock()
 					node.VolatileStateLeader.NextIndex[i] = nextIndex + len(entries)
+					node.PersistentState.mu.Unlock()
 				} else {
 					// If this appendEntries request failed,
 					// proceed and retry in the next cycle.
 					node.log.
 						Debug().
-						Str("self-id", node.PersistentState.SelfID.String()).
-						Str("received failure to append entries from", node.PersistentState.PeerIPs[i].RemoteID().String()).
+						Str("self-id", selfIDString).
+						Str("received failure to append entries from", conn.RemoteID().String()).
 						Msg("failed to append entries")
 				}
-
 			}
 		}(i)
 	}
