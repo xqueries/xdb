@@ -296,6 +296,94 @@ func TestRuleBasedScanner(t *testing.T) {
 				token.New(1, 4, 3, 0, token.EOF, ""),
 			},
 		},
+		{
+			"one line comment '-' after query",
+			"2+3 -- expression",
+			ruleset.Default,
+			[]token.Token{
+				token.New(1, 1, 0, 1, token.LiteralNumeric, "2"),
+				token.New(1, 2, 1, 1, token.UnaryOperator, "+"),
+				token.New(1, 3, 2, 1, token.LiteralNumeric, "3"),
+				token.New(1, 18, 17, 0, token.EOF, ""),
+			},
+		},
+		{
+			"one line comment '/' after query",
+			"2+3 // expression",
+			ruleset.Default,
+			[]token.Token{
+				token.New(1, 1, 0, 1, token.LiteralNumeric, "2"),
+				token.New(1, 2, 1, 1, token.UnaryOperator, "+"),
+				token.New(1, 3, 2, 1, token.LiteralNumeric, "3"),
+				token.New(1, 18, 17, 0, token.EOF, ""),
+			},
+		},
+		{
+			"one line comment before query",
+			"-- expression\n 2+3",
+			ruleset.Default,
+			[]token.Token{
+				token.New(2, 2, 15, 1, token.LiteralNumeric, "2"),
+				token.New(2, 3, 16, 1, token.UnaryOperator, "+"),
+				token.New(2, 4, 17, 1, token.LiteralNumeric, "3"),
+				token.New(2, 5, 18, 0, token.EOF, ""),
+			},
+		},
+		{
+			"multi-line comment after 2*3",
+			"2*3 /* expression */",
+			ruleset.Default,
+			[]token.Token{
+				token.New(1, 1, 0, 1, token.LiteralNumeric, "2"),
+				token.New(1, 2, 1, 1, token.BinaryOperator, "*"),
+				token.New(1, 3, 2, 1, token.LiteralNumeric, "3"),
+				token.New(1, 21, 20, 0, token.EOF, ""),
+			},
+		},
+		{
+			"multi-line comment without end",
+			"2*3 /* expression ",
+			ruleset.Default,
+			[]token.Token{
+				token.New(1, 1, 0, 1, token.LiteralNumeric, "2"),
+				token.New(1, 2, 1, 1, token.BinaryOperator, "*"),
+				token.New(1, 3, 2, 1, token.LiteralNumeric, "3"),
+				token.New(1, 19, 18, 0, token.EOF, ""),
+			},
+		},
+		{
+			"multi line comment before 2/3",
+			"/* expression */ 2/3",
+			ruleset.Default,
+			[]token.Token{
+				token.New(1, 18, 17, 1, token.LiteralNumeric, "2"),
+				token.New(1, 19, 18, 1, token.BinaryOperator, "/"),
+				token.New(1, 20, 19, 1, token.LiteralNumeric, "3"),
+				token.New(1, 21, 20, 0, token.EOF, ""),
+			},
+		},
+		{
+			"multi line comment between 2/3",
+			"2/*numerator*//3/*denominator*/",
+			ruleset.Default,
+			[]token.Token{
+				token.New(1, 1, 0, 1, token.LiteralNumeric, "2"),
+				token.New(1, 15, 14, 1, token.BinaryOperator, "/"),
+				token.New(1, 16, 15, 1, token.LiteralNumeric, "3"),
+				token.New(1, 32, 31, 0, token.EOF, ""),
+			},
+		},
+		{
+			"both types of comments",
+			"2+3/* expression */ // expressions\n ",
+			ruleset.Default,
+			[]token.Token{
+				token.New(1, 1, 0, 1, token.LiteralNumeric, "2"),
+				token.New(1, 2, 1, 1, token.UnaryOperator, "+"),
+				token.New(1, 3, 2, 1, token.LiteralNumeric, "3"),
+				token.New(2, 2, 36, 0, token.EOF, ""),
+			},
+		},
 	}
 	for _, input := range inputs {
 		t.Run("ruleset=default/"+input.name, _TestRuleBasedScannerWithRuleset(input.query, input.ruleset, input.want))

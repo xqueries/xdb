@@ -15,12 +15,15 @@ var (
 	// compatibility with other database systems, and are therefore simpler to
 	// read and write.
 	Default = Ruleset{
-		WhitespaceDetector: defaultWhitespaceDetector.Matches,
-		LinefeedDetector:   defaultLinefeedDetector.Matches,
-		Rules:              defaultRules,
+		WhitespaceDetector:        defaultWhitespaceDetector.Matches,
+		LinefeedDetector:          defaultLinefeedDetector.Matches,
+		Rules:                     defaultRules,
+		SingleLineCommentDetector: defaultSingleLineCommentDetector.Matches,
 	}
-	// defaultWhitespaceDetector matches all the the whitespaces that this ruleset allows
+	// defaultWhitespaceDetector matches all the whitespaces that this ruleset allows
 	defaultWhitespaceDetector = matcher.New("whitespace", unicode.Space)
+	// defaultSingleLineCommentDetector matches the single line comment characters i.e `-/` that this ruleset allows
+	defaultSingleLineCommentDetector = matcher.String("-/")
 	// defaultLinefeedDetector is the linefeed detector that this ruleset allows
 	defaultLinefeedDetector   = matcher.RuneWithDesc("linefeed", '\n')
 	defaultStatementSeparator = matcher.RuneWithDesc("statement separator", ';')
