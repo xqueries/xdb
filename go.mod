@@ -5,7 +5,7 @@ go 1.13
 require (
 	github.com/google/go-cmp v0.5.2
 	github.com/oklog/ulid v1.3.1
-	github.com/rs/zerolog v1.19.0
+	github.com/rs/zerolog v1.20.0
 	github.com/spf13/afero v1.3.5
 	github.com/spf13/cobra v1.0.0
 	github.com/stretchr/testify v1.6.1
