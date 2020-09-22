@@ -40,10 +40,11 @@ func NewLogData(term int32, data command.Command) *LogData {
 
 // NewAppendEntriesResponse creates a new append-entries-response message with
 // the given parameters.
-func NewAppendEntriesResponse(term int32, success bool) *AppendEntriesResponse {
+func NewAppendEntriesResponse(term int32, success bool, entriesLength int32) *AppendEntriesResponse {
 	return &AppendEntriesResponse{
-		Term:    term,
-		Success: success,
+		Term:          term,
+		Success:       success,
+		EntriesLength: entriesLength,
 	}
 }
 

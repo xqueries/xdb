@@ -2,7 +2,9 @@ package raft
 
 import (
 	"context"
+	"fmt"
 	"os"
+	"sync"
 	"testing"
 	"time"
 
@@ -30,8 +32,10 @@ import (
 // 6. Cluster's "Nodes", "OwnID", "Receive" characteristics are set to appropriate responses.
 // 7. The hooks are set in order to end the raft operation as soon as the append entries
 // 	  requests are registered.
+// 8. The mechanism of a response to recieve is set only such that a RequestVote is asked for,
+// 	  the cluster.Receive function responsds. This is done by listening on a closing channel,
+//	  where the channel is closed if the RequestVote or the AppendEntries is recevied.
 func TestRaftFromLeaderPerspective(t *testing.T) {
-	t.SkipNow()
 	assert := assert.New(t)
 	ctx := context.Background()
 	log := zerolog.New(os.Stdout).With().Logger().Level(zerolog.GlobalLevel())
@@ -58,28 +62,57 @@ func TestRaftFromLeaderPerspective(t *testing.T) {
 	conn3 = addRemoteID(conn3)
 	conn4 = addRemoteID(conn4)
 
-	conn1.On("Send", ctx, mock.IsType([]byte{})).Return(nil)
-	conn2.On("Send", ctx, mock.IsType([]byte{})).Return(nil)
-	conn3.On("Send", ctx, mock.IsType([]byte{})).Return(nil)
-	conn4.On("Send", ctx, mock.IsType([]byte{})).Return(nil)
+	server := newServer(
+		log,
+		cluster,
+		timeoutProvider,
+	)
 
-	reqVRes1 := message.NewRequestVoteResponse(1, true)
-	// payload1, err := message.Marshal(reqVRes1)
-	// assert.NoError(err)
+	var (
+		chanConn1 = make(chan time.Time)
+		chanConn2 = make(chan time.Time)
+		chanConn3 = make(chan time.Time)
+		chanConn4 = make(chan time.Time)
+	)
 
-	cluster.On("Receive", ctx).Return(conn1, reqVRes1, nil).Once()
-	cluster.On("Receive", ctx).Return(conn2, reqVRes1, nil).Once()
-	cluster.On("Receive", ctx).Return(conn3, reqVRes1, nil).Once()
-	cluster.On("Receive", ctx).Return(conn4, reqVRes1, nil).Once()
+	server.OnRequestVotes(func(conn network.Conn) {
+		switch conn {
+		case conn1:
+			close(chanConn1)
+		case conn2:
+			close(chanConn2)
+		case conn3:
+			close(chanConn3)
+		case conn4:
+			close(chanConn4)
+		}
+	})
 
-	appERes1 := message.NewAppendEntriesResponse(1, true)
-	// payload2, err := message.Marshal(appERes1)
-	// assert.NoError(err)
+	server.OnLeaderElected(func() {})
 
-	cluster.On("Receive", ctx).Return(conn1, appERes1, nil)
-	cluster.On("Receive", ctx).Return(conn2, appERes1, nil)
-	cluster.On("Receive", ctx).Return(conn3, appERes1, nil)
-	cluster.On("Receive", ctx).Return(conn4, appERes1, nil)
+	var (
+		chanConnAppE1 = make(chan time.Time)
+		chanConnAppE2 = make(chan time.Time)
+		chanConnAppE3 = make(chan time.Time)
+		chanConnAppE4 = make(chan time.Time)
+	)
+
+	server.OnAppendEntriesRequest(func(conn network.Conn) {
+		switch conn {
+		case conn1:
+			close(chanConnAppE1)
+		case conn2:
+			close(chanConnAppE2)
+		case conn3:
+			close(chanConnAppE3)
+		case conn4:
+			close(chanConnAppE4)
+		}
+		err := server.Close()
+		if err != network.ErrClosed {
+			assert.NoError(err)
+		}
+	})
 
 	// set up cluster to return the slice of connections on demand.
 	cluster.
@@ -93,30 +126,31 @@ func TestRaftFromLeaderPerspective(t *testing.T) {
 
 	cluster.On("Close").Return(nil)
 
-	server := newServer(
-		log,
-		cluster,
-		timeoutProvider,
-	)
+	conn1.On("Send", ctx, mock.IsType([]byte{})).Return(nil)
+	conn2.On("Send", ctx, mock.IsType([]byte{})).Return(nil)
+	conn3.On("Send", ctx, mock.IsType([]byte{})).Return(nil)
+	conn4.On("Send", ctx, mock.IsType([]byte{})).Return(nil)
 
-	times := 0
-	server.OnRequestVotes(func(msg *message.RequestVoteRequest) {})
-	server.OnLeaderElected(func() {})
-	server.OnAppendEntries(func() {
-		times++
-		if times == 5 {
-			err := server.Close()
-			if err != network.ErrClosed {
-				assert.NoError(err)
-			}
-		}
-	})
+	reqVRes1 := message.NewRequestVoteResponse(1, true)
+
+	cluster.On("Receive", ctx).Return(conn1, reqVRes1, nil).WaitUntil(chanConn1).Once()
+	cluster.On("Receive", ctx).Return(conn2, reqVRes1, nil).WaitUntil(chanConn2).Once()
+	cluster.On("Receive", ctx).Return(conn3, reqVRes1, nil).WaitUntil(chanConn3).Once()
+	cluster.On("Receive", ctx).Return(conn4, reqVRes1, nil).WaitUntil(chanConn4).Once()
+
+	appERes1 := message.NewAppendEntriesResponse(1, true, 1)
+
+	cluster.On("Receive", ctx).Return(conn1, appERes1, nil).WaitUntil(chanConnAppE1)
+	cluster.On("Receive", ctx).Return(conn2, appERes1, nil).WaitUntil(chanConnAppE2)
+	cluster.On("Receive", ctx).Return(conn3, appERes1, nil).WaitUntil(chanConnAppE3)
+	cluster.On("Receive", ctx).Return(conn4, appERes1, nil).WaitUntil(chanConnAppE4)
+
 	err := server.Start(ctx)
 	assert.NoError(err)
+
 }
 
 func TestRaftFromFollowerPerspective(t *testing.T) {
-	t.SkipNow()
 	assert := assert.New(t)
 	ctx := context.Background()
 	log := zerolog.New(os.Stdout).With().Logger().Level(zerolog.GlobalLevel())
@@ -159,6 +193,8 @@ func TestRaftFromFollowerPerspective(t *testing.T) {
 		timeoutProvider,
 	)
 
+	server.OnRequestVotes(func(network.Conn) {})
+
 	reqV := message.NewRequestVoteRequest(1, id.Create(), 1, 1)
 
 	cluster.On("Receive", ctx).Return(conn1Leader, reqV, nil).Once()
@@ -176,11 +212,12 @@ func TestRaftFromFollowerPerspective(t *testing.T) {
 	cluster.On("Receive", ctx).Return(conn1Leader, appEnt, nil)
 
 	times := 0
-	server.OnRequestVotes(func(msg *message.RequestVoteRequest) {})
+
 	server.OnLeaderElected(func() {})
-	server.OnAppendEntries(func() {
+	server.OnAppendEntriesResponse(func() {
 		times++
 		if times == 5 {
+			fmt.Println("LOL")
 			err := server.Close()
 			if err != network.ErrClosed {
 				assert.NoError(err)
@@ -218,15 +255,18 @@ func TestIntegration(t *testing.T) {
 				Data: []*command.Command{},
 			},
 		},
-		{
-			Op:   StopNode,
-			Data: &OpStopNode{},
-		},
+		// {
+		// 	Op: StopNode,
+		// 	Data: &OpStopNode{
+		// 		1,
+		// 	},
+		// },
 	}
 	opParams := OperationParameters{
-		Rounds:     2,
-		TimeLimit:  2,
-		Operations: operations,
+		Rounds:             2,
+		TimeLimit:          3,
+		Operations:         operations,
+		OperationPushDelay: 500,
 	}
 
 	testNetwork := cluster.NewTCPTestNetwork(t, 5)
@@ -245,4 +285,15 @@ func TestIntegration(t *testing.T) {
 	}()
 
 	<-time.After(time.Duration(opParams.TimeLimit) * time.Second)
+}
+
+func contains(s []network.Conn, e network.Conn, lock sync.Mutex) bool {
+	lock.Lock()
+	defer lock.Unlock()
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
 }

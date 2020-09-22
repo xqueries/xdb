@@ -1,6 +1,9 @@
 package raft
 
 import (
+	"log"
+
+	"github.com/xqueries/xdb/internal/id"
 	"github.com/xqueries/xdb/internal/raft/message"
 )
 
@@ -12,10 +15,13 @@ func (s *SimpleServer) AppendEntriesResponse(req *message.AppendEntriesRequest) 
 	// they mean the leader's term, we choose to use this.
 	leaderTerm := req.GetTerm()
 	s.lock.Lock()
-	defer s.lock.Unlock()
-	if s.node == nil {
+	if s.node.Closed {
+		s.lock.Unlock()
+		log.Println("node was closed, returning")
 		return nil
 	}
+	s.lock.Unlock()
+
 	s.node.PersistentState.mu.Lock()
 	nodePersistentState := s.node.PersistentState
 	currentTerm := nodePersistentState.CurrentTerm
@@ -38,17 +44,23 @@ func (s *SimpleServer) AppendEntriesResponse(req *message.AppendEntriesRequest) 
 			Str("returning failure to append entries to", string(req.GetLeaderID())).
 			Msg("append entries failure")
 		return &message.AppendEntriesResponse{
-			Term:    currentTerm,
-			Success: false,
+			Term:          currentTerm,
+			Success:       false,
+			EntriesLength: 0,
 		}
 	}
 
-	if leaderTerm >= currentTerm {
+	if leaderTerm > currentTerm {
 		s.node.log.Debug().
 			Str("self-id", selfID).
 			Msg("self term out of date, returning to follower state")
-		s.node.becomeFollower()
+		leaderID, err := id.Parse(req.GetLeaderID())
+		if err != nil {
+			log.Printf("error in parsing leader ID in AppendEntriesResponse: %v\n", err)
+		}
+		s.node.becomeFollower(leaderTerm, leaderID)
 	}
+
 	entries := req.GetEntries()
 	if len(entries) > 0 {
 		nodePersistentState.mu.Lock()
@@ -79,13 +91,14 @@ func (s *SimpleServer) AppendEntriesResponse(req *message.AppendEntriesRequest) 
 		Str("returning success to append entries to", string(req.GetLeaderID())).
 		Msg("append entries success")
 
-	if s.onAppendEntries != nil {
-		s.onAppendEntries()
+	if s.onAppendEntriesResponse != nil {
+		s.onAppendEntriesResponse()
 	}
 
 	return &message.AppendEntriesResponse{
-		Term:    currentTerm,
-		Success: true,
+		Term:          currentTerm,
+		Success:       true,
+		EntriesLength: int32(len(req.Entries)),
 	}
 
 }

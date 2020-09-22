@@ -46,7 +46,7 @@ func (s *SimpleServer) StartElection(ctx context.Context) {
 				lastLogTerm,
 			)
 			s.lock.Lock()
-			if s.node == nil {
+			if s.node.Closed {
 				return
 			}
 			nodeConn := s.node.PersistentState.PeerIPs[i]

@@ -3,11 +3,13 @@ package raft
 import (
 	"context"
 	"fmt"
+	"log"
 	"sync"
 	"time"
 
+	"github.com/pkg/errors"
+
 	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 	"github.com/xqueries/xdb/internal/raft/cluster"
 )
 
@@ -98,29 +100,30 @@ func (t *SimpleRaftTest) BeginTest(ctx context.Context) error {
 	shutDownTimer := time.NewTimer(time.Duration(t.OpParams().TimeLimit) * time.Second)
 
 	// start the execution goroutine.
-	log.Debug().Msg("beginning execution goroutine")
+	t.log.Debug().Msg("beginning execution goroutine")
 	go t.executeOperation()
 
-	log.Debug().Msg("initiating operation injection")
+	t.log.Debug().Msg("initiating operation injection")
 	go t.pushOperations()
 
 	// Look for incoming operations and parallely run them
 	// while waiting for the limit of the execution.
+	//
 	// Once the limit of the execution is reached, wait for
 	// all operations to finish and end the test.
 	for {
 		select {
 		case data := <-t.opChannel:
-			log.Debug().
+			t.log.Debug().
 				Str("executing", fmt.Sprint(data.Op)).
 				Msg("beginning execution")
 			go t.execute(data)
 		case <-shutDownTimer.C:
-			log.Debug().
+			t.log.Debug().
 				Msg("shutting down - reached time limit")
 			return t.GracefulShutdown()
 		case <-t.roundsChan:
-			log.Debug().
+			t.log.Debug().
 				Msg("shutting down - reached round limit")
 			return t.GracefulShutdown()
 		}
@@ -134,19 +137,23 @@ func (t *SimpleRaftTest) GracefulShutdown() error {
 	var errSlice multiError
 	var errLock sync.Mutex
 	for i := range t.raftNodes {
-		err := t.raftNodes[i].Close()
-		if err != nil {
-			errLock.Lock()
-			errSlice = append(errSlice, err)
-			errLock.Unlock()
+		if !t.raftNodes[i].node.Closed {
+			err := t.raftNodes[i].Close()
+			if err != nil {
+				errLock.Lock()
+				errSlice = append(errSlice, err)
+				errLock.Unlock()
+			}
 		}
 	}
+	errSlice = append(errSlice, errors.New("some error"))
+
 	if len(errSlice) != 0 {
 		return errSlice
 	}
 
 	t.shutdown <- true
-	log.Debug().
+	t.log.Debug().
 		Msg("gracefully shutting down")
 	return nil
 }
@@ -157,13 +164,14 @@ func (t *SimpleRaftTest) InjectOperation(op Operation, args interface{}) {
 		Op:   op,
 		Data: args,
 	}
-	log.Debug().Msg("injecting operation")
+	t.log.Debug().Msg("injecting operation")
 	t.opChannel <- opData
 }
 
 // pushOperations pushes operations into the execution queue.
 func (t *SimpleRaftTest) pushOperations() {
 	for i := range t.parameters.Operations {
+		time.Sleep(time.Duration(t.parameters.OperationPushDelay) * time.Millisecond)
 		t.opChannel <- t.parameters.Operations[i]
 	}
 }
@@ -171,7 +179,7 @@ func (t *SimpleRaftTest) pushOperations() {
 // execute appends the operation to the queue which will
 // be cleared in definite intervals.
 func (t *SimpleRaftTest) execute(opData OpData) {
-	log.Debug().Msg("operation moved to execution channel")
+	t.log.Debug().Msg("operation moved to execution channel")
 	t.execChannel <- opData
 }
 
@@ -187,10 +195,10 @@ func (t *SimpleRaftTest) executeOperation() {
 	for {
 		select {
 		case <-t.shutdown:
-			log.Debug().Msg("execution shutting down")
+			t.log.Debug().Msg("execution shutting down")
 			return
 		case operation := <-t.execChannel:
-			log.Debug().Msg("executing operation")
+			t.log.Debug().Msg("executing operation")
 			switch operation.Op {
 			case SendData:
 				d := operation.Data.(*OpSendData)
@@ -221,7 +229,7 @@ func (t *SimpleRaftTest) roundHook() {
 // SendData sends command data to the cluster by calling
 // the appropriate function in the raft module.
 func (t *SimpleRaftTest) SendData(d *OpSendData) {
-
+	fmt.Println("Send data invoked")
 }
 
 // StopNode stops the given node in the network.
@@ -231,7 +239,20 @@ func (t *SimpleRaftTest) SendData(d *OpSendData) {
 // The implementation can involve killing/stopping the
 // respective node.
 func (t *SimpleRaftTest) StopNode(d *OpStopNode) {
-
+	if t.raftNodes[d.NodeID].node.Closed {
+		t.log.Debug().
+			Int("node ID", d.NodeID).
+			Msg("can't stop node, already stopped")
+		return
+	}
+	t.log.Debug().
+		Int("node ID", d.NodeID).
+		Msg("stopping the node")
+	fmt.Printf("\n\n\n\n\n\n\nBRO\n]n\n\n\n\n")
+	err := t.raftNodes[d.NodeID].Close()
+	if err != nil {
+		log.Fatalf("cant stop node: %d, error: %v\n", d.NodeID, err)
+	}
 }
 
 // PartitionNetwork partitions the network into one or more
@@ -243,12 +264,16 @@ func (t *SimpleRaftTest) StopNode(d *OpStopNode) {
 // in the respective "cluster" variable so that they are no
 // longer available to access it.
 func (t *SimpleRaftTest) PartitionNetwork(d *OpPartitionNetwork) {
-
+	fmt.Println("Partition network invoked")
 }
 
 // RestartNode restarts a previously stopped node which has
 // all resources allocated to it but went down for any reason.
 func (t *SimpleRaftTest) RestartNode(d *OpRestartNode) {
+
+	t.log.Debug().
+		Int("node ID", d.NodeID).
+		Msg("restarting the node")
 
 }
 

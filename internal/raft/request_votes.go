@@ -29,15 +29,13 @@ func (s *SimpleServer) RequestVote(ctx context.Context, nodeConn network.Conn, r
 	}
 
 	err = nodeConn.Send(ctx, payload)
-	fmt.Println("BROO")
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
 
 	// Set the hook for a request vote completion.
 	if s.onRequestVotes != nil {
-		s.onRequestVotes(req)
+		s.onRequestVotes(nodeConn)
 	}
 
 	return nil
@@ -83,7 +81,7 @@ func (s *SimpleServer) RequestVoteResponse(req *message.RequestVoteRequest) *mes
 			Msg("voting a peer")
 
 		s.timerReset <- struct{}{}
-
+		s.node.PersistentState.mu.Unlock()
 		return &message.RequestVoteResponse{
 			Term:        currentTerm,
 			VoteGranted: true,

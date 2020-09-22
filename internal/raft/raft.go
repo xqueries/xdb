@@ -3,6 +3,7 @@ package raft
 import (
 	"context"
 	"io"
+	"log"
 	"math/rand"
 	"sync"
 	"sync/atomic"
@@ -37,6 +38,8 @@ type Node struct {
 	PersistentState     *PersistentState
 	VolatileState       *VolatileState
 	VolatileStateLeader *VolatileStateLeader
+
+	Closed bool
 }
 
 // PersistentState describes the persistent state data on a raft node.
@@ -76,10 +79,11 @@ type SimpleServer struct {
 	timeoutProvider func(*Node) *time.Timer
 	lock            sync.Mutex
 
-	onRequestVotes     func(*message.RequestVoteRequest)
-	onLeaderElected    func()
-	onAppendEntries    func()
-	onCompleteOneRound func()
+	onRequestVotes          func(network.Conn)
+	onLeaderElected         func()
+	onAppendEntriesRequest  func(network.Conn)
+	onAppendEntriesResponse func()
+	onCompleteOneRound      func()
 
 	timerReset chan struct{}
 }
@@ -141,6 +145,7 @@ func NewRaftNode(cluster Cluster) *Node {
 			NextIndex:  nextIndex,
 			MatchIndex: matchIndex,
 		},
+		Closed: false,
 	}
 	return node
 }
@@ -157,6 +162,7 @@ func (s *SimpleServer) Start(ctx context.Context) (err error) {
 		s.log.Debug().
 			Str("self-id", s.node.PersistentState.SelfID.String()).
 			Msg("already open")
+		s.lock.Unlock()
 		return network.ErrOpen
 	}
 	// Initialise all raft variables in this node.
@@ -164,9 +170,9 @@ func (s *SimpleServer) Start(ctx context.Context) (err error) {
 	node.PersistentState.mu.Lock()
 	node.log = s.log
 	s.node = node
-	s.lock.Unlock()
 	selfID := node.PersistentState.SelfID
 	node.PersistentState.mu.Unlock()
+	s.lock.Unlock()
 
 	// liveChan is a channel that passes the incomingData once received.
 	liveChan := make(chan *incomingData)
@@ -176,6 +182,7 @@ func (s *SimpleServer) Start(ctx context.Context) (err error) {
 			// Parallely start waiting for incoming data.
 			conn, msg, err := s.cluster.Receive(ctx)
 			if err != nil {
+				log.Printf("error in receiving from the cluster: %v\n", err)
 				return
 			}
 
@@ -185,27 +192,31 @@ func (s *SimpleServer) Start(ctx context.Context) (err error) {
 					Str("self-id", selfID.String()).
 					Str("received", msg.Kind().String()).
 					Msg("received request")
-				liveChan <- &incomingData{
-					conn,
-					msg,
-				}
+				liveChan <- newIncomingData(conn, msg)
 			}
 		}
 	}()
 
 	// This block of code checks what kind of request has to be serviced
 	// and calls the necessary function to complete it.
-
 	for {
 		// If any sort of request (heartbeat,appendEntries,requestVote)
 		// isn't received by the server(node) it restarts leader election.
-		if s.node == nil {
+		s.node.PersistentState.mu.Lock()
+		if s.node.Closed {
+			s.node.PersistentState.mu.Unlock()
 			return
 		}
+		s.node.PersistentState.mu.Unlock()
+
 		select {
 		case <-s.timeoutProvider(node).C:
+			if s.node.PersistentState.LeaderID == s.node.PersistentState.SelfID {
+				break
+			}
 			s.lock.Lock()
-			if s.node == nil {
+			if s.node.Closed {
+				log.Printf("node was closed, exiting")
 				s.lock.Unlock()
 				return
 			}
@@ -224,6 +235,7 @@ func (s *SimpleServer) Start(ctx context.Context) (err error) {
 		case data := <-liveChan:
 			err = s.processIncomingData(data)
 			if err != nil {
+				log.Printf("error in processing data: %v\n", err)
 				return
 			}
 		case <-ctx.Done():
@@ -262,7 +274,7 @@ func (s *SimpleServer) Input(input *message.Command) {
 func (s *SimpleServer) Close() error {
 	s.lock.Lock()
 	// Maintaining idempotency of the close function.
-	if s.node == nil {
+	if s.node.Closed {
 		return network.ErrClosed
 	}
 	s.node.
@@ -271,15 +283,19 @@ func (s *SimpleServer) Close() error {
 		Str("self-id", s.node.PersistentState.SelfID.String()).
 		Msg("closing node")
 
-	s.node = nil
+	s.node.PersistentState.mu.Lock()
+	s.node.Closed = true
+	s.node.PersistentState.mu.Unlock()
+
 	err := s.cluster.Close()
 	s.lock.Unlock()
+
 	return err
 }
 
 // randomTimer returns tickers ranging from 150ms to 300ms.
 func randomTimer(node *Node) *time.Timer {
-	randomInt := rand.Intn(150) + 150
+	randomInt := rand.Intn(150) + 450
 	node.log.
 		Debug().
 		Str("self-id", node.PersistentState.SelfID.String()).
@@ -311,9 +327,10 @@ func (s *SimpleServer) processIncomingData(data *incomingData) error {
 		requestVoteResponse := data.msg.(*message.RequestVoteResponse)
 		if requestVoteResponse.GetVoteGranted() {
 			s.lock.Lock()
+			voterID := s.getNodeID(data.conn)
 			s.node.log.
 				Debug().
-				Str("received vote from", "someone").
+				Str("received vote from", voterID.String()).
 				Msg("voting from peer")
 			selfID := s.node.PersistentState.SelfID
 			s.lock.Unlock()
@@ -322,7 +339,6 @@ func (s *SimpleServer) processIncomingData(data *incomingData) error {
 			// Check whether this node has already voted.
 			// Else it can vote for itself.
 			s.node.PersistentState.mu.Lock()
-			defer s.node.PersistentState.mu.Unlock()
 
 			if s.node.PersistentState.VotedFor == nil {
 				s.node.PersistentState.VotedFor = selfID
@@ -344,12 +360,13 @@ func (s *SimpleServer) processIncomingData(data *incomingData) error {
 					Msg("node elected leader")
 				// Reset the votes of this term once its elected leader.
 				s.node.VolatileState.Votes = 0
+				s.node.PersistentState.mu.Unlock()
 				s.startLeader(selfID.String())
 				return nil
 			}
+			s.node.PersistentState.mu.Unlock()
 		}
 	case message.KindAppendEntriesRequest:
-
 		appendEntriesRequest := data.msg.(*message.AppendEntriesRequest)
 		appendEntriesResponse := s.AppendEntriesResponse(appendEntriesRequest)
 		payload, err := message.Marshal(appendEntriesResponse)
@@ -358,7 +375,48 @@ func (s *SimpleServer) processIncomingData(data *incomingData) error {
 		}
 		err = data.conn.Send(ctx, payload)
 		if err != nil {
+			log.Printf("error in sending AppendEntriesResponse: %v\n", err)
 			return err
+		}
+	case message.KindAppendEntriesResponse:
+
+		s.node.log.Debug().
+			Str("node-id", s.getNodeID(data.conn).String()).
+			Msg("received append entries response")
+
+		appendEntriesResponse := data.msg.(*message.AppendEntriesResponse)
+
+		s.node.PersistentState.mu.Lock()
+		savedCurrentTerm := s.node.PersistentState.CurrentTerm
+		selfID := s.node.PersistentState.SelfID.String()
+		s.node.PersistentState.mu.Unlock()
+
+		currNextIndex, offset := s.getNextIndex(data.conn)
+		// If the term in the other node is greater than this node's term,
+		// it means that this node is not up to date and has to step down
+		// from being a leader.
+		if appendEntriesResponse.Term > savedCurrentTerm {
+			s.node.log.Debug().
+				Str(selfID, "stale term").
+				Str("following newer node", data.conn.RemoteID().String())
+			s.node.becomeFollower(appendEntriesResponse.Term, s.getNodeID(data.conn))
+			return nil
+		}
+
+		if s.node.State == StateLeader.String() && appendEntriesResponse.Term == savedCurrentTerm {
+			if appendEntriesResponse.Success {
+				s.node.PersistentState.mu.Lock()
+				s.updateNextIndex(int(appendEntriesResponse.EntriesLength), offset, currNextIndex)
+				s.node.PersistentState.mu.Unlock()
+			} else {
+				// If this appendEntries request failed,
+				// proceed and retry in the next cycle.
+				s.node.log.
+					Debug().
+					Str("self-id", selfID).
+					Str("received failure to append entries from", data.conn.RemoteID().String()).
+					Msg("failed to append entries")
+			}
 		}
 	// When the leader gets a forwarded append input message from one of it's followers.
 	case message.KindLogAppendRequest:
@@ -388,7 +446,7 @@ func (s *SimpleServer) relayDataToServer(req *message.LogAppendRequest) {
 }
 
 // OnRequestVotes is a hook setter for RequestVotesRequest.
-func (s *SimpleServer) OnRequestVotes(hook func(*message.RequestVoteRequest)) {
+func (s *SimpleServer) OnRequestVotes(hook func(network.Conn)) {
 	s.onRequestVotes = hook
 }
 
@@ -397,12 +455,61 @@ func (s *SimpleServer) OnLeaderElected(hook func()) {
 	s.onLeaderElected = hook
 }
 
-// OnAppendEntries is a hook setter for AppenEntriesRequest.
-func (s *SimpleServer) OnAppendEntries(hook func()) {
-	s.onAppendEntries = hook
+// OnAppendEntriesRequest is a hook setter for AppenEntriesRequest.
+func (s *SimpleServer) OnAppendEntriesRequest(hook func(network.Conn)) {
+	s.onAppendEntriesRequest = hook
+}
+
+// OnAppendEntriesResponse is a hook setter for AppenEntriesRequest.
+func (s *SimpleServer) OnAppendEntriesResponse(hook func()) {
+	s.onAppendEntriesResponse = hook
 }
 
 // OnCompleteOneRound is a hook setter for completion for one round of raft.
 func (s *SimpleServer) OnCompleteOneRound(hook func()) {
 	s.onCompleteOneRound = hook
+}
+
+// getNodeID finds the ID of the node from it's connection.
+func (s *SimpleServer) getNodeID(conn network.Conn) id.ID {
+	s.node.PersistentState.mu.Lock()
+	defer s.node.PersistentState.mu.Unlock()
+
+	for k, v := range s.node.PersistentState.ConnIDMap {
+		if s.node.PersistentState.PeerIPs[v] == conn {
+			return k
+		}
+	}
+
+	return nil
+}
+
+// getNextIndex allows the leader to iterate through the available
+// slice of connections of its peers and find the respective "nextIndex"
+// value of the node which sent the AppendEntriesResponse. It returns
+// the nextIndex value and the offset of the node for future use.
+//
+// A -1 int is returned on not finding the connection - which is not
+// supposed to happen, EVER.
+func (s *SimpleServer) getNextIndex(conn network.Conn) (int, int) {
+	s.node.PersistentState.mu.Lock()
+	defer s.node.PersistentState.mu.Unlock()
+
+	for i := range s.node.PersistentState.PeerIPs {
+		if conn == s.node.PersistentState.PeerIPs[i] {
+			return s.node.VolatileStateLeader.NextIndex[i], i
+		}
+	}
+	return -1, -1
+}
+
+func (s *SimpleServer) updateNextIndex(len, offset, currNextIndex int) {
+	s.node.VolatileStateLeader.NextIndex[offset] = currNextIndex + len
+}
+
+func newIncomingData(conn network.Conn, msg message.Message) *incomingData {
+	return &incomingData{
+		conn,
+		msg,
+	}
 }

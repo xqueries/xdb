@@ -50,6 +50,10 @@ type OperationParameters struct {
 	TimeLimit int
 	// Operations are all the operations that wil be performed in the test
 	Operations []OpData
+	// OperationPushDelay is the time in millisecond, that can be provided,
+	// to have a delay between pushing operations in the test framework.
+	// Zero can be passed if no delay is intended.
+	OperationPushDelay int
 }
 
 // NetworkConfiguration holds the details of the network of the cluster.
@@ -82,16 +86,19 @@ type OpSendData struct {
 }
 
 // OpStopNode describes the data related to StopNode.
+// The integer describes the position of the node in the provided node slice.
 type OpStopNode struct {
-	NodeID id.ID
+	NodeID int
 }
 
 // OpPartitionNetwork describes the data related to PartitionNetwork.
+// The integer describes the position of the node in the provided node slice.
 type OpPartitionNetwork struct {
-	Groups [][]id.ID
+	Groups int
 }
 
 // OpRestartNode describes the data related to RestartNode.
+// The integer describes the position of the node in the provided node slice.
 type OpRestartNode struct {
-	NodeID id.ID
+	NodeID int
 }

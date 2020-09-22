@@ -23,4 +23,5 @@ message LogData {
 message AppendEntriesResponse {
     int32 term = 1; // Term is the responder node's current term.
     bool success = 2;  // Success returns true if the log matching property holds good.
+    int32 entriesLength = 3; // The length of the entries that was appended by the node.
 }

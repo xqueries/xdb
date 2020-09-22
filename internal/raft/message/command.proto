@@ -18,11 +18,10 @@ message UpdateSetter {
     oneof Value {
         LiteralExpr literal = 2;
         ConstantBooleanExpr constant = 3;
-        UnaryExpr unary = 4;
-        BinaryExpr binary = 5;
-        FunctionExpr func = 6;
-        EqualityExpr equality = 7;
-        RangeExpr range = 8;
+        BinaryExpr binary = 4;
+        FunctionExpr func = 5;
+        EqualityExpr equality = 6;
+        RangeExpr range = 7;
     }
 }
 
@@ -158,11 +157,10 @@ message Expr {
     oneof expr {
         LiteralExpr literal = 1;
         ConstantBooleanExpr constant = 2;
-        UnaryExpr unary = 3;
-        BinaryExpr binary = 4;
-        FunctionExpr func = 5;
-        EqualityExpr equality = 6;
-        RangeExpr range = 7;
+        BinaryExpr binary = 3;
+        FunctionExpr func = 4;
+        EqualityExpr equality = 5;
+        RangeExpr range = 6;
     }
 }
 
@@ -190,7 +188,7 @@ message UnaryBitwiseNegationExpr {
     UnaryBase Value = 1;
 }
 
-message UnaryNegationExpr }
+message UnaryNegationExpr {
     UnaryBase Value = 1;
 }
 
