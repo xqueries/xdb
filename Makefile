@@ -6,7 +6,8 @@ watch: ## Start a file watcher to run tests on change. (requires: watchexec)
 all: lint test build ## test -> lint -> build
 
 .PHONY: verify
-verify: ## Verify dependecies 
+verify: ## Download & Verify dependencies
+	go mod download
 	go mod verify
 
 .PHONY: deps
