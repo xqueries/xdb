@@ -7,12 +7,12 @@ all: lint test build ## test -> lint -> build
 
 .PHONY: verify
 verify: ## Download & Verify dependencies
-	go mod download
 	go mod verify
 
 .PHONY: deps
 ## Verify and then Setup or Update linters
-deps: verify 
+deps:
+	go mod download
 	cd && \
 	go get -u gotest.tools/gotestsum && \
 	go get -u github.com/kisielk/errcheck && \
@@ -51,4 +51,3 @@ fuzz: ## Starts fuzzing the database
 
 help: ## Prints this help
 	@grep -h -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
-
