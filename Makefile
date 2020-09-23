@@ -5,9 +5,24 @@ watch: ## Start a file watcher to run tests on change. (requires: watchexec)
 .PHONY: all
 all: lint test build ## test -> lint -> build
 
+.PHONY: verify
+verify: ## Verify dependencies
+	go mod verify
+
+.PHONY: deps
+## Verify and then Setup or Update linters
+deps: ## Download project and tool dependencies
+	go mod download
+	cd && \
+	go get -u gotest.tools/gotestsum && \
+	go get -u github.com/kisielk/errcheck && \
+	go get -u golang.org/x/lint/golint && \
+	go get -u github.com/securego/gosec/cmd/gosec && \
+	go get -u honnef.co/go/tools/cmd/staticcheck
+
 .PHONY: test
 test: ## Runs the unit test suite
-	go test -race ./...
+	gotestsum --debug --format pkgname-and-test-fails -- -race ./...
 
 .PHONY: lint
 lint: ## Runs the linters (including internal ones)
@@ -36,4 +51,3 @@ fuzz: ## Starts fuzzing the database
 
 help: ## Prints this help
 	@grep -h -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
-
