@@ -25,7 +25,7 @@ func TestIssue29WithNumericColumn(t *testing.T)  {
 
 func TestIssue29WithNumericTable(t *testing.T)  {
 	NegativeTest{
-		Name:  "issue29",
+		Name:  "issue29 with numeric column",
 		Query: "CREATE TABLE 1(foo)",
 	}.Run(t)
 }
