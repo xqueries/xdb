@@ -11,7 +11,7 @@ verify: ## Verify dependencies
 
 .PHONY: deps
 ## Verify and then Setup or Update linters
-deps:
+deps: ## Download project and tool dependencies
 	go mod download
 	cd && \
 	go get -u gotest.tools/gotestsum && \
