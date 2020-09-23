@@ -11,7 +11,7 @@ func TestIssue29(t *testing.T)  {
 
 func TestIssue29WithoutTableName(t *testing.T) {
 	NegativeTest{
-		Name:  "issue29",
+		Name:  "issue29 without table name",
 		Query: "CREATE TABLE (foo)",
 	}.Run(t)
 }
