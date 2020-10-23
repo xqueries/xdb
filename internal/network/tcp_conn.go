@@ -216,6 +216,11 @@ func (c *tcpConn) receiveAsync() chan interface{} {
 }
 
 func (c *tcpConn) Close() error {
+	if atomic.LoadInt32(&c.closed) == 1 {
+		fmt.Println("idena")
+		return nil
+	}
+
 	atomic.StoreInt32(&c.closed, 1)
 
 	// release all resources

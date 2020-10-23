@@ -31,7 +31,7 @@ func (s *SimpleServer) AppendEntriesResponse(req *message.AppendEntriesRequest) 
 	// Return false if the leader's term is lesser than currentTerm,
 	// because it means that the leader is in a stale state.
 	//
-	// TODO Still confused: if msg Log Index is greater than node commit Index.
+	// TODO: Still confused - if msg Log Index is greater than node commit Index.
 	//
 	// Return false if term of leader in PrevLogIndex doesn't match
 	// the previous Log Term stored by Leader.

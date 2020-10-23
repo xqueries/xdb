@@ -2,6 +2,7 @@ package raft
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"log"
 	"math/rand"
@@ -182,7 +183,7 @@ func (s *SimpleServer) Start(ctx context.Context) (err error) {
 			// Parallely start waiting for incoming data.
 			conn, msg, err := s.cluster.Receive(ctx)
 			if err != nil {
-				log.Printf("error in receiving from the cluster: %v\n", err)
+				// log.Printf("error in receiving from the cluster: %v\n", err)
 				return
 			}
 
@@ -233,6 +234,7 @@ func (s *SimpleServer) Start(ctx context.Context) (err error) {
 				s.lock.Unlock()
 			}
 		case data := <-liveChan:
+			fmt.Printf("took data %v\n", data.msg.Kind())
 			err = s.processIncomingData(data)
 			if err != nil {
 				log.Printf("error in processing data: %v\n", err)
@@ -265,7 +267,6 @@ func (s *SimpleServer) Input(input *message.Command) {
 	} else {
 		// Relay data to leader.
 		logAppendRequest := message.NewLogAppendRequest(input)
-
 		s.relayDataToServer(logAppendRequest)
 	}
 }
@@ -274,6 +275,7 @@ func (s *SimpleServer) Input(input *message.Command) {
 func (s *SimpleServer) Close() error {
 	s.lock.Lock()
 	// Maintaining idempotency of the close function.
+	fmt.Println(s.node.Closed)
 	if s.node.Closed {
 		return network.ErrClosed
 	}
@@ -289,7 +291,7 @@ func (s *SimpleServer) Close() error {
 
 	err := s.cluster.Close()
 	s.lock.Unlock()
-
+	fmt.Println(err)
 	return err
 }
 
@@ -323,10 +325,13 @@ func (s *SimpleServer) processIncomingData(data *incomingData) error {
 		if err != nil {
 			return err
 		}
+		fmt.Println("Finished processing request vote")
 	case message.KindRequestVoteResponse:
 		requestVoteResponse := data.msg.(*message.RequestVoteResponse)
 		if requestVoteResponse.GetVoteGranted() {
+			fmt.Println("trying lock")
 			s.lock.Lock()
+			fmt.Println("got lock")
 			voterID := s.getNodeID(data.conn)
 			s.node.log.
 				Debug().
@@ -334,7 +339,7 @@ func (s *SimpleServer) processIncomingData(data *incomingData) error {
 				Msg("voting from peer")
 			selfID := s.node.PersistentState.SelfID
 			s.lock.Unlock()
-			votesRecieved := atomic.AddInt32(&s.node.VolatileState.Votes, 1)
+			votesReceived := atomic.AddInt32(&s.node.VolatileState.Votes, 1)
 
 			// Check whether this node has already voted.
 			// Else it can vote for itself.
@@ -346,11 +351,12 @@ func (s *SimpleServer) processIncomingData(data *incomingData) error {
 					Debug().
 					Str("self-id", selfID.String()).
 					Msg("node voting for itself")
-				votesRecieved = atomic.AddInt32(&s.node.VolatileState.Votes, 1)
+				votesReceived = atomic.AddInt32(&s.node.VolatileState.Votes, 1)
 			}
 			// Election win criteria, votes this node has is majority in the cluster and
 			// this node is not already the Leader.
-			if votesRecieved > int32(len(s.node.PersistentState.PeerIPs)/2) && s.node.State != StateLeader.String() {
+			fmt.Println(votesReceived)
+			if votesReceived > int32(len(s.node.PersistentState.PeerIPs)/2) && s.node.State != StateLeader.String() {
 				// This node has won the election.
 				s.node.State = StateLeader.String()
 				s.node.PersistentState.LeaderID = selfID
@@ -473,14 +479,12 @@ func (s *SimpleServer) OnCompleteOneRound(hook func()) {
 // getNodeID finds the ID of the node from it's connection.
 func (s *SimpleServer) getNodeID(conn network.Conn) id.ID {
 	s.node.PersistentState.mu.Lock()
-	defer s.node.PersistentState.mu.Unlock()
-
 	for k, v := range s.node.PersistentState.ConnIDMap {
 		if s.node.PersistentState.PeerIPs[v] == conn {
 			return k
 		}
 	}
-
+	s.node.PersistentState.mu.Unlock()
 	return nil
 }
 
@@ -493,13 +497,12 @@ func (s *SimpleServer) getNodeID(conn network.Conn) id.ID {
 // supposed to happen, EVER.
 func (s *SimpleServer) getNextIndex(conn network.Conn) (int, int) {
 	s.node.PersistentState.mu.Lock()
-	defer s.node.PersistentState.mu.Unlock()
-
 	for i := range s.node.PersistentState.PeerIPs {
 		if conn == s.node.PersistentState.PeerIPs[i] {
 			return s.node.VolatileStateLeader.NextIndex[i], i
 		}
 	}
+	s.node.PersistentState.mu.Unlock()
 	return -1, -1
 }
 

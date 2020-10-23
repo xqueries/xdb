@@ -2,9 +2,7 @@ package raft
 
 import (
 	"context"
-	"fmt"
 	"os"
-	"sync"
 	"testing"
 	"time"
 
@@ -217,7 +215,6 @@ func TestRaftFromFollowerPerspective(t *testing.T) {
 	server.OnAppendEntriesResponse(func() {
 		times++
 		if times == 5 {
-			fmt.Println("LOL")
 			err := server.Close()
 			if err != network.ErrClosed {
 				assert.NoError(err)
@@ -255,16 +252,28 @@ func TestIntegration(t *testing.T) {
 				Data: []*command.Command{},
 			},
 		},
+		{
+			Op: StopNode,
+			Data: &OpStopNode{
+				3,
+			},
+		},
+		{
+			Op: StopNode,
+			Data: &OpStopNode{
+				4,
+			},
+		},
 		// {
 		// 	Op: StopNode,
 		// 	Data: &OpStopNode{
-		// 		1,
+		// 		3,
 		// 	},
 		// },
 	}
 	opParams := OperationParameters{
 		Rounds:             2,
-		TimeLimit:          3,
+		TimeLimit:          5,
 		Operations:         operations,
 		OperationPushDelay: 500,
 	}
@@ -279,21 +288,6 @@ func TestIntegration(t *testing.T) {
 
 	raftTest := NewSimpleRaftTest(log, opParams, cfg, raftNodes, cancelFunc)
 
-	go func() {
-		err := raftTest.BeginTest(ctx)
-		assert.Nil(err)
-	}()
-
-	<-time.After(time.Duration(opParams.TimeLimit) * time.Second)
-}
-
-func contains(s []network.Conn, e network.Conn, lock sync.Mutex) bool {
-	lock.Lock()
-	defer lock.Unlock()
-	for _, a := range s {
-		if a == e {
-			return true
-		}
-	}
-	return false
+	err := raftTest.BeginTest(ctx)
+	assert.Nil(err)
 }

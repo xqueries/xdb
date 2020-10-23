@@ -65,9 +65,8 @@ func (s *SimpleServer) RequestVoteResponse(req *message.RequestVoteRequest) *mes
 
 	s.node.PersistentState.mu.Lock()
 	// If this node hasn't voted for any other node, vote only then.
-	// TODO: Check whether candidate's log is atleast as up to date as mine only then grant vote.
-	if s.node.PersistentState.VotedFor == nil { //} &&
-		// currentTerm == req.GetTerm() {
+	// TODO: Check whether candidate's log is at least as up to date as mine only then grant vote.
+	if s.node.PersistentState.VotedFor == nil { // } && currentTerm == req.GetTerm() {
 		cID, err := id.Parse(req.CandidateID)
 		if err != nil {
 			// no point in handling this because I really need that to parse into ID.

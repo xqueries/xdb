@@ -11,7 +11,7 @@ import (
 	"github.com/xqueries/xdb/internal/raft/message"
 )
 
-// TestAppendEntries function checks the correctnes of AppendEntriesResponse
+// TestAppendEntries function checks the correctness of AppendEntriesResponse
 // function. In this test function, we check how the function will respond to
 // if node Term is less than leader node, node Log Index is less than leader
 // commitIndex and checks if logs are appended correctly to node Log.

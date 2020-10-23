@@ -35,9 +35,8 @@ func (s *SimpleServer) StartElection(ctx context.Context) {
 	s.node.PersistentState.mu.Unlock()
 	s.lock.Unlock()
 
-	// var votes int32
 	for i := range numNodes {
-		// Parallely request votes from the peers.
+		// Parallelly request votes from the peers.
 		go func(i int) {
 			req := message.NewRequestVoteRequest(
 				savedCurrentTerm,

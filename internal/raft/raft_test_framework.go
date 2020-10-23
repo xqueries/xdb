@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/pkg/errors"
+	"github.com/xqueries/xdb/internal/network"
 
 	"github.com/rs/zerolog"
 	"github.com/xqueries/xdb/internal/raft/cluster"
@@ -39,6 +39,7 @@ type SimpleRaftTest struct {
 	shutdown    chan bool
 	mu          sync.Mutex
 	cancelFunc  context.CancelFunc
+	ctx         context.Context
 }
 
 // NewSimpleRaftTest provides a ready to use raft test framework.
@@ -85,10 +86,8 @@ func (t *SimpleRaftTest) Config() NetworkConfiguration {
 //
 // BeginTest will wrapped under a Go Test for ease of use.
 func (t *SimpleRaftTest) BeginTest(ctx context.Context) error {
-	// if t.config.IDs == nil && t.config.IPs == nil {
-	// 	return errors.New("nil network configuration")
-	// }
 
+	t.ctx = ctx
 	// start up the raft operation.
 	for i := range t.raftNodes {
 		go func(i int) {
@@ -139,14 +138,13 @@ func (t *SimpleRaftTest) GracefulShutdown() error {
 	for i := range t.raftNodes {
 		if !t.raftNodes[i].node.Closed {
 			err := t.raftNodes[i].Close()
-			if err != nil {
+			if err != nil && err != network.ErrClosed {
 				errLock.Lock()
 				errSlice = append(errSlice, err)
 				errLock.Unlock()
 			}
 		}
 	}
-	errSlice = append(errSlice, errors.New("some error"))
 
 	if len(errSlice) != 0 {
 		return errSlice
@@ -235,20 +233,21 @@ func (t *SimpleRaftTest) SendData(d *OpSendData) {
 // StopNode stops the given node in the network.
 // This is a test of robustness in the system to recover from
 // a failure of a node.
-//
-// The implementation can involve killing/stopping the
-// respective node.
 func (t *SimpleRaftTest) StopNode(d *OpStopNode) {
+	t.raftNodes[d.NodeID].node.PersistentState.mu.Lock()
+	fmt.Println(t.raftNodes[d.NodeID].node.Closed)
 	if t.raftNodes[d.NodeID].node.Closed {
 		t.log.Debug().
 			Int("node ID", d.NodeID).
 			Msg("can't stop node, already stopped")
+		t.raftNodes[d.NodeID].node.PersistentState.mu.Unlock()
 		return
 	}
+	t.raftNodes[d.NodeID].node.PersistentState.mu.Unlock()
 	t.log.Debug().
 		Int("node ID", d.NodeID).
 		Msg("stopping the node")
-	fmt.Printf("\n\n\n\n\n\n\nBRO\n]n\n\n\n\n")
+
 	err := t.raftNodes[d.NodeID].Close()
 	if err != nil {
 		log.Fatalf("cant stop node: %d, error: %v\n", d.NodeID, err)
@@ -270,11 +269,18 @@ func (t *SimpleRaftTest) PartitionNetwork(d *OpPartitionNetwork) {
 // RestartNode restarts a previously stopped node which has
 // all resources allocated to it but went down for any reason.
 func (t *SimpleRaftTest) RestartNode(d *OpRestartNode) {
-
 	t.log.Debug().
 		Int("node ID", d.NodeID).
 		Msg("restarting the node")
-
+	if !t.raftNodes[d.NodeID].node.Closed {
+		t.log.Debug().
+			Int("node ID", d.NodeID).
+			Msg("node already open, can't restart it")
+		return
+	}
+	go func() {
+		_ = t.raftNodes[d.NodeID].Start(t.ctx)
+	}()
 }
 
 func createRaftNodes(log zerolog.Logger, cluster *cluster.TCPTestNetwork) []*SimpleServer {

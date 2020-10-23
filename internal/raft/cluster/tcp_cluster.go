@@ -146,6 +146,11 @@ func (c *tcpCluster) Broadcast(ctx context.Context, msg message.Message) error {
 //
 // After Close is called on this cluster, it is no longer usable.
 func (c *tcpCluster) Close() error {
+	if atomic.LoadInt32(&c.closed) == 1 {
+		fmt.Println("XXX")
+		return nil
+	}
+	fmt.Println("In")
 	atomic.StoreInt32(&c.closed, 1)
 
 	// close all connections
