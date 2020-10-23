@@ -1,8 +1,11 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/xqueries/xdb/internal/inspect"
 
@@ -31,29 +34,44 @@ func inspectXDB(cmd *cobra.Command, args []string) {
 	if err != nil {
 		log.Err(err)
 	}
-	_, err = engine.New(f, engine.WithLogger(log))
+	e, err := engine.New(f, engine.WithLogger(log))
 	if err != nil {
 		log.Err(err)
 	}
 
+	ctx := context.Background()
+	ctx, cancel := context.WithCancel(ctx)
+	go func() {
+		closeChan := make(chan os.Signal, 1)
+		signal.Notify(closeChan, os.Interrupt, os.Kill, syscall.SIGTERM, syscall.SIGINT)
+		<-closeChan
+		cancel()
+	}()
+
 	beginning := true
 	for {
-		if beginning {
-			fmt.Println("Welcome to xdb inspect.\nType \"help\" to get list of available commands.\n")
-			beginning = false
-		}
-		t := prompt.Input("xdb inspect> ", completer)
-		if t == "q" || t == "Q" {
+		select {
+		case <-ctx.Done():
 			fmt.Println("Exiting xdb inspect, seeya.\n")
 			return
-		}
-		if t != "" {
-			// The command that was input to the CLI is
-			// passed to the inspect package. The returned
-			// data/string is formatted and only needs to be
-			// printed straightaway.
-			res := inspect.Inspect(t)
-			fmt.Println(res)
+		default:
+			if beginning {
+				fmt.Println("Welcome to xdb inspect.\nType \"help\" to get list of available commands.\n")
+				beginning = false
+			}
+			t := prompt.Input("xdb inspect> ", completer)
+			if t == "q" || t == "Q" {
+				fmt.Println("Exiting xdb inspect, seeya.\n")
+				return
+			}
+			if t != "" {
+				// The command that was input to the CLI is
+				// passed to the inspect package. The returned
+				// data/string is formatted and only needs to be
+				// printed straightaway.
+				res := inspect.Inspect(e, t)
+				fmt.Println(res)
+			}
 		}
 	}
 }

@@ -105,8 +105,6 @@ func init() {
 
 	startCmd.PersistentFlags().StringVar(&logfile, "logfile", "xdb.log", "define a log file to write logs to")
 	startCmd.PersistentFlags().StringVar(&addr, "addr", ":34213", "start the node on this address")
-
-	//inspectCmd.PersistentFlags().StringVar()
 }
 
 func main() {
@@ -197,7 +195,7 @@ func createLogger(stdin io.Reader, stdout, stderr io.Writer) zerolog.Logger {
 				_, _ = fmt.Fprintf(stderr, "Logger is falling behind, skipping %d messages\n", missed)
 			},
 		),
-		// unperformant console writer
+		// non-performant console writer
 		zerolog.ConsoleWriter{
 			Out: stdout,
 		},
