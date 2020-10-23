@@ -2,7 +2,6 @@ package node
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/rs/zerolog"
 )
@@ -30,5 +29,6 @@ func (m *Node) ListenAndServe(ctx context.Context, addr string) error {
 	m.log.Info().
 		Str("addr", addr).
 		Msg("listen and serve")
-	return fmt.Errorf("unimplemented")
+	//return fmt.Errorf("unimplemented")
+	return nil
 }

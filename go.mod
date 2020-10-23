@@ -3,6 +3,7 @@ module github.com/xqueries/xdb
 go 1.13
 
 require (
+	github.com/c-bata/go-prompt v0.2.5
 	github.com/google/go-cmp v0.5.2
 	github.com/oklog/ulid v1.3.1
 	github.com/rs/zerolog v1.20.0

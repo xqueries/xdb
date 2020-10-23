@@ -60,6 +60,9 @@ const (
 
 	startCmdShortDoc = "Start a database node"
 	startCmdLongDoc  = ""
+
+	inspectCmdShortDoc = "Inspect an db file"
+	inspectCmdLongDoc  = "This command lets you have an in-depth, table wise storage of the database"
 )
 
 var (
@@ -85,15 +88,25 @@ var (
 		Run:   startNode,
 		Args:  cobra.ExactArgs(1),
 	}
+
+	inspectCmd = &cobra.Command{
+		Use:   "inspect",
+		Short: inspectCmdShortDoc,
+		Long:  inspectCmdLongDoc,
+		Run:   inspectXDB,
+		Args:  cobra.ExactArgs(1),
+	}
 )
 
 func init() {
-	rootCmd.AddCommand(startCmd, versionCmd)
+	rootCmd.AddCommand(versionCmd, startCmd, inspectCmd)
 
 	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "print more logs")
 
 	startCmd.PersistentFlags().StringVar(&logfile, "logfile", "xdb.log", "define a log file to write logs to")
 	startCmd.PersistentFlags().StringVar(&addr, "addr", ":34213", "start the node on this address")
+
+	//inspectCmd.PersistentFlags().StringVar()
 }
 
 func main() {
