@@ -32,7 +32,7 @@ type tcpCluster struct {
 	started       chan struct{}
 	startedClosed bool
 	closed        int32
-
+	closeChan     chan struct{}
 	// lock needed for atomic write on startedClosed.
 	mu sync.Mutex
 }
@@ -56,6 +56,7 @@ func newTCPCluster(log zerolog.Logger) *tcpCluster {
 		messages:      make(chan incomingPayload, tcpClusterMessageQueueBufferSize),
 		started:       make(chan struct{}),
 		startedClosed: false,
+		closeChan:     make(chan struct{}, 1),
 	}
 }
 
@@ -147,10 +148,8 @@ func (c *tcpCluster) Broadcast(ctx context.Context, msg message.Message) error {
 // After Close is called on this cluster, it is no longer usable.
 func (c *tcpCluster) Close() error {
 	if atomic.LoadInt32(&c.closed) == 1 {
-		fmt.Println("XXX")
 		return nil
 	}
-	fmt.Println("In")
 	atomic.StoreInt32(&c.closed, 1)
 
 	// close all connections
@@ -164,7 +163,8 @@ func (c *tcpCluster) Close() error {
 	errs.Go(c.server.Close)
 
 	// close the message queue
-	close(c.messages)
+	c.closeChan <- struct{}{}
+	//close(c.messages)
 
 	return errs.Wait()
 }
@@ -267,10 +267,15 @@ func (c *tcpCluster) receiveMessages(conn network.Conn) {
 			return // abort this goroutine
 		}
 
-		// push payload and connection onto the message queue
-		c.messages <- incomingPayload{
-			origin:  conn,
-			payload: data,
+		select {
+		case <-c.closeChan:
+			close(c.messages)
+		default:
+			// push payload and connection onto the message queue
+			c.messages <- incomingPayload{
+				origin:  conn,
+				payload: data,
+			}
 		}
 	}
 }

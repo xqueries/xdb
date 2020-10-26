@@ -242,6 +242,7 @@ func timeoutProvider(node *Node) *time.Timer {
 }
 
 func TestIntegration(t *testing.T) {
+
 	log := zerolog.New(os.Stdout).With().Logger().Level(zerolog.GlobalLevel())
 
 	assert := assert.New(t)

@@ -6,11 +6,11 @@ import (
 	"io"
 	"log"
 	"math/rand"
-	"sync"
 	"sync/atomic"
 	"time"
 
 	"github.com/rs/zerolog"
+	"github.com/sasha-s/go-deadlock"
 	"github.com/xqueries/xdb/internal/id"
 	"github.com/xqueries/xdb/internal/network"
 	"github.com/xqueries/xdb/internal/raft/message"
@@ -53,7 +53,7 @@ type PersistentState struct {
 	LeaderID  id.ID          // LeaderID is nil at init, and the ID of the node after the leader is elected.
 	PeerIPs   []network.Conn // PeerIPs has the connection variables of all the other nodes in the cluster.
 	ConnIDMap map[id.ID]int  // ConnIDMap has a mapping of the ID of the server to its connection.
-	mu        sync.Mutex
+	mu        deadlock.Mutex
 }
 
 // VolatileState describes the volatile state data on a raft node.
@@ -78,8 +78,9 @@ type SimpleServer struct {
 	onReplication   ReplicationHandler
 	log             zerolog.Logger
 	timeoutProvider func(*Node) *time.Timer
-	lock            sync.Mutex
+	lock            deadlock.Mutex
 
+	// Function setters.
 	onRequestVotes          func(network.Conn)
 	onLeaderElected         func()
 	onAppendEntriesRequest  func(network.Conn)
@@ -180,7 +181,14 @@ func (s *SimpleServer) Start(ctx context.Context) (err error) {
 	// Listen forever on all node connections.
 	go func() {
 		for {
-			// Parallely start waiting for incoming data.
+			s.node.PersistentState.mu.Lock()
+			if s.node.Closed {
+				s.node.PersistentState.mu.Unlock()
+				return
+			}
+			s.node.PersistentState.mu.Unlock()
+
+			// Parallelly start waiting for incoming data.
 			conn, msg, err := s.cluster.Receive(ctx)
 			if err != nil {
 				// log.Printf("error in receiving from the cluster: %v\n", err)
@@ -234,7 +242,6 @@ func (s *SimpleServer) Start(ctx context.Context) (err error) {
 				s.lock.Unlock()
 			}
 		case data := <-liveChan:
-			fmt.Printf("took data %v\n", data.msg.Kind())
 			err = s.processIncomingData(data)
 			if err != nil {
 				log.Printf("error in processing data: %v\n", err)
@@ -275,7 +282,6 @@ func (s *SimpleServer) Input(input *message.Command) {
 func (s *SimpleServer) Close() error {
 	s.lock.Lock()
 	// Maintaining idempotency of the close function.
-	fmt.Println(s.node.Closed)
 	if s.node.Closed {
 		return network.ErrClosed
 	}
@@ -291,13 +297,12 @@ func (s *SimpleServer) Close() error {
 
 	err := s.cluster.Close()
 	s.lock.Unlock()
-	fmt.Println(err)
 	return err
 }
 
 // randomTimer returns tickers ranging from 150ms to 300ms.
 func randomTimer(node *Node) *time.Timer {
-	randomInt := rand.Intn(150) + 450
+	randomInt := rand.Intn(150) + 150
 	node.log.
 		Debug().
 		Str("self-id", node.PersistentState.SelfID.String()).
@@ -325,13 +330,10 @@ func (s *SimpleServer) processIncomingData(data *incomingData) error {
 		if err != nil {
 			return err
 		}
-		fmt.Println("Finished processing request vote")
 	case message.KindRequestVoteResponse:
 		requestVoteResponse := data.msg.(*message.RequestVoteResponse)
 		if requestVoteResponse.GetVoteGranted() {
-			fmt.Println("trying lock")
 			s.lock.Lock()
-			fmt.Println("got lock")
 			voterID := s.getNodeID(data.conn)
 			s.node.log.
 				Debug().
@@ -481,6 +483,7 @@ func (s *SimpleServer) getNodeID(conn network.Conn) id.ID {
 	s.node.PersistentState.mu.Lock()
 	for k, v := range s.node.PersistentState.ConnIDMap {
 		if s.node.PersistentState.PeerIPs[v] == conn {
+			s.node.PersistentState.mu.Unlock()
 			return k
 		}
 	}
@@ -499,6 +502,7 @@ func (s *SimpleServer) getNextIndex(conn network.Conn) (int, int) {
 	s.node.PersistentState.mu.Lock()
 	for i := range s.node.PersistentState.PeerIPs {
 		if conn == s.node.PersistentState.PeerIPs[i] {
+			s.node.PersistentState.mu.Unlock()
 			return s.node.VolatileStateLeader.NextIndex[i], i
 		}
 	}
