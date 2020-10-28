@@ -101,6 +101,8 @@ func NewServer(log zerolog.Logger, cluster Cluster) *SimpleServer {
 	return newServer(log, cluster, nil)
 }
 
+// newServer returns a new instance of a server that is connected
+// to the cluster that is provided as the argument.
 func newServer(log zerolog.Logger, cluster Cluster, timeoutProvider func(*Node) *time.Timer) *SimpleServer {
 	if timeoutProvider == nil {
 		timeoutProvider = randomTimer
@@ -114,7 +116,7 @@ func newServer(log zerolog.Logger, cluster Cluster, timeoutProvider func(*Node) 
 	}
 }
 
-// NewRaftNode initialises a raft cluster with the given configuration.
+// NewRaftNode creates a raft node for the given cluster.
 func NewRaftNode(cluster Cluster) *Node {
 	var nextIndex, matchIndex []int
 
@@ -153,10 +155,21 @@ func NewRaftNode(cluster Cluster) *Node {
 }
 
 // Start starts a single raft node into beginning raft operations.
+//
 // This function starts the leader election and keeps a check on whether
 // regular heartbeats to the node exists. It restarts leader election on failure to do so.
 // This function also continuously listens on all the connections to the nodes
 // and routes the requests to appropriate functions.
+//
+// This function is responsible for ALL the data entering this node.
+// Once a goroutine is spawned to requesting votes or appending logs, those
+// don't wait for the responses, instead those are waited for in this function.
+// This allows us to have a HQ for all data coming to the node and have all related
+// data that has to be worked on with the requests in the same place, making it more
+// efficient and easier.
+//
+// This function returns when the contextually upper level functions return
+// or the network/raft nodes are closed.
 func (s *SimpleServer) Start(ctx context.Context) (err error) {
 	// Making the function idempotent, returns whether the server is already open.
 	s.lock.Lock()
@@ -263,7 +276,7 @@ func (s *SimpleServer) OnReplication(handler ReplicationHandler) {
 }
 
 // Input appends the input log into the leaders log, only if the current node is the leader.
-// If this was not a leader, the leaders data is communicated to the client.
+// If this was not a leader, the request is routed to the leader.
 func (s *SimpleServer) Input(input *message.Command) {
 	s.node.PersistentState.mu.Lock()
 	defer s.node.PersistentState.mu.Unlock()
@@ -300,7 +313,7 @@ func (s *SimpleServer) Close() error {
 	return err
 }
 
-// randomTimer returns tickers ranging from 150ms to 300ms.
+// randomTimer returns timers ranging from 150ms to 300ms.
 func randomTimer(node *Node) *time.Timer {
 	randomInt := rand.Intn(150) + 150
 	node.log.
@@ -313,6 +326,7 @@ func randomTimer(node *Node) *time.Timer {
 
 // processIncomingData is responsible for parsing the incoming data and calling
 // appropriate functions based on the request type.
+// This function receives data from the core of the raft module's functionality.
 func (s *SimpleServer) processIncomingData(data *incomingData) error {
 
 	ctx := context.TODO()
@@ -358,7 +372,11 @@ func (s *SimpleServer) processIncomingData(data *incomingData) error {
 			// Election win criteria, votes this node has is majority in the cluster and
 			// this node is not already the Leader.
 			fmt.Println(votesReceived)
-			if votesReceived > int32(len(s.node.PersistentState.PeerIPs)/2) && s.node.State != StateLeader.String() {
+			fmt.Println(s.node.PersistentState.PeerIPs)
+			fmt.Println(len(s.node.PersistentState.PeerIPs))
+			fmt.Println(len(s.node.PersistentState.PeerIPs) / 2)
+			fmt.Println(int32(len(s.node.PersistentState.PeerIPs) / 2))
+			if votesReceived >= int32(len(s.node.PersistentState.PeerIPs)/2) && s.node.State != StateLeader.String() {
 				// This node has won the election.
 				s.node.State = StateLeader.String()
 				s.node.PersistentState.LeaderID = selfID
@@ -375,6 +393,8 @@ func (s *SimpleServer) processIncomingData(data *incomingData) error {
 			s.node.PersistentState.mu.Unlock()
 		}
 	case message.KindAppendEntriesRequest:
+		// An appropriate AppendEntriesResponse is crafted using the
+		// dedicated function and returned using the same connection.
 		appendEntriesRequest := data.msg.(*message.AppendEntriesRequest)
 		appendEntriesResponse := s.AppendEntriesResponse(appendEntriesRequest)
 		payload, err := message.Marshal(appendEntriesResponse)

@@ -164,7 +164,6 @@ func (c *tcpCluster) Close() error {
 
 	// close the message queue
 	c.closeChan <- struct{}{}
-	//close(c.messages)
 
 	return errs.Wait()
 }

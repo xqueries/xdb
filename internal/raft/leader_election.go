@@ -16,6 +16,7 @@ func (s *SimpleServer) StartElection(ctx context.Context) {
 	s.lock.Lock()
 	s.node.PersistentState.mu.Lock()
 	s.node.PersistentState.CurrentTerm++
+	s.node.VolatileState.Votes = 0
 	s.node.State = StateCandidate.String()
 	var lastLogTerm, lastLogIndex int32
 	savedCurrentTerm := s.node.PersistentState.CurrentTerm

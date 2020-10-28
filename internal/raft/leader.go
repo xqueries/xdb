@@ -7,17 +7,30 @@ import (
 	"github.com/xqueries/xdb/internal/raft/message"
 )
 
-// startLeader begins the leaders operations.
-// The selfID is passed as an argument for two reasons,
-// one it acts as a double check that this node is inturn the leader,
-// and second, tit reduces locks to find out the selfID in the future.
+// startLeader begins the leaders operations. Once a leader is confirmed
+// to be elected, this function is executed.
 //
-// The leader begins by sending append entries RPC to the nodes.
+// The leader is responsible to do two things; one, ensure that all other
+// nodes know that there is a leader alive in this term and two, to send
+// logs that were received by the client and maintain consensus. Part one
+// is achieved by sending heartbeats when there are no logs that are to
+// be appended and two is achieved by sending the AppendEntriesRequest.
+//
+// The leader spawns a separate goroutine to ensure
+// The leader begins by sending append entries RPC to the nodes parallelly.
 // The leader sends periodic append entries request to the
 // followers to keep them alive.
+//
+// The selfID is passed as an argument for two reasons,
+// one it acts as a double check that this node is actually the leader,
+// and second, it reduces locks to find out the selfID in the future.
+//
 // Empty append entries request are also called heartbeats.
 // The data that goes in the append entries request is determined by
-// existance of data in the LogChannel channel.
+// existence of data in the LogChannel channel.
+//
+// This function doesn't bother with obtaining the response for the sent
+// requests. This is handled by the raft-core functions.
 func (s *SimpleServer) startLeader(selfID string) {
 
 	s.node.log.
@@ -50,11 +63,11 @@ func (s *SimpleServer) startLeader(selfID string) {
 
 			s.sendHeartBeats(selfID)
 			s.lock.Unlock()
-
 		}
 	}()
 }
 
+// TODO: Figure out how this goroutine stops/returns.
 func (s *SimpleServer) sendHeartBeats(selfIDString string) {
 	ctx := context.TODO()
 
@@ -62,7 +75,7 @@ func (s *SimpleServer) sendHeartBeats(selfIDString string) {
 	savedCurrentTerm := s.node.PersistentState.CurrentTerm
 	s.node.PersistentState.mu.Unlock()
 
-	// Parallely send AppendEntriesRPC to all followers.
+	// Parallelly send AppendEntriesRPC to all followers.
 	for i := range s.node.PersistentState.PeerIPs {
 		s.node.log.
 			Debug().
@@ -124,7 +137,6 @@ func (s *SimpleServer) sendHeartBeats(selfIDString string) {
 			if s.onAppendEntriesRequest != nil {
 				s.onAppendEntriesRequest(conn)
 			}
-
 		}(i)
 	}
 }
