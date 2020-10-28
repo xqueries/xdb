@@ -9,6 +9,7 @@ import (
 	"github.com/xqueries/xdb/internal/compiler/optimization"
 	"github.com/xqueries/xdb/internal/engine/types"
 	"github.com/xqueries/xdb/internal/parser/ast"
+	"github.com/xqueries/xdb/internal/parser/scanner/token"
 )
 
 type simpleCompiler struct {
@@ -206,7 +207,7 @@ func (c *simpleCompiler) compileInsert(stmt *ast.InsertStmt) (command.Insert, er
 	if len(stmt.ColumnName) != 0 {
 		for _, col := range stmt.ColumnName {
 			cols = append(cols, command.Column{
-				Name: command.LiteralExpr{Value: col.Value()},
+				Expr: command.ConstantLiteral{Value: col.Value()},
 			})
 		}
 	}
@@ -510,21 +511,9 @@ func (c *simpleCompiler) compileSelectCoreSelect(core *ast.SelectCore) (command.
 		}
 	} else if len(core.TableOrSubquery) == 0 {
 		if core.JoinClause == nil {
-			// if there's no table to select from, use the projection columns as values, but keep the aliases
-			var values []command.Expr
-			for _, col := range cols {
-				values = append(values, col.Name)
-			}
-			var projectedCols []command.Column
-			for i, col := range cols {
-				projectedCols = append(projectedCols, command.Column{
-					Name:  command.LiteralExpr{Value: "column" + strconv.Itoa(i+1)},
-					Alias: col.Alias,
-				})
-			}
 			return command.Project{
-				Cols:  projectedCols,
-				Input: command.Values{Values: [][]command.Expr{values}},
+				Cols:  cols,
+				Input: command.Values{Values: [][]command.Expr{}},
 			}, nil
 		}
 
@@ -581,7 +570,7 @@ func (c *simpleCompiler) compileResultColumn(col *ast.ResultColumn) (command.Col
 		}
 		return command.Column{
 			Table: tableName,
-			Name:  command.LiteralExpr{Value: "*"},
+			Expr:  command.ColumnReference{Name: "*"},
 		}, nil
 	}
 
@@ -597,17 +586,33 @@ func (c *simpleCompiler) compileResultColumn(col *ast.ResultColumn) (command.Col
 
 	return command.Column{
 		Alias: alias,
-		Name:  expr,
+		Expr:  expr,
 	}, nil
 }
 
 func (c *simpleCompiler) compileExpr(expr *ast.Expr) (command.Expr, error) {
 	switch {
 	case expr.LiteralValue != nil:
-		if val := strings.ToLower(expr.LiteralValue.Value()); val == "true" || val == "false" {
+		literalValue := expr.LiteralValue.Value()
+		if val := strings.ToLower(literalValue); val == "true" || val == "false" {
 			return command.ConstantBooleanExpr{Value: val == "true"}, nil
 		}
-		return command.LiteralExpr{Value: expr.LiteralValue.Value()}, nil
+		if strings.HasPrefix(literalValue, "\"") {
+			unquoted, err := strconv.Unquote(literalValue)
+			if err != nil {
+				return nil, fmt.Errorf("unquote: %w", err)
+			}
+			return command.ConstantLiteralOrColumnReference{ValueOrName: unquoted}, nil
+		} else if strings.HasPrefix(literalValue, "'") {
+			unquoted, err := strconv.Unquote(literalValue)
+			if err != nil {
+				return nil, fmt.Errorf("unquote: %w", err)
+			}
+			return command.ConstantLiteral{Value: unquoted}, nil
+		} else if expr.LiteralValue.Type() == token.LiteralNumeric {
+			return command.ConstantLiteral{Value: literalValue, Numeric: true}, nil
+		}
+		return command.ColumnReference{Name: literalValue}, nil
 	case expr.UnaryOperator != nil:
 		val, err := c.compileExpr(expr.Expr1)
 		if err != nil {

@@ -5,7 +5,6 @@ import (
 	"log"
 	"math/rand"
 	"sync"
-	"time"
 
 	"github.com/oklog/ulid"
 )
@@ -23,7 +22,7 @@ type id ulid.ULID
 
 var (
 	lock       sync.Mutex
-	randSource = rand.New(rand.NewSource(time.Now().UnixNano()))
+	randSource = rand.New(secureSource{}) // #nosec G404 false positive, we use crypto.Rand in the secureSource{}
 	entropy    = ulid.Monotonic(randSource, 0)
 )
 

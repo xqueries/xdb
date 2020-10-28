@@ -1,11 +1,8 @@
-package engine
+package compiler
 
 import (
 	"bytes"
-	"strconv"
 	"strings"
-
-	"github.com/xqueries/xdb/internal/engine/types"
 )
 
 type numericParserState func(*numericParser) numericParserState
@@ -24,12 +21,11 @@ type numericParser struct {
 	current numericParserState
 }
 
-// ToNumericValue checks whether the given string is of this form
-// https://www.sqlite.org/lang_expr.html#literal_values_constants_ . If it is, an
-// appropriate value is returned (either types.IntegerValue or types.RealValue).
-// If it is not, false will be returned. This will never return the NULL value,
-// even if the given string is empty. In that case, nil and false is returned.
-func ToNumericValue(s string) (types.Value, bool) {
+// isNumeric is an adapted copy of (engine.Engine).ToNumericValue.
+func isNumeric(s string) bool {
+	if s == "" || s == "0x" || s == "." {
+		return false
+	}
 	p := numericParser{
 		candidate: s,
 		index:     0,
@@ -39,29 +35,7 @@ func ToNumericValue(s string) (types.Value, bool) {
 		current: stateInitial,
 	}
 	p.parse()
-	if p.isErronous {
-		return nil, false
-	}
-	switch {
-	case p.isReal:
-		val, err := strconv.ParseFloat(p.value.String(), 64)
-		if err != nil {
-			return nil, false
-		}
-		return types.NewReal(val), true
-	case p.isHexadecimal:
-		val, err := strconv.ParseInt(p.value.String(), 16, 64)
-		if err != nil {
-			return nil, false
-		}
-		return types.NewInteger(val), true
-	default: // is integral
-		val, err := strconv.ParseInt(p.value.String(), 10, 64)
-		if err != nil {
-			return nil, false
-		}
-		return types.NewInteger(val), true
-	}
+	return !p.isErronous
 }
 
 func (p numericParser) done() bool {
