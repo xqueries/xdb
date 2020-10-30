@@ -1,10 +1,11 @@
 package engine
 
 import (
+	"crypto/rand"
 	"encoding/binary"
 	"fmt"
-	"math/rand"
 	"time"
+	"unsafe"
 
 	"github.com/rs/zerolog"
 	"github.com/xqueries/xdb/internal/compiler/command"
@@ -41,8 +42,12 @@ func New(dbFile *storage.DBFile, opts ...Option) (Engine, error) {
 		dbFile:    dbFile,
 		pageCache: dbFile.Cache(),
 
-		timeProvider:   time.Now,
-		randomProvider: func() int64 { return int64(rand.Uint64()) },
+		timeProvider: time.Now,
+		randomProvider: func() int64 {
+			buf := make([]byte, unsafe.Sizeof(int64(0))) // #nosec
+			_, _ = rand.Read(buf)
+			return int64(byteOrder.Uint64(buf))
+		},
 	}
 	e.tablesPageContainer = e.NewPageContainer(e.dbFile.TablesPageID())
 	for _, opt := range opts {

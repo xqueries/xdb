@@ -22,8 +22,8 @@ func (suite *ProjectionSuite) TestEmptyProjection() {
 		Cols: []command.Column{},
 		Input: command.Values{
 			Values: [][]command.Expr{
-				{command.LiteralExpr{Value: "hello"}, command.LiteralExpr{Value: "world"}, command.ConstantBooleanExpr{Value: true}},
-				{command.LiteralExpr{Value: "foo"}, command.LiteralExpr{Value: "bar"}, command.ConstantBooleanExpr{Value: false}},
+				{command.ConstantLiteral{Value: "hello"}, command.ConstantLiteral{Value: "world"}, command.ConstantBooleanExpr{Value: true}},
+				{command.ConstantLiteral{Value: "foo"}, command.ConstantLiteral{Value: "bar"}, command.ConstantBooleanExpr{Value: false}},
 			},
 		},
 	})
@@ -34,12 +34,12 @@ func (suite *ProjectionSuite) TestEmptyProjection() {
 func (suite *ProjectionSuite) TestSimpleProjection() {
 	tbl, err := suite.engine.evaluateProjection(suite.ctx, command.Project{
 		Cols: []command.Column{
-			{Name: command.LiteralExpr{Value: "column2"}},
+			{Expr: command.ColumnReference{Name: "column2"}},
 		},
 		Input: command.Values{
 			Values: [][]command.Expr{
-				{command.LiteralExpr{Value: "hello"}, command.LiteralExpr{Value: "world"}, command.ConstantBooleanExpr{Value: true}},
-				{command.LiteralExpr{Value: "foo"}, command.LiteralExpr{Value: "bar"}, command.ConstantBooleanExpr{Value: false}},
+				{command.ConstantLiteral{Value: "hello"}, command.ConstantLiteral{Value: "world"}, command.ConstantBooleanExpr{Value: true}},
+				{command.ConstantLiteral{Value: "foo"}, command.ConstantLiteral{Value: "bar"}, command.ConstantBooleanExpr{Value: false}},
 			},
 		},
 	})
@@ -62,14 +62,14 @@ func (suite *ProjectionSuite) TestSimpleProjectionWithAlias() {
 	tbl, err := suite.engine.evaluateProjection(suite.ctx, command.Project{
 		Cols: []command.Column{
 			{
-				Name:  command.LiteralExpr{Value: "column2"},
+				Expr:  command.ColumnReference{Name: "column2"},
 				Alias: "foo",
 			},
 		},
 		Input: command.Values{
 			Values: [][]command.Expr{
-				{command.LiteralExpr{Value: "hello"}, command.LiteralExpr{Value: "world"}, command.ConstantBooleanExpr{Value: true}},
-				{command.LiteralExpr{Value: "foo"}, command.LiteralExpr{Value: "bar"}, command.ConstantBooleanExpr{Value: false}},
+				{command.ConstantLiteral{Value: "hello"}, command.ConstantLiteral{Value: "world"}, command.ConstantBooleanExpr{Value: true}},
+				{command.ConstantLiteral{Value: "foo"}, command.ConstantLiteral{Value: "bar"}, command.ConstantBooleanExpr{Value: false}},
 			},
 		},
 	})
@@ -93,16 +93,51 @@ func (suite *ProjectionSuite) TestSimpleProjectionWithMissingColumn() {
 	tbl, err := suite.engine.evaluateProjection(suite.ctx, command.Project{
 		Cols: []command.Column{
 			{
-				Name: command.LiteralExpr{Value: "foo"},
+				Expr: command.ColumnReference{Name: "foo"},
 			},
 		},
 		Input: command.Values{
 			Values: [][]command.Expr{
-				{command.LiteralExpr{Value: "hello"}, command.LiteralExpr{Value: "world"}, command.ConstantBooleanExpr{Value: true}},
-				{command.LiteralExpr{Value: "foo"}, command.LiteralExpr{Value: "bar"}, command.ConstantBooleanExpr{Value: false}},
+				{command.ConstantLiteral{Value: "hello"}, command.ConstantLiteral{Value: "world"}, command.ConstantBooleanExpr{Value: true}},
+				{command.ConstantLiteral{Value: "foo"}, command.ConstantLiteral{Value: "bar"}, command.ConstantBooleanExpr{Value: false}},
 			},
 		},
 	})
 	suite.EqualError(err, "no column with name or alias 'foo'")
 	suite.Nil(tbl)
+}
+
+func (suite *ProjectionSuite) TestSimpleProjectionWithColumnAndConstant() {
+	tbl, err := suite.engine.evaluateProjection(suite.ctx, command.Project{
+		Cols: []command.Column{
+			{
+				Expr: command.ColumnReference{Name: "column1"},
+			},
+			{
+				Expr: command.ConstantLiteralOrColumnReference{ValueOrName: "column4"},
+			},
+		},
+		Input: command.Values{
+			Values: [][]command.Expr{
+				{command.ConstantLiteral{Value: "hello"}, command.ConstantLiteral{Value: "world"}, command.ConstantBooleanExpr{Value: true}},
+				{command.ConstantLiteral{Value: "foo"}, command.ConstantLiteral{Value: "bar"}, command.ConstantBooleanExpr{Value: false}},
+			},
+		},
+	})
+	suite.NoError(err)
+	suite.EqualTables(table.NewInMemory(
+		[]table.Col{
+			{
+				QualifiedName: "column1",
+				Type:          types.String,
+			},
+			{
+				QualifiedName: "column4",
+				Type:          types.String,
+			},
+		},
+		[]table.Row{
+			{Values: []types.Value{types.NewString("hello"), types.NewString("column4")}},
+		},
+	), tbl)
 }

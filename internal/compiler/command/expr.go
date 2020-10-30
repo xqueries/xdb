@@ -15,11 +15,26 @@ type (
 		_expr()
 	}
 
-	// LiteralExpr is a simple literal expression that has a single string
-	// value.
-	LiteralExpr struct {
-		// Value is the simple string value of this expression.
-		Value string
+	// ConstantLiteral is a constant literal expression. The Numeric flag determines whether
+	// or not this is a numeric literal.
+	ConstantLiteral struct {
+		Value   string
+		Numeric bool
+	}
+
+	// ConstantLiteralOrColumnReference is a string literal that represents either a constant
+	// string value or a column reference. If this literal is resolved, the column reference
+	// takes precedence over the string literal, meaning that if a column exists, whose name is
+	// equal to the value of this expression, the value in that column must be used. Only if there
+	// is no such column present, the string literal is to be used.
+	ConstantLiteralOrColumnReference struct {
+		ValueOrName string
+	}
+
+	// ColumnReference is a string literal that represents a reference to a column. During resolving,
+	// if no column with such a name is present, an error must be risen.
+	ColumnReference struct {
+		Name string
 	}
 
 	// ConstantBooleanExpr is a simple expression that represents a boolean
@@ -57,13 +72,44 @@ type (
 	}
 )
 
-func (LiteralExpr) _expr()         {}
 func (ConstantBooleanExpr) _expr() {}
 func (RangeExpr) _expr()           {}
 func (FunctionExpr) _expr()        {}
 
-func (l LiteralExpr) String() string {
+func (ConstantLiteral) _expr()                  {}
+func (ConstantLiteralOrColumnReference) _expr() {}
+func (ColumnReference) _expr()                  {}
+
+// ConstantValue returns the constant value of this literal.
+func (l ConstantLiteral) ConstantValue() string {
 	return l.Value
+}
+
+func (l ConstantLiteral) String() string {
+	return l.Value
+}
+
+// ConstantValue returns the constant value of this literal.
+func (l ConstantLiteralOrColumnReference) ConstantValue() string {
+	return l.ValueOrName
+}
+
+// ReferencedColName returns the constant name of the referenced column name.
+func (l ConstantLiteralOrColumnReference) ReferencedColName() string {
+	return l.ValueOrName
+}
+
+func (l ConstantLiteralOrColumnReference) String() string {
+	return l.ValueOrName
+}
+
+// ReferencedColName returns the constant name of the referenced column name.
+func (l ColumnReference) ReferencedColName() string {
+	return l.Name
+}
+
+func (l ColumnReference) String() string {
+	return l.Name
 }
 
 func (b ConstantBooleanExpr) String() string {

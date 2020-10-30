@@ -1,4 +1,4 @@
-command.Values{Values:[][]command.Expr{[]command.Expr{command.LiteralExpr{Value:"7"}}}}
+command.Values{Values:[][]command.Expr{[]command.Expr{command.ConstantLiteral{Value:"7", Numeric:true}}}}
 
 String:
 Values[]((7))

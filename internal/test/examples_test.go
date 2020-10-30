@@ -88,6 +88,7 @@ func TestExample06(t *testing.T) {
 }
 
 func TestExample07(t *testing.T) {
+	t.Skip("see issue #70")
 	p := profile.NewProfiler()
 
 	RunAndCompare(t, Test{

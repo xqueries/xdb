@@ -84,8 +84,8 @@ func TestEngine_evaluateExpression(t *testing.T) {
 					newEmptyExecutionContext(),
 					command.AddExpression{
 						BinaryBase: command.BinaryBase{
-							Left:  command.LiteralExpr{Value: "5"},
-							Right: command.LiteralExpr{Value: "6"},
+							Left:  command.ConstantLiteral{Value: "5", Numeric: true},
+							Right: command.ConstantLiteral{Value: "6", Numeric: true},
 						},
 					},
 					types.NewInteger(11),
@@ -97,8 +97,8 @@ func TestEngine_evaluateExpression(t *testing.T) {
 					newEmptyExecutionContext(),
 					command.AddExpression{
 						BinaryBase: command.BinaryBase{
-							Left:  command.LiteralExpr{Value: "5.5"},
-							Right: command.LiteralExpr{Value: "6.7"},
+							Left:  command.ConstantLiteral{Value: "5.5", Numeric: true},
+							Right: command.ConstantLiteral{Value: "6.7", Numeric: true},
 						},
 					},
 					types.NewReal(12.2),
@@ -110,8 +110,8 @@ func TestEngine_evaluateExpression(t *testing.T) {
 					newEmptyExecutionContext(),
 					command.AddExpression{
 						BinaryBase: command.BinaryBase{
-							Left:  command.LiteralExpr{Value: `"abc"`},
-							Right: command.LiteralExpr{Value: `"def"`},
+							Left:  command.ConstantLiteral{Value: "abc"},
+							Right: command.ConstantLiteral{Value: "def"},
 						},
 					},
 					types.NewString("abcdef"),
@@ -127,8 +127,8 @@ func TestEngine_evaluateExpression(t *testing.T) {
 					newEmptyExecutionContext(),
 					command.SubExpression{
 						BinaryBase: command.BinaryBase{
-							Left:  command.LiteralExpr{Value: "6"},
-							Right: command.LiteralExpr{Value: "5"},
+							Left:  command.ConstantLiteral{Value: "6", Numeric: true},
+							Right: command.ConstantLiteral{Value: "5", Numeric: true},
 						},
 					},
 					types.NewInteger(1),
@@ -140,8 +140,8 @@ func TestEngine_evaluateExpression(t *testing.T) {
 					newEmptyExecutionContext(),
 					command.SubExpression{
 						BinaryBase: command.BinaryBase{
-							Left:  command.LiteralExpr{Value: "12.2"},
-							Right: command.LiteralExpr{Value: "7.6"},
+							Left:  command.ConstantLiteral{Value: "12.2", Numeric: true},
+							Right: command.ConstantLiteral{Value: "7.6", Numeric: true},
 						},
 					},
 					types.NewReal(4.6),
@@ -157,8 +157,8 @@ func TestEngine_evaluateExpression(t *testing.T) {
 					newEmptyExecutionContext(),
 					command.MulExpression{
 						BinaryBase: command.BinaryBase{
-							Left:  command.LiteralExpr{Value: "6"},
-							Right: command.LiteralExpr{Value: "5"},
+							Left:  command.ConstantLiteral{Value: "6", Numeric: true},
+							Right: command.ConstantLiteral{Value: "5", Numeric: true},
 						},
 					},
 					types.NewInteger(30),
@@ -170,8 +170,8 @@ func TestEngine_evaluateExpression(t *testing.T) {
 					newEmptyExecutionContext(),
 					command.MulExpression{
 						BinaryBase: command.BinaryBase{
-							Left:  command.LiteralExpr{Value: "6.2"},
-							Right: command.LiteralExpr{Value: "5.7"},
+							Left:  command.ConstantLiteral{Value: "6.2", Numeric: true},
+							Right: command.ConstantLiteral{Value: "5.7", Numeric: true},
 						},
 					},
 					types.NewReal(35.34),
@@ -187,8 +187,8 @@ func TestEngine_evaluateExpression(t *testing.T) {
 					newEmptyExecutionContext(),
 					command.DivExpression{
 						BinaryBase: command.BinaryBase{
-							Left:  command.LiteralExpr{Value: "15"},
-							Right: command.LiteralExpr{Value: "5"},
+							Left:  command.ConstantLiteral{Value: "15", Numeric: true},
+							Right: command.ConstantLiteral{Value: "5", Numeric: true},
 						},
 					},
 					types.NewReal(3),
@@ -200,8 +200,8 @@ func TestEngine_evaluateExpression(t *testing.T) {
 					newEmptyExecutionContext(),
 					command.DivExpression{
 						BinaryBase: command.BinaryBase{
-							Left:  command.LiteralExpr{Value: "35.34"},
-							Right: command.LiteralExpr{Value: "5.7"},
+							Left:  command.ConstantLiteral{Value: "35.34", Numeric: true},
+							Right: command.ConstantLiteral{Value: "5.7", Numeric: true},
 						},
 					},
 					types.NewReal(6.2),
@@ -217,8 +217,8 @@ func TestEngine_evaluateExpression(t *testing.T) {
 					newEmptyExecutionContext(),
 					command.ModExpression{
 						BinaryBase: command.BinaryBase{
-							Left:  command.LiteralExpr{Value: "7"},
-							Right: command.LiteralExpr{Value: "5"},
+							Left:  command.ConstantLiteral{Value: "7", Numeric: true},
+							Right: command.ConstantLiteral{Value: "5", Numeric: true},
 						},
 					},
 					types.NewInteger(2),
@@ -230,8 +230,8 @@ func TestEngine_evaluateExpression(t *testing.T) {
 					newEmptyExecutionContext(),
 					command.ModExpression{
 						BinaryBase: command.BinaryBase{
-							Left:  command.LiteralExpr{Value: "7.2"},
-							Right: command.LiteralExpr{Value: "5.2"},
+							Left:  command.ConstantLiteral{Value: "7.2", Numeric: true},
+							Right: command.ConstantLiteral{Value: "5.2", Numeric: true},
 						},
 					},
 					nil,
@@ -247,8 +247,8 @@ func TestEngine_evaluateExpression(t *testing.T) {
 					newEmptyExecutionContext(),
 					command.PowExpression{
 						BinaryBase: command.BinaryBase{
-							Left:  command.LiteralExpr{Value: "2"},
-							Right: command.LiteralExpr{Value: "4"},
+							Left:  command.ConstantLiteral{Value: "2", Numeric: true},
+							Right: command.ConstantLiteral{Value: "4", Numeric: true},
 						},
 					},
 					types.NewInteger(16),
@@ -260,8 +260,8 @@ func TestEngine_evaluateExpression(t *testing.T) {
 					newEmptyExecutionContext(),
 					command.PowExpression{
 						BinaryBase: command.BinaryBase{
-							Left:  command.LiteralExpr{Value: "2.2"},
-							Right: command.LiteralExpr{Value: "1.5"},
+							Left:  command.ConstantLiteral{Value: "2.2", Numeric: true},
+							Right: command.ConstantLiteral{Value: "1.5", Numeric: true},
 						},
 					},
 					types.NewReal(3.2631273343220926),
