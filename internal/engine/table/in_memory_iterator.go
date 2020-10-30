@@ -6,13 +6,13 @@ type inMemoryRowIterator struct {
 }
 
 // Next returns the next row of this iterator.
-func (i *inMemoryRowIterator) Next() (Row, bool) {
+func (i *inMemoryRowIterator) Next() (Row, error) {
 	if i.index == len(i.rows) {
-		return Row{}, false
+		return Row{}, ErrEOT
 	}
 	row := i.rows[i.index]
 	i.index++
-	return row, true
+	return row, nil
 }
 
 // Reset resets the row index to zero, causing Next to return

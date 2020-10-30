@@ -22,8 +22,8 @@ func (suite *SelectionSuite) TestTrivialSelection() {
 		Filter: command.ConstantBooleanExpr{Value: true},
 		Input: command.Values{
 			Values: [][]command.Expr{
-				{command.LiteralExpr{Value: "hello"}, command.LiteralExpr{Value: "5"}, command.ConstantBooleanExpr{Value: true}},
-				{command.LiteralExpr{Value: "foo"}, command.LiteralExpr{Value: "7"}, command.ConstantBooleanExpr{Value: false}},
+				{command.ConstantLiteral{Value: "hello"}, command.ConstantLiteral{Value: "5", Numeric: true}, command.ConstantBooleanExpr{Value: true}},
+				{command.ConstantLiteral{Value: "foo"}, command.ConstantLiteral{Value: "7", Numeric: true}, command.ConstantBooleanExpr{Value: false}},
 			},
 		},
 	})
@@ -54,14 +54,14 @@ func (suite *SelectionSuite) TestSimpleSelection() {
 	tbl, err := suite.engine.evaluateSelection(suite.ctx, command.Select{
 		Filter: command.EqualityExpr{
 			BinaryBase: command.BinaryBase{
-				Left:  command.LiteralExpr{Value: "column2"},
-				Right: command.LiteralExpr{Value: "7"},
+				Left:  command.ColumnReference{Name: "column2"},
+				Right: command.ConstantLiteral{Value: "7", Numeric: true},
 			},
 		},
 		Input: command.Values{
 			Values: [][]command.Expr{
-				{command.LiteralExpr{Value: "hello"}, command.LiteralExpr{Value: "5"}, command.ConstantBooleanExpr{Value: true}},
-				{command.LiteralExpr{Value: "foo"}, command.LiteralExpr{Value: "7"}, command.ConstantBooleanExpr{Value: false}},
+				{command.ConstantLiteral{Value: "hello"}, command.ConstantLiteral{Value: "5", Numeric: true}, command.ConstantBooleanExpr{Value: true}},
+				{command.ConstantLiteral{Value: "foo"}, command.ConstantLiteral{Value: "7", Numeric: true}, command.ConstantBooleanExpr{Value: false}},
 			},
 		},
 	})
@@ -91,14 +91,14 @@ func (suite *SelectionSuite) TestComparingSelectionGreaterThan() {
 	tbl, err := suite.engine.evaluateSelection(suite.ctx, command.Select{
 		Filter: command.GreaterThanExpr{
 			BinaryBase: command.BinaryBase{
-				Left:  command.LiteralExpr{Value: "column2"},
-				Right: command.LiteralExpr{Value: "5"},
+				Left:  command.ColumnReference{Name: "column2"},
+				Right: command.ConstantLiteral{Value: "5", Numeric: true},
 			},
 		},
 		Input: command.Values{
 			Values: [][]command.Expr{
-				{command.LiteralExpr{Value: "hello"}, command.LiteralExpr{Value: "5"}, command.ConstantBooleanExpr{Value: true}},
-				{command.LiteralExpr{Value: "foo"}, command.LiteralExpr{Value: "7"}, command.ConstantBooleanExpr{Value: false}},
+				{command.ConstantLiteral{Value: "hello"}, command.ConstantLiteral{Value: "5", Numeric: true}, command.ConstantBooleanExpr{Value: true}},
+				{command.ConstantLiteral{Value: "foo"}, command.ConstantLiteral{Value: "7", Numeric: true}, command.ConstantBooleanExpr{Value: false}},
 			},
 		},
 	})
@@ -128,14 +128,14 @@ func (suite *SelectionSuite) TestComparingSelectionLessThan() {
 	tbl, err := suite.engine.evaluateSelection(suite.ctx, command.Select{
 		Filter: command.LessThanExpr{
 			BinaryBase: command.BinaryBase{
-				Left:  command.LiteralExpr{Value: "column2"},
-				Right: command.LiteralExpr{Value: "7"},
+				Left:  command.ColumnReference{Name: "column2"},
+				Right: command.ConstantLiteral{Value: "7", Numeric: true},
 			},
 		},
 		Input: command.Values{
 			Values: [][]command.Expr{
-				{command.LiteralExpr{Value: "hello"}, command.LiteralExpr{Value: "5"}, command.ConstantBooleanExpr{Value: true}},
-				{command.LiteralExpr{Value: "foo"}, command.LiteralExpr{Value: "7"}, command.ConstantBooleanExpr{Value: false}},
+				{command.ConstantLiteral{Value: "hello"}, command.ConstantLiteral{Value: "5", Numeric: true}, command.ConstantBooleanExpr{Value: true}},
+				{command.ConstantLiteral{Value: "foo"}, command.ConstantLiteral{Value: "7", Numeric: true}, command.ConstantBooleanExpr{Value: false}},
 			},
 		},
 	})
@@ -165,14 +165,14 @@ func (suite *SelectionSuite) TestComparingSelectionGreaterThanOrEqualTo() {
 	tbl, err := suite.engine.evaluateSelection(suite.ctx, command.Select{
 		Filter: command.GreaterThanOrEqualToExpr{
 			BinaryBase: command.BinaryBase{
-				Left:  command.LiteralExpr{Value: "column2"},
-				Right: command.LiteralExpr{Value: "5"},
+				Left:  command.ColumnReference{Name: "column2"},
+				Right: command.ConstantLiteral{Value: "5", Numeric: true},
 			},
 		},
 		Input: command.Values{
 			Values: [][]command.Expr{
-				{command.LiteralExpr{Value: "hello"}, command.LiteralExpr{Value: "5"}, command.ConstantBooleanExpr{Value: true}},
-				{command.LiteralExpr{Value: "foo"}, command.LiteralExpr{Value: "7"}, command.ConstantBooleanExpr{Value: false}},
+				{command.ConstantLiteral{Value: "hello"}, command.ConstantLiteral{Value: "5", Numeric: true}, command.ConstantBooleanExpr{Value: true}},
+				{command.ConstantLiteral{Value: "foo"}, command.ConstantLiteral{Value: "7", Numeric: true}, command.ConstantBooleanExpr{Value: false}},
 			},
 		},
 	})
@@ -203,14 +203,14 @@ func (suite *SelectionSuite) TestComparingSelectionLessThanOrEqualTo() {
 	tbl, err := suite.engine.evaluateSelection(suite.ctx, command.Select{
 		Filter: command.LessThanOrEqualToExpr{
 			BinaryBase: command.BinaryBase{
-				Left:  command.LiteralExpr{Value: "column2"},
-				Right: command.LiteralExpr{Value: "7"},
+				Left:  command.ColumnReference{Name: "column2"},
+				Right: command.ConstantLiteral{Value: "7", Numeric: true},
 			},
 		},
 		Input: command.Values{
 			Values: [][]command.Expr{
-				{command.LiteralExpr{Value: "hello"}, command.LiteralExpr{Value: "5"}, command.ConstantBooleanExpr{Value: true}},
-				{command.LiteralExpr{Value: "foo"}, command.LiteralExpr{Value: "7"}, command.ConstantBooleanExpr{Value: false}},
+				{command.ConstantLiteral{Value: "hello"}, command.ConstantLiteral{Value: "5", Numeric: true}, command.ConstantBooleanExpr{Value: true}},
+				{command.ConstantLiteral{Value: "foo"}, command.ConstantLiteral{Value: "7", Numeric: true}, command.ConstantBooleanExpr{Value: false}},
 			},
 		},
 	})
@@ -241,14 +241,14 @@ func (suite *SelectionSuite) TestComparingColumns() {
 	tbl, err := suite.engine.evaluateSelection(suite.ctx, command.Select{
 		Filter: command.EqualityExpr{
 			BinaryBase: command.BinaryBase{
-				Left:  command.LiteralExpr{Value: "column1"},
-				Right: command.LiteralExpr{Value: "column2"},
+				Left:  command.ColumnReference{Name: "column1"},
+				Right: command.ColumnReference{Name: "column2"},
 			},
 		},
 		Input: command.Values{
 			Values: [][]command.Expr{
-				{command.LiteralExpr{Value: "hello"}, command.LiteralExpr{Value: "world"}},
-				{command.LiteralExpr{Value: "foo"}, command.LiteralExpr{Value: "foo"}},
+				{command.ConstantLiteral{Value: "hello"}, command.ConstantLiteral{Value: "world"}},
+				{command.ConstantLiteral{Value: "foo"}, command.ConstantLiteral{Value: "foo"}},
 			},
 		},
 	})
@@ -274,14 +274,14 @@ func (suite *SelectionSuite) TestComparingColumnAgainstString() {
 	tbl, err := suite.engine.evaluateSelection(suite.ctx, command.Select{
 		Filter: command.EqualityExpr{
 			BinaryBase: command.BinaryBase{
-				Left:  command.LiteralExpr{Value: "column2"},
-				Right: command.LiteralExpr{Value: "world"},
+				Left:  command.ColumnReference{Name: "column2"},
+				Right: command.ConstantLiteral{Value: "world"},
 			},
 		},
 		Input: command.Values{
 			Values: [][]command.Expr{
-				{command.LiteralExpr{Value: "hello"}, command.LiteralExpr{Value: "world"}},
-				{command.LiteralExpr{Value: "foo"}, command.LiteralExpr{Value: "foo"}},
+				{command.ConstantLiteral{Value: "hello"}, command.ConstantLiteral{Value: "world"}},
+				{command.ConstantLiteral{Value: "foo"}, command.ConstantLiteral{Value: "foo"}},
 			},
 		},
 	})
@@ -306,29 +306,29 @@ func (suite *SelectionSuite) TestComparingColumnAgainstString() {
 func (suite *SelectionSuite) TestInvalidFilter() {
 	suite.Run("invalid expression", func() {
 		tbl, err := suite.engine.evaluateSelection(suite.ctx, command.Select{
-			Filter: command.LiteralExpr{Value: "invalid"},
+			Filter: command.ConstantLiteral{Value: "invalid"},
 			Input: command.Values{
 				Values: [][]command.Expr{
-					{command.LiteralExpr{Value: "hello"}, command.LiteralExpr{Value: "5"}, command.ConstantBooleanExpr{Value: true}},
-					{command.LiteralExpr{Value: "foo"}, command.LiteralExpr{Value: "7"}, command.ConstantBooleanExpr{Value: false}},
+					{command.ConstantLiteral{Value: "hello"}, command.ConstantLiteral{Value: "5", Numeric: true}, command.ConstantBooleanExpr{Value: true}},
+					{command.ConstantLiteral{Value: "foo"}, command.ConstantLiteral{Value: "7", Numeric: true}, command.ConstantBooleanExpr{Value: false}},
 				},
 			},
 		})
-		suite.EqualError(err, "cannot use command.LiteralExpr as filter")
+		suite.EqualError(err, "cannot use command.ConstantLiteral as filter")
 		suite.Zero(tbl)
 	})
 	suite.Run("invalid binary expression", func() {
 		tbl, err := suite.engine.evaluateSelection(suite.ctx, command.Select{
 			Filter: command.AddExpression{
 				BinaryBase: command.BinaryBase{
-					Left:  command.LiteralExpr{Value: "5"},
-					Right: command.LiteralExpr{Value: "12"},
+					Left:  command.ConstantLiteral{Value: "5", Numeric: true},
+					Right: command.ConstantLiteral{Value: "12", Numeric: true},
 				},
 			},
 			Input: command.Values{
 				Values: [][]command.Expr{
-					{command.LiteralExpr{Value: "hello"}, command.LiteralExpr{Value: "5"}, command.ConstantBooleanExpr{Value: true}},
-					{command.LiteralExpr{Value: "foo"}, command.LiteralExpr{Value: "7"}, command.ConstantBooleanExpr{Value: false}},
+					{command.ConstantLiteral{Value: "hello"}, command.ConstantLiteral{Value: "5", Numeric: true}, command.ConstantBooleanExpr{Value: true}},
+					{command.ConstantLiteral{Value: "foo"}, command.ConstantLiteral{Value: "7", Numeric: true}, command.ConstantBooleanExpr{Value: false}},
 				},
 			},
 		})

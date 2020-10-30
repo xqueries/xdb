@@ -16,6 +16,10 @@ import (
 //	1                foobar
 //	2                snafu
 func ToString(tbl Table) (string, error) {
+	if tbl == nil {
+		return "", fmt.Errorf("table is nil")
+	}
+
 	if stringer, ok := tbl.(fmt.Stringer); ok {
 		return stringer.String(), nil
 	}
@@ -35,9 +39,18 @@ func ToString(tbl Table) (string, error) {
 
 	iterator, err := tbl.Rows()
 	if err != nil {
-		return "", err
+		_ = w.Flush()
+		return buf.String(), err
 	}
-	for next, ok := iterator.Next(); ok; next, ok = iterator.Next() {
+	for {
+		next, err := iterator.Next()
+		if err == ErrEOT {
+			break
+		} else if err != nil {
+			_ = w.Flush()
+			return buf.String(), fmt.Errorf("next: %w", err)
+		}
+
 		var strVals []string
 		for i := 0; i < len(next.Values); i++ {
 			strVals = append(strVals, next.Values[i].String())

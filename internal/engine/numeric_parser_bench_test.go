@@ -8,7 +8,7 @@ import (
 
 func BenchmarkToNumericValue(b *testing.B) {
 	str := "75610342.92389E-21423"
-	expVal := 75610342.92389E-21423
+	expVal := 75610342.92389e-21423
 
 	b.ResetTimer()
 

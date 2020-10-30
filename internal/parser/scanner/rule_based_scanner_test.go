@@ -66,6 +66,16 @@ func TestRuleBasedScanner(t *testing.T) {
 			},
 		},
 		{
+			"quoted numeric literal",
+			`SELECT "7"`,
+			ruleset.Default,
+			[]token.Token{
+				token.New(1, 1, 0, 6, token.KeywordSelect, "SELECT"),
+				token.New(1, 8, 7, 3, token.Literal, `"7"`),
+				token.New(1, 11, 10, 0, token.EOF, ""),
+			},
+		},
+		{
 			"fractional numeric literal",
 			"SELECT      FROM || & +7 5.9 \"foobar\"",
 			ruleset.Default,
@@ -420,7 +430,7 @@ func _TestRuleBasedScannerWithRuleset(input string, ruleset ruleset.Ruleset, wan
 			assert.Equal(want[i].Offset(), got[i].Offset(), "Offset doesn't match")
 			assert.Equal(want[i].Length(), got[i].Length(), "Length doesn't match")
 			assert.Equal(want[i].Type(), got[i].Type(), "Type doesn't match, want %s, but got %s", want[i].Type().String(), got[i].Type().String())
-			assert.Equal(want[i].Value(), got[i].Value(), "Value doesn't match")
+			assert.Equal(want[i].Value(), got[i].Value(), "Expr doesn't match")
 		}
 	}
 }

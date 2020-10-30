@@ -2,7 +2,6 @@ package engine
 
 import (
 	"fmt"
-	"strconv"
 
 	"github.com/xqueries/xdb/internal/compiler/command"
 	"github.com/xqueries/xdb/internal/engine/types"
@@ -21,8 +20,12 @@ func (e Engine) evaluateExpression(ctx ExecutionContext, expr command.Expr) (typ
 		return e.evaluateBinaryExpr(ctx, ex)
 	case command.ConstantBooleanExpr:
 		return types.NewBool(ex.Value), nil
-	case command.LiteralExpr:
-		return e.evaluateLiteralExpr(ctx, ex)
+	case command.ConstantLiteral:
+		return e.evaluateConstantLiteral(ctx, ex)
+	case command.ColumnReference:
+		return e.evaluateColumnReference(ctx, ex)
+	case command.ConstantLiteralOrColumnReference:
+		return e.evaluateConstantLiteralOrColumnReference(ctx, ex)
 	case command.FunctionExpr:
 		return e.evaluateFunctionExpr(ctx, ex)
 	}
@@ -41,25 +44,36 @@ func (e Engine) evaluateMultipleExpressions(ctx ExecutionContext, exprs []comman
 	return vals, nil
 }
 
-// evaluateLiteralExpr evaluates the given literal expression based on the
-// current execution context. The returned value will either be a numeric value
-// (integer or real) or a string value.
-func (e Engine) evaluateLiteralExpr(ctx ExecutionContext, expr command.LiteralExpr) (types.Value, error) {
-	// Check whether the expression value is a numeric literal. In the future,
-	// this evaluation might depend on the execution context.
-	if numVal, ok := ToNumericValue(expr.Value); ok {
-		return numVal, nil
+func (e Engine) evaluateColumnReference(ctx ExecutionContext, expr command.ColumnReference) (types.Value, error) {
+	if val, ok := ctx.intermediateRow.ValueForColName(expr.Name); ok {
+		return val, nil
 	}
-	value := expr.Value
-	// if not a numeric literal, remove quotes and resolve escapes
-	resolved, err := strconv.Unquote(expr.Value)
-	if err == nil {
-		value = resolved
-	}
+	return nil, ErrNoSuchColumn(expr.Name)
+}
+
+func (e Engine) evaluateConstantLiteralOrColumnReference(ctx ExecutionContext, expr command.ConstantLiteralOrColumnReference) (types.Value, error) {
+	// ConstantLiteralOrColumnReference can't be numeric. For it to be a ConstantLiteralOrColumnReference,
+	// the value has to be enclosed in double quotes in the query.
+	value := expr.ValueOrName
 	if val, ok := ctx.intermediateRow.ValueForColName(value); ok {
 		return val, nil
 	}
 	return types.NewString(value), nil
+}
+
+// evaluateConstantLiteral evaluates the given literal expression based on the
+// current execution context. The returned value will either be a numeric value
+// (integer or real) or a string value.
+func (e Engine) evaluateConstantLiteral(ctx ExecutionContext, expr command.ConstantLiteral) (types.Value, error) {
+	if expr.Numeric {
+		// Check whether the expression value is a numeric literal. In the future,
+		// this evaluation might depend on the execution context.
+		if numVal, ok := ToNumericValue(expr.Value); ok {
+			return numVal, nil
+		}
+		return nil, fmt.Errorf("could not convert numeric literal to a number")
+	}
+	return types.NewString(expr.Value), nil
 }
 
 func (e Engine) evaluateFunctionExpr(ctx ExecutionContext, expr command.FunctionExpr) (types.Value, error) {

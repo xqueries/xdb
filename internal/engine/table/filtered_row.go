@@ -2,12 +2,12 @@ package table
 
 type filteredRowTable struct {
 	underlying Table
-	keep       func(RowWithColInfo) bool
+	keep       func(RowWithColInfo) (bool, error)
 }
 
 // NewFilteredRow returns a new table that can filter rows from the given
 // underlying table.
-func NewFilteredRow(underlying Table, keep func(RowWithColInfo) bool) Table {
+func NewFilteredRow(underlying Table, keep func(RowWithColInfo) (bool, error)) Table {
 	return filteredRowTable{
 		underlying: underlying,
 		keep:       keep,

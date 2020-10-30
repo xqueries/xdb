@@ -33,9 +33,9 @@ func _TestSimpleCompilerCompileInsertNoOptimizations(t *testing.T) {
 				Input: command.Values{
 					Values: [][]command.Expr{
 						{
-							command.LiteralExpr{Value: "1"},
-							command.LiteralExpr{Value: "2"},
-							command.LiteralExpr{Value: "3"},
+							command.ConstantLiteral{Value: "1", Numeric: true},
+							command.ConstantLiteral{Value: "2", Numeric: true},
+							command.ConstantLiteral{Value: "3", Numeric: true},
 						},
 					},
 				},
@@ -53,9 +53,9 @@ func _TestSimpleCompilerCompileInsertNoOptimizations(t *testing.T) {
 				Input: command.Values{
 					Values: [][]command.Expr{
 						{
-							command.LiteralExpr{Value: "1"},
-							command.LiteralExpr{Value: "2"},
-							command.LiteralExpr{Value: "3"},
+							command.ConstantLiteral{Value: "1", Numeric: true},
+							command.ConstantLiteral{Value: "2", Numeric: true},
+							command.ConstantLiteral{Value: "3", Numeric: true},
 						},
 					},
 				},
@@ -73,14 +73,14 @@ func _TestSimpleCompilerCompileInsertNoOptimizations(t *testing.T) {
 				Input: command.Values{
 					Values: [][]command.Expr{
 						{
-							command.LiteralExpr{Value: "1"},
-							command.LiteralExpr{Value: "2"},
-							command.LiteralExpr{Value: "3"},
+							command.ConstantLiteral{Value: "1", Numeric: true},
+							command.ConstantLiteral{Value: "2", Numeric: true},
+							command.ConstantLiteral{Value: "3", Numeric: true},
 						},
 						{
-							command.LiteralExpr{Value: "4"},
-							command.LiteralExpr{Value: "5"},
-							command.LiteralExpr{Value: "6"},
+							command.ConstantLiteral{Value: "4", Numeric: true},
+							command.ConstantLiteral{Value: "5", Numeric: true},
+							command.ConstantLiteral{Value: "6", Numeric: true},
 						},
 					},
 				},
@@ -98,7 +98,7 @@ func _TestSimpleCompilerCompileInsertNoOptimizations(t *testing.T) {
 				Input: command.Project{
 					Cols: []command.Column{
 						{
-							Name: command.LiteralExpr{Value: "*"},
+							Expr: command.ColumnReference{Name: "*"},
 						},
 					},
 					Input: command.Scan{
@@ -137,7 +137,7 @@ func _TestSimpleCompilerCompileUpdateNoOptimizations(t *testing.T) {
 				Updates: []command.UpdateSetter{
 					{
 						Cols:  []string{"myCol"},
-						Value: command.LiteralExpr{Value: "7"},
+						Value: command.ConstantLiteral{Value: "7", Numeric: true},
 					},
 				},
 			},
@@ -153,14 +153,14 @@ func _TestSimpleCompilerCompileUpdateNoOptimizations(t *testing.T) {
 				},
 				Filter: command.EqualityExpr{
 					BinaryBase: command.BinaryBase{
-						Left:  command.LiteralExpr{Value: "myOtherCol"},
-						Right: command.LiteralExpr{Value: "9"},
+						Left:  command.ColumnReference{Name: "myOtherCol"},
+						Right: command.ConstantLiteral{Value: "9", Numeric: true},
 					},
 				},
 				Updates: []command.UpdateSetter{
 					{
 						Cols:  []string{"myCol"},
-						Value: command.LiteralExpr{Value: "7"},
+						Value: command.ConstantLiteral{Value: "7", Numeric: true},
 					},
 				},
 			},
@@ -176,14 +176,14 @@ func _TestSimpleCompilerCompileUpdateNoOptimizations(t *testing.T) {
 				},
 				Filter: command.EqualityExpr{
 					BinaryBase: command.BinaryBase{
-						Left:  command.LiteralExpr{Value: "myOtherCol"},
-						Right: command.LiteralExpr{Value: "9"},
+						Left:  command.ColumnReference{Name: "myOtherCol"},
+						Right: command.ConstantLiteral{Value: "9", Numeric: true},
 					},
 				},
 				Updates: []command.UpdateSetter{
 					{
 						Cols:  []string{"myCol"},
-						Value: command.LiteralExpr{Value: "7"},
+						Value: command.ConstantLiteral{Value: "7", Numeric: true},
 					},
 				},
 			},
@@ -385,8 +385,8 @@ func _TestSimpleCompilerCompileDeleteNoOptimizations(t *testing.T) {
 				},
 				Filter: command.EqualityExpr{
 					BinaryBase: command.BinaryBase{
-						Left:  command.LiteralExpr{Value: "col1"},
-						Right: command.LiteralExpr{Value: "col2"},
+						Left:  command.ColumnReference{Name: "col1"},
+						Right: command.ColumnReference{Name: "col2"},
 					},
 				},
 			},
@@ -406,19 +406,19 @@ func _TestSimpleCompilerCompileSelectNoOptimizations(t *testing.T) {
 			command.Values{
 				Values: [][]command.Expr{
 					{
-						command.LiteralExpr{Value: "1"},
-						command.LiteralExpr{Value: "2"},
-						command.LiteralExpr{Value: "3"},
+						command.ConstantLiteral{Value: "1", Numeric: true},
+						command.ConstantLiteral{Value: "2", Numeric: true},
+						command.ConstantLiteral{Value: "3", Numeric: true},
 					},
 					{
-						command.LiteralExpr{Value: "4"},
-						command.LiteralExpr{Value: "5"},
-						command.LiteralExpr{Value: "6"},
+						command.ConstantLiteral{Value: "4", Numeric: true},
+						command.ConstantLiteral{Value: "5", Numeric: true},
+						command.ConstantLiteral{Value: "6", Numeric: true},
 					},
 					{
-						command.LiteralExpr{Value: "7"},
-						command.LiteralExpr{Value: "8"},
-						command.LiteralExpr{Value: "9"},
+						command.ConstantLiteral{Value: "7", Numeric: true},
+						command.ConstantLiteral{Value: "8", Numeric: true},
+						command.ConstantLiteral{Value: "9", Numeric: true},
 					},
 				},
 			},
@@ -430,7 +430,7 @@ func _TestSimpleCompilerCompileSelectNoOptimizations(t *testing.T) {
 			command.Project{
 				Cols: []command.Column{
 					{
-						Name: command.LiteralExpr{Value: "*"},
+						Expr: command.ColumnReference{Name: "*"},
 					},
 				},
 				Input: command.Scan{
@@ -447,7 +447,7 @@ func _TestSimpleCompilerCompileSelectNoOptimizations(t *testing.T) {
 			command.Project{
 				Cols: []command.Column{
 					{
-						Name: command.LiteralExpr{Value: "*"},
+						Expr: command.ColumnReference{Name: "*"},
 					},
 				},
 				Input: command.Select{
@@ -465,11 +465,11 @@ func _TestSimpleCompilerCompileSelectNoOptimizations(t *testing.T) {
 			"simple select limit",
 			"SELECT * FROM myTable LIMIT 5",
 			command.Limit{
-				Limit: command.LiteralExpr{Value: "5"},
+				Limit: command.ConstantLiteral{Value: "5", Numeric: true},
 				Input: command.Project{
 					Cols: []command.Column{
 						{
-							Name: command.LiteralExpr{Value: "*"},
+							Expr: command.ColumnReference{Name: "*"},
 						},
 					},
 					Input: command.Scan{
@@ -485,13 +485,13 @@ func _TestSimpleCompilerCompileSelectNoOptimizations(t *testing.T) {
 			"simple select limit offset",
 			"SELECT * FROM myTable LIMIT 5, 10",
 			command.Limit{
-				Limit: command.LiteralExpr{Value: "5"},
+				Limit: command.ConstantLiteral{Value: "5", Numeric: true},
 				Input: command.Offset{
-					Offset: command.LiteralExpr{Value: "10"},
+					Offset: command.ConstantLiteral{Value: "10", Numeric: true},
 					Input: command.Project{
 						Cols: []command.Column{
 							{
-								Name: command.LiteralExpr{Value: "*"},
+								Expr: command.ColumnReference{Name: "*"},
 							},
 						},
 						Input: command.Scan{
@@ -508,13 +508,13 @@ func _TestSimpleCompilerCompileSelectNoOptimizations(t *testing.T) {
 			"simple select limit offset",
 			"SELECT * FROM myTable LIMIT 5 OFFSET 10",
 			command.Limit{
-				Limit: command.LiteralExpr{Value: "5"},
+				Limit: command.ConstantLiteral{Value: "5", Numeric: true},
 				Input: command.Offset{
-					Offset: command.LiteralExpr{Value: "10"},
+					Offset: command.ConstantLiteral{Value: "10", Numeric: true},
 					Input: command.Project{
 						Cols: []command.Column{
 							{
-								Name: command.LiteralExpr{Value: "*"},
+								Expr: command.ColumnReference{Name: "*"},
 							},
 						},
 						Input: command.Scan{
@@ -534,7 +534,7 @@ func _TestSimpleCompilerCompileSelectNoOptimizations(t *testing.T) {
 				Input: command.Project{
 					Cols: []command.Column{
 						{
-							Name: command.LiteralExpr{Value: "*"},
+							Expr: command.ColumnReference{Name: "*"},
 						},
 					},
 					Input: command.Select{
@@ -555,7 +555,7 @@ func _TestSimpleCompilerCompileSelectNoOptimizations(t *testing.T) {
 			command.Project{
 				Cols: []command.Column{
 					{
-						Name: command.LiteralExpr{Value: "*"},
+						Expr: command.ColumnReference{Name: "*"},
 					},
 				},
 				Input: command.Select{
@@ -582,7 +582,7 @@ func _TestSimpleCompilerCompileSelectNoOptimizations(t *testing.T) {
 			command.Project{
 				Cols: []command.Column{
 					{
-						Name: command.LiteralExpr{Value: "*"},
+						Expr: command.ColumnReference{Name: "*"},
 					},
 				},
 				Input: command.Select{
@@ -609,7 +609,7 @@ func _TestSimpleCompilerCompileSelectNoOptimizations(t *testing.T) {
 			command.Project{
 				Cols: []command.Column{
 					{
-						Name: command.LiteralExpr{Value: "*"},
+						Expr: command.ColumnReference{Name: "*"},
 					},
 				},
 				Input: command.Select{
@@ -643,13 +643,13 @@ func _TestSimpleCompilerCompileSelectNoOptimizations(t *testing.T) {
 			command.Project{
 				Cols: []command.Column{
 					{
-						Name: command.LiteralExpr{Value: "name"},
+						Expr: command.ColumnReference{Name: "name"},
 					},
 					{
-						Name: command.MulExpression{
+						Expr: command.MulExpression{
 							BinaryBase: command.BinaryBase{
-								Left:  command.LiteralExpr{Value: "amount"},
-								Right: command.LiteralExpr{Value: "price"},
+								Left:  command.ColumnReference{Name: "amount"},
+								Right: command.ColumnReference{Name: "price"},
 							},
 						},
 						Alias: "total_price",
@@ -672,11 +672,11 @@ func _TestSimpleCompilerCompileSelectNoOptimizations(t *testing.T) {
 			command.Project{
 				Cols: []command.Column{
 					{
-						Name: command.FunctionExpr{
+						Expr: command.FunctionExpr{
 							Name:     "AVG",
 							Distinct: false,
 							Args: []command.Expr{
-								command.LiteralExpr{Value: "price"},
+								command.ColumnReference{Name: "price"},
 							},
 						},
 						Alias: "avg_price",
@@ -700,11 +700,11 @@ func _TestSimpleCompilerCompileSelectNoOptimizations(t *testing.T) {
 			command.Project{
 				Cols: []command.Column{
 					{
-						Name: command.FunctionExpr{
+						Expr: command.FunctionExpr{
 							Name:     "AVG",
 							Distinct: true,
 							Args: []command.Expr{
-								command.LiteralExpr{Value: "price"},
+								command.ColumnReference{Name: "price"},
 							},
 						},
 						Alias: "avg_price",

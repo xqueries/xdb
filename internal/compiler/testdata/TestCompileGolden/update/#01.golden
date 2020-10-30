@@ -1,4 +1,4 @@
-command.Update{UpdateOr:0x5, Table:command.SimpleTable{Schema:"", Table:"myTable", Alias:"", Indexed:false, Index:""}, Updates:[]command.UpdateSetter{command.UpdateSetter{Cols:[]string{"myCol"}, Value:command.LiteralExpr{Value:"7"}}}, Filter:command.EqualityExpr{BinaryBase:command.BinaryBase{Left:command.LiteralExpr{Value:"myOtherCol"}, Right:command.LiteralExpr{Value:"9"}}, Invert:false}}
+command.Update{UpdateOr:0x5, Table:command.SimpleTable{Schema:"", Table:"myTable", Alias:"", Indexed:false, Index:""}, Updates:[]command.UpdateSetter{command.UpdateSetter{Cols:[]string{"myCol"}, Value:command.ConstantLiteral{Value:"7", Numeric:true}}}, Filter:command.EqualityExpr{BinaryBase:command.BinaryBase{Left:command.ColumnReference{Name:"myOtherCol"}, Right:command.ConstantLiteral{Value:"9", Numeric:true}}, Invert:false}}
 
 String:
 Update[or=UpdateOrIgnore,table=myTable,sets=((myCol)=7),filter=myOtherCol==9]
