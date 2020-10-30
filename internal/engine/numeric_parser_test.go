@@ -101,7 +101,7 @@ func TestToNumericValue(t *testing.T) {
 		{
 			"real with exponent",
 			"5.7E-242",
-			types.NewReal(5.7E-242),
+			types.NewReal(5.7e-242),
 			true,
 		},
 		{

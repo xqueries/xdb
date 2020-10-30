@@ -29,19 +29,19 @@ func (e Engine) newProjectedTable(ctx ExecutionContext, originalTable table.Tabl
 	// compute the column names
 	var cols []table.Col
 	for i, colNameExpr := range columnExpressions {
-		if ref, ok := colNameExpr.Expr.(command.ColumnReference); ok {
-			if ref.Name == "*" {
+		switch expr := colNameExpr.Expr.(type) {
+		case command.ColumnReference:
+			if expr.Name == "*" {
 				cols = append(cols, originalTable.Cols()...)
 			} else {
-				foundCol, ok := table.FindColumnForNameOrAlias(originalTable, ref.Name)
+				foundCol, ok := table.FindColumnForNameOrAlias(originalTable, expr.Name)
 				if !ok {
-					return projectedTable{}, ErrNoSuchColumn(ref.Name)
+					return projectedTable{}, ErrNoSuchColumn(expr.Name)
 				}
 				cols = append(cols, foundCol)
 			}
-		} else if litOrRef, ok := colNameExpr.Expr.(command.ConstantLiteralOrColumnReference); ok {
-			foundCol, ok := table.FindColumnForNameOrAlias(originalTable, litOrRef.ValueOrName)
-			if ok {
+		case command.ConstantLiteralOrColumnReference:
+			if foundCol, ok := table.FindColumnForNameOrAlias(originalTable, expr.ValueOrName); ok {
 				cols = append(cols, foundCol)
 			} else {
 				evaluatedName, err := e.evaluateExpression(ctx, colNameExpr.Expr)
@@ -49,12 +49,12 @@ func (e Engine) newProjectedTable(ctx ExecutionContext, originalTable table.Tabl
 					return projectedTable{}, fmt.Errorf("typeof colName: %w", err)
 				}
 				cols = append(cols, table.Col{
-					QualifiedName: litOrRef.ValueOrName,
+					QualifiedName: expr.ValueOrName,
 					Alias:         colNameExpr.Alias,
 					Type:          evaluatedName.Type(),
 				})
 			}
-		} else {
+		default:
 			colName, err := e.evaluateExpression(ctx, colNameExpr.Expr)
 			if err != nil {
 				return projectedTable{}, fmt.Errorf("col name: %w", err)

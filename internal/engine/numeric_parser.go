@@ -16,7 +16,7 @@ type numericParser struct {
 
 	isReal                  bool
 	isHexadecimal           bool
-	isErronous              bool
+	isErroneous             bool
 	hasDigitsBeforeExponent bool
 
 	value *bytes.Buffer
@@ -39,7 +39,7 @@ func ToNumericValue(s string) (types.Value, bool) {
 		current: stateInitial,
 	}
 	p.parse()
-	if p.isErronous {
+	if p.isErroneous {
 		return nil, false
 	}
 	switch {
@@ -94,7 +94,7 @@ func stateInitial(p *numericParser) numericParserState {
 	case p.get() == '.':
 		return stateDecimalPoint
 	}
-	p.isErronous = true
+	p.isErroneous = true
 	return nil
 }
 
@@ -103,7 +103,7 @@ func stateHex(p *numericParser) numericParserState {
 		p.step()
 		return stateHex
 	}
-	p.isErronous = true
+	p.isErroneous = true
 	return nil
 }
 
@@ -115,7 +115,7 @@ func stateFirstDigits(p *numericParser) numericParserState {
 	} else if p.get() == '.' {
 		return stateDecimalPoint
 	}
-	p.isErronous = true
+	p.isErroneous = true
 	return nil
 }
 
@@ -125,7 +125,7 @@ func stateDecimalPoint(p *numericParser) numericParserState {
 		p.isReal = true
 		return stateSecondDigits
 	}
-	p.isErronous = true
+	p.isErroneous = true
 	return nil
 }
 
@@ -138,9 +138,9 @@ func stateSecondDigits(p *numericParser) numericParserState {
 		if p.hasDigitsBeforeExponent {
 			return stateExponent
 		}
-		p.isErronous = true // if there were no first digits,
+		p.isErroneous = true // if there were no first digits,
 	}
-	p.isErronous = true
+	p.isErroneous = true
 	return nil
 }
 
@@ -149,7 +149,7 @@ func stateExponent(p *numericParser) numericParserState {
 		p.step()
 		return stateOptionalSign
 	}
-	p.isErronous = true
+	p.isErroneous = true
 	return nil
 }
 
@@ -160,7 +160,7 @@ func stateOptionalSign(p *numericParser) numericParserState {
 	} else if isDigit(p.get()) {
 		return stateThirdDigits
 	}
-	p.isErronous = true
+	p.isErroneous = true
 	return nil
 }
 
@@ -169,7 +169,7 @@ func stateThirdDigits(p *numericParser) numericParserState {
 		p.step()
 		return stateThirdDigits
 	}
-	p.isErronous = true
+	p.isErroneous = true
 	return nil
 }
 
