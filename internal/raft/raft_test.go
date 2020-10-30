@@ -265,12 +265,12 @@ func TestIntegration(t *testing.T) {
 				4,
 			},
 		},
-		// {
-		// 	Op: StopNode,
-		// 	Data: &OpStopNode{
-		// 		3,
-		// 	},
-		// },
+		{
+			Op: RestartNode,
+			Data: &OpRestartNode{
+				3,
+			},
+		},
 	}
 	opParams := OperationParameters{
 		Rounds:             2,

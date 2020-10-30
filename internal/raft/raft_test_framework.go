@@ -235,7 +235,6 @@ func (t *SimpleRaftTest) SendData(d *OpSendData) {
 // a failure of a node.
 func (t *SimpleRaftTest) StopNode(d *OpStopNode) {
 	t.raftNodes[d.NodeID].node.PersistentState.mu.Lock()
-	fmt.Println(t.raftNodes[d.NodeID].node.Closed)
 	if t.raftNodes[d.NodeID].node.Closed {
 		t.log.Debug().
 			Int("node ID", d.NodeID).
@@ -284,7 +283,7 @@ func (t *SimpleRaftTest) RestartNode(d *OpRestartNode) {
 }
 
 func createRaftNodes(log zerolog.Logger, cluster *cluster.TCPTestNetwork) []*SimpleServer {
-	raftNodes := []*SimpleServer{}
+	var raftNodes []*SimpleServer
 	for i := range cluster.Clusters {
 		node := NewServer(log, cluster.Clusters[i])
 		raftNodes = append(raftNodes, node)

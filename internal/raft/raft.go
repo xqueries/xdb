@@ -173,7 +173,7 @@ func NewRaftNode(cluster Cluster) *Node {
 func (s *SimpleServer) Start(ctx context.Context) (err error) {
 	// Making the function idempotent, returns whether the server is already open.
 	s.lock.Lock()
-	if s.node != nil {
+	if s.node != nil && !s.node.Closed {
 		s.log.Debug().
 			Str("self-id", s.node.PersistentState.SelfID.String()).
 			Msg("already open")
@@ -255,7 +255,7 @@ func (s *SimpleServer) Start(ctx context.Context) (err error) {
 				s.lock.Unlock()
 			}
 		case data := <-liveChan:
-			err = s.processIncomingData(data)
+			err = s.processIncomingData(ctx, data)
 			if err != nil {
 				log.Printf("error in processing data: %v\n", err)
 				return
@@ -306,6 +306,7 @@ func (s *SimpleServer) Close() error {
 
 	s.node.PersistentState.mu.Lock()
 	s.node.Closed = true
+
 	s.node.PersistentState.mu.Unlock()
 
 	err := s.cluster.Close()
@@ -327,9 +328,7 @@ func randomTimer(node *Node) *time.Timer {
 // processIncomingData is responsible for parsing the incoming data and calling
 // appropriate functions based on the request type.
 // This function receives data from the core of the raft module's functionality.
-func (s *SimpleServer) processIncomingData(data *incomingData) error {
-
-	ctx := context.TODO()
+func (s *SimpleServer) processIncomingData(ctx context.Context, data *incomingData) error {
 
 	switch data.msg.Kind() {
 	case message.KindRequestVoteRequest:
@@ -387,7 +386,7 @@ func (s *SimpleServer) processIncomingData(data *incomingData) error {
 				// Reset the votes of this term once its elected leader.
 				s.node.VolatileState.Votes = 0
 				s.node.PersistentState.mu.Unlock()
-				s.startLeader(selfID.String())
+				s.startLeader(ctx, selfID.String())
 				return nil
 			}
 			s.node.PersistentState.mu.Unlock()
