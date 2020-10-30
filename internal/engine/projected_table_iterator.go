@@ -35,6 +35,8 @@ func (t projectedTable) createIterator() (*projectedTableIterator, error) {
 	}, nil
 }
 
+// Next returns the next row from this table. It fetches an underlying row and performs the projection
+// on it, meaning that columns might be renamed, reordered, added or removed.
 func (i *projectedTableIterator) Next() (table.Row, error) {
 	if i.isSingleRowTable && i.rowCounter > 0 {
 		// we've already returned one row in a single row table, this is the
@@ -82,12 +84,20 @@ func (i *projectedTableIterator) Next() (table.Row, error) {
 	return table.Row{Values: vals}, nil
 }
 
+// Reset resets this table iterator, causing it to start from row 0 again.
 func (i *projectedTableIterator) Reset() error {
 	i.isSingleRowTableOnce = &sync.Once{}
 	i.isSingleRowTable = false
 	return i.underlying.Reset()
 }
 
+// projectedColumnsImplySingleRowTable checks whether the projected columns imply, that the resulting
+// table should only consist of a single row. This would be the case if they contain constant columns,
+// as in
+//	SELECT 'a';
+// or
+//	SELECT MIN(col1) FROM myTable;
+// The resulting table then only consists of one row, instead of repeating the same value over and over.
 func projectedColumnsImplySingleRowTable(ctx ExecutionContext, columns []command.Column) bool {
 	for _, column := range columns {
 		switch name := column.Expr.(type) {

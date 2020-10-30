@@ -8,6 +8,8 @@ import (
 	"github.com/xqueries/xdb/internal/engine/types"
 )
 
+// projectedTable is a table, which projects from an underlying table.
+// This means, this table may reorder, rename, remove or add columns.
 type projectedTable struct {
 	columns          []table.Col
 	originalTable    table.Table
@@ -82,10 +84,12 @@ func (e Engine) newProjectedTable(ctx ExecutionContext, originalTable table.Tabl
 	return tbl, nil
 }
 
+// Cols returns the columns of the projected table.
 func (t projectedTable) Cols() []table.Col {
 	return t.columns
 }
 
+// Rows returns a row iterator of the projected table. Use it to read rows one by one.
 func (t projectedTable) Rows() (table.RowIterator, error) {
 	return t.createIterator()
 }
