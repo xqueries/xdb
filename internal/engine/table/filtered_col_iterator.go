@@ -31,11 +31,11 @@ func newFilteredColIterator(origin Table, keep func(int, Col) bool) (*filteredCo
 }
 
 // Next returns the next row of this table iterator.
-func (i filteredColIterator) Next() (Row, bool) {
+func (i filteredColIterator) Next() (Row, error) {
 	var vals []types.Value
-	next, ok := i.underlying.Next()
-	if !ok {
-		return Row{}, false
+	next, err := i.underlying.Next()
+	if err != nil {
+		return Row{}, err
 	}
 	for colIndex, value := range next.Values {
 		result := sort.SearchInts(i.keepIndices, colIndex)
@@ -45,7 +45,7 @@ func (i filteredColIterator) Next() (Row, bool) {
 	}
 	return Row{
 		Values: vals,
-	}, true
+	}, nil
 }
 
 // Reset makes this iterator start over from the first row.

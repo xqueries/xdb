@@ -122,7 +122,7 @@ func (t Table) Name() string {
 	return t.name
 }
 
-// Cols returns the column information of this table as a slice of columns.
+// Cols returns the column information of this table as a slice of projectedColumns.
 func (t Table) Cols() []table.Col {
 	return t.cols
 }
@@ -301,7 +301,7 @@ func deserializeColInfo(record []byte) (cols []table.Col, err error) {
 		if n != len(buf) {
 			return nil, fmt.Errorf("read col name: expected %v bytes, could only read %v", len(buf), n)
 		}
-		// col read successfully, append to cols
+		// col read successfully, append to underlyingColumns
 		cols = append(cols, table.Col{
 			QualifiedName: string(buf),
 			Type:          types.ByIndicator(types.TypeIndicator(typeIndicator)),

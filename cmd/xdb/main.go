@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 
 	"github.com/rs/zerolog"
@@ -167,7 +168,7 @@ func startNode(cmd *cobra.Command, args []string) {
 
 func createLogger(stdin io.Reader, stdout, stderr io.Writer) zerolog.Logger {
 	// open the log file
-	file, err := os.OpenFile(logfile, os.O_CREATE|os.O_APPEND|os.O_RDWR, 0600)
+	file, err := os.OpenFile(filepath.Clean(logfile), os.O_CREATE|os.O_APPEND|os.O_RDWR, 0600)
 	if err != nil {
 		_, _ = fmt.Fprintln(stderr, fmt.Errorf("open logfile: %w", err).Error())
 		os.Exit(ExitAbnormal)

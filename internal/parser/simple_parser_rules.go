@@ -2532,6 +2532,8 @@ func (p *simpleParser) parseCreateTableStmt(createToken, tempToken, temporaryTok
 		stmt.SchemaName = next
 		stmt.TableName = next
 		p.consumeToken()
+	} else {
+		r.unexpectedToken(token.Literal)
 	}
 
 	next, ok = p.lookahead(r)

@@ -53,11 +53,11 @@ func (suite *EngineSuite) EqualTables(expected, got table.Table) {
 	gotIt, err := got.Rows()
 	suite.NoError(err)
 	for {
-		expectedNext, expectedOk := expectedIt.Next()
-		gotNext, gotOk := gotIt.Next()
+		expectedNext, expectedErr := expectedIt.Next()
+		gotNext, gotErr := gotIt.Next()
+		suite.EqualValues(expectedErr, gotErr)
 		suite.Equal(expectedNext, gotNext)
-		suite.Equal(expectedOk, gotOk)
-		if !(expectedOk && gotOk) {
+		if !(expectedErr == nil && gotErr == nil) {
 			break
 		}
 	}

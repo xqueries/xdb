@@ -1,4 +1,4 @@
-command.Delete{Table:command.SimpleTable{Schema:"", Table:"myTable", Alias:"", Indexed:false, Index:""}, Filter:command.EqualityExpr{BinaryBase:command.BinaryBase{Left:command.LiteralExpr{Value:"col1"}, Right:command.LiteralExpr{Value:"col2"}}, Invert:false}}
+command.Delete{Table:command.SimpleTable{Schema:"", Table:"myTable", Alias:"", Indexed:false, Index:""}, Filter:command.EqualityExpr{BinaryBase:command.BinaryBase{Left:command.ColumnReference{Name:"col1"}, Right:command.ColumnReference{Name:"col2"}}, Invert:false}}
 
 String:
 Delete[filter=col1==col2](myTable)

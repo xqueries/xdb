@@ -27,19 +27,19 @@ func (e Engine) evaluateSelection(ctx ExecutionContext, sel command.Select) (tab
 	case command.EqualityExpr, command.GreaterThanExpr, command.GreaterThanOrEqualToExpr, command.LessThanExpr, command.LessThanOrEqualToExpr:
 	}
 
-	return table.NewFilteredRow(origin, func(r table.RowWithColInfo) bool {
+	return table.NewFilteredRow(origin, func(r table.RowWithColInfo) (bool, error) {
 		defer e.profiler.Enter("selection (lazy)").Exit()
 		switch filter := sel.Filter.(type) {
 		case command.BinaryExpression:
 			val, err := e.evaluateBinaryExpr(ctx.IntermediateRow(r), filter)
 			if err != nil {
-				return false
+				return false, err
 			}
 			if !val.Is(types.Bool) {
-				return false
+				return false, fmt.Errorf("expression does not evaluate to bool")
 			}
-			return val.(types.BoolValue).Value
+			return val.(types.BoolValue).Value, nil
 		}
-		return false
+		return false, nil
 	}), nil
 }

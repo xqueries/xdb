@@ -18,7 +18,7 @@ func (e Engine) evaluateInsert(ctx ExecutionContext, c command.Insert) (table.Ta
 	}
 
 	if len(c.Cols) != 0 {
-		return nil, fmt.Errorf("explicit insert columns: %w", ErrUnsupported)
+		return nil, fmt.Errorf("explicit insert projectedColumns: %w", ErrUnsupported)
 	}
 
 	insertInput, err := e.evaluateList(ctx, c.Input)
@@ -30,7 +30,13 @@ func (e Engine) evaluateInsert(ctx ExecutionContext, c command.Insert) (table.Ta
 	if err != nil {
 		return nil, fmt.Errorf("rows: %w", err)
 	}
-	for next, ok := inputRows.Next(); ok; next, ok = inputRows.Next() {
+	for {
+		next, err := inputRows.Next()
+		if err == table.ErrEOT {
+			break
+		} else if err != nil {
+			return nil, err
+		}
 		if err := inserter.Insert(next); err != nil {
 			return nil, fmt.Errorf("insert: %w", err)
 		}

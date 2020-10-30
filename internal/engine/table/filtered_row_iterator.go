@@ -2,11 +2,11 @@ package table
 
 type filteredRowIterator struct {
 	origin     Table
-	keep       func(RowWithColInfo) bool
+	keep       func(RowWithColInfo) (bool, error)
 	underlying RowIterator
 }
 
-func newFilteredRowIterator(origin Table, keep func(RowWithColInfo) bool) (*filteredRowIterator, error) {
+func newFilteredRowIterator(origin Table, keep func(RowWithColInfo) (bool, error)) (*filteredRowIterator, error) {
 	rows, err := origin.Rows()
 	if err != nil {
 		return nil, err
@@ -19,17 +19,19 @@ func newFilteredRowIterator(origin Table, keep func(RowWithColInfo) bool) (*filt
 }
 
 // Next returns the next not filtered row.
-func (i filteredRowIterator) Next() (Row, bool) {
+func (i filteredRowIterator) Next() (Row, error) {
 	for {
-		next, ok := i.underlying.Next()
-		if !ok {
-			return Row{}, false
+		next, err := i.underlying.Next()
+		if err != nil {
+			return Row{}, err
 		}
-		if i.keep(RowWithColInfo{
+		if ok, err := i.keep(RowWithColInfo{
 			Cols: i.origin.Cols(),
 			Row:  next,
-		}) {
-			return next, true
+		}); err != nil {
+			return Row{}, err
+		} else if ok {
+			return next, nil
 		}
 	}
 }
