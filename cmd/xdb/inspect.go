@@ -26,7 +26,7 @@ func inspectXDB(cmd *cobra.Command, args []string) {
 	}
 
 	prompt := promptui.Prompt{
-		Label:    i.HomeScope + " " + i.Delimiter,
+		Label:    i.GenerateLabel(),
 		Validate: validate,
 	}
 
@@ -55,7 +55,10 @@ func inspectXDB(cmd *cobra.Command, args []string) {
 				i.Log.Error().Err(err).Msg("error in CLI, stopping")
 			} else {
 				fmt.Println(result)
+				// Update the label if the scope is changed.
+				prompt.Label = i.GenerateLabel()
 			}
 		}
+
 	}
 }

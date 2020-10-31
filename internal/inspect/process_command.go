@@ -19,6 +19,8 @@ func (i *Inspector) ProcessCommand(c CommandData) (string, error) {
 	case CommandOverview:
 	case CommandHelp:
 		res, err = i.ProcessHelpCommand(c.Args)
+	case CommandK:
+		res, err = i.ProcessKCommand()
 	}
 	return res, err
 }

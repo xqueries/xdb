@@ -17,6 +17,7 @@ const (
 	CommandOverview    = Command("Overview")
 	CommandUnsupported = Command("Unsupported command")
 	CommandHelp        = Command("help")
+	CommandK           = Command("k")
 )
 
 func (c Command) String() string { return string(c) }

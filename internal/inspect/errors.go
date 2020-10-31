@@ -11,4 +11,5 @@ const (
 	ErrInCommandExecution Error = "Error in command execution, please type \"help commandName\" to understand usage"
 	ErrInsufficientArgs   Error = "Insufficient arguments in the command, please type \" help commandName\" to understand usage"
 	ErrExcessArgs         Error = "Excess arguments in the command, please type \" help commandName\" to understand usage"
+	ErrCantExitScope      Error = "Already in home scope, can't exit."
 )

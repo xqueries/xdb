@@ -3,6 +3,8 @@ package inspect
 import (
 	"os"
 
+	"github.com/spf13/afero"
+
 	"github.com/rs/zerolog"
 	"github.com/xqueries/xdb/internal/engine/storage"
 
@@ -11,9 +13,11 @@ import (
 
 // Inspector aggregates all the types necessary for an inspection run.
 type Inspector struct {
-	e            engine.Engine
-	HomeScope    string
-	CurrentScope string
+	e    engine.Engine
+	file afero.File
+
+	HomeScope    scope
+	CurrentScope scope
 	Delimiter    string
 	Log          zerolog.Logger
 }
@@ -35,11 +39,12 @@ func NewInspector(filePath string, log zerolog.Logger) *Inspector {
 		log.Err(err)
 	}
 
-	homeScope := "xdb inspect"
+	homeScope := NewScope("xdb inspect", "")
 	currentScope := homeScope
 	delimiter := ">"
 	return &Inspector{
 		e:            e,
+		file:         file,
 		HomeScope:    homeScope,
 		CurrentScope: currentScope,
 		Delimiter:    delimiter,
@@ -69,11 +74,15 @@ func (i *Inspector) Inspect(input string) (string, error) {
 }
 
 // enterScope enters the given scope for the Inspector.
-func (i *Inspector) enterScope(scope string) {
+func (i *Inspector) enterScope(scope scope) {
 	i.CurrentScope = scope
 }
 
 // exitScope returns to the parent scope of the Inspector.
 func (i *Inspector) exitScope() {
 	i.CurrentScope = i.HomeScope
+}
+
+func (i *Inspector) GenerateLabel() string {
+	return i.CurrentScope.String() + " " + i.Delimiter
 }
