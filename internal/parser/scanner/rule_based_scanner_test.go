@@ -66,6 +66,18 @@ func TestRuleBasedScanner(t *testing.T) {
 			},
 		},
 		{
+			"tabs",
+			"SELECT\tSELECT    SELECT\t\t\tSELECT",
+			ruleset.Default,
+			[]token.Token{
+				token.New(1, 1, 0, 6, token.KeywordSelect, "SELECT"),
+				token.New(1, 8, 7, 6, token.KeywordSelect, "SELECT"),
+				token.New(1, 18, 17, 6, token.KeywordSelect, "SELECT"),
+				token.New(1, 27, 26, 6, token.KeywordSelect, "SELECT"),
+				token.New(1, 33, 32, 0, token.EOF, ""),
+			},
+		},
+		{
 			"quoted numeric literal",
 			`SELECT "7"`,
 			ruleset.Default,
