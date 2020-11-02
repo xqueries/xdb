@@ -6,8 +6,10 @@ import (
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
+	"github.com/xqueries/xdb/internal/compiler"
 	"github.com/xqueries/xdb/internal/engine/storage"
 	"github.com/xqueries/xdb/internal/engine/table"
+	"github.com/xqueries/xdb/internal/parser"
 )
 
 func TestEngineSuite(t *testing.T) {
@@ -60,5 +62,29 @@ func (suite *EngineSuite) EqualTables(expected, got table.Table) {
 		if !(expectedErr == nil && gotErr == nil) {
 			break
 		}
+	}
+}
+
+// RunScript will run the given SQL script, which is useful for setting up a minimalistic
+// database for a test.
+// The test will fail if the script is incorrect or results in errors.
+func (suite *EngineSuite) RunScript(sqlScript string) {
+	p, err := parser.New(sqlScript)
+	suite.NoError(err)
+
+	c := compiler.New()
+
+	for {
+		next, errs, ok := p.Next()
+		if !ok {
+			break
+		}
+		suite.Len(errs, 0)
+
+		cmd, err := c.Compile(next)
+		suite.NoError(err)
+
+		_, err = suite.engine.Evaluate(cmd)
+		suite.NoError(err)
 	}
 }

@@ -139,7 +139,7 @@ func (p *Page) Cell(key []byte) (CellTyper, bool) {
 // don't modify them. Instead, delete the old cell and store a new one.
 func (p *Page) Cells() (result []CellTyper) {
 	for _, offset := range p.OccupiedSlots() {
-		result = append(result, decodeCell(p.data[offset.Offset:offset.Offset+offset.Size]))
+		result = append(result, decodeCell(p.body[offset.Offset:offset.Offset+offset.Size]))
 	}
 	return
 }
