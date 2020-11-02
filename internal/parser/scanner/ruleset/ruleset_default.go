@@ -21,7 +21,10 @@ var (
 		SingleLineCommentDetector: defaultSingleLineCommentDetector.Matches,
 	}
 	// defaultWhitespaceDetector matches all the whitespaces that this ruleset allows
-	defaultWhitespaceDetector = matcher.New("whitespace", unicode.Space)
+	defaultWhitespaceDetector = matcher.Merge(
+		matcher.New("unicode space", unicode.Space),
+		matcher.RuneWithDesc("horizontal tab", 0x0009),
+	)
 	// defaultSingleLineCommentDetector matches the single line comment characters i.e `-/` that this ruleset allows
 	defaultSingleLineCommentDetector = matcher.String("-/")
 	// defaultLinefeedDetector is the linefeed detector that this ruleset allows

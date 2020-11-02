@@ -58,12 +58,17 @@ func NewRuleBased(input string, ruleset ruleset.Ruleset) (Scanner, error) {
 	}, nil
 }
 
+// Next returns the next token and removes it from the scanner.
+// The next call to Next() or Peek() will compute a new token, which
+// follows the token that this method returned.
 func (s *ruleBasedScanner) Next() token.Token {
 	tok := s.Peek()
 	s.cache = nil
 	return tok
 }
 
+// Peek returns the next token without removing it. To remove it,
+// call Next().
 func (s *ruleBasedScanner) Peek() token.Token {
 	if s.cache == nil {
 		s.cache = s.computeNext()
@@ -120,7 +125,7 @@ func (s *ruleBasedScanner) drainWhitespacesAndComments() {
 func (s *ruleBasedScanner) drainWhitespace() {
 	for {
 		next, ok := s.Lookahead()
-		if !(ok && s.whitespaceDetector(next)) {
+		if !(ok && (s.whitespaceDetector(next) || s.linefeedDetector(next))) {
 			break
 		}
 		s.ConsumeRune()
@@ -237,6 +242,8 @@ func (s *ruleBasedScanner) updateStartPositions() {
 
 // runeScanner
 
+// Lookahead returns the next rune that is ahead of the current position, or false,
+// if EOF was reached.
 func (s *ruleBasedScanner) Lookahead() (rune, bool) {
 	if !s.done() {
 		return s.input[s.pos], true
@@ -244,6 +251,9 @@ func (s *ruleBasedScanner) Lookahead() (rune, bool) {
 	return 0, false
 }
 
+// ConsumeRune adds the next rune, that can be obtained with Lookahead(), to the
+// current candidate string. This also advances the position pointer by 1 and adapts
+// the line and col pointer according to whether the rune was a linefeed or not.
 func (s *ruleBasedScanner) ConsumeRune() {
 	if s.linefeedDetector(s.input[s.pos]) {
 		s.line++
