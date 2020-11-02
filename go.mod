@@ -3,9 +3,12 @@ module github.com/xqueries/xdb
 go 1.13
 
 require (
+	github.com/go-openapi/strfmt v0.19.8 // indirect
 	github.com/google/go-cmp v0.5.2
+	github.com/jedib0t/go-pretty v4.3.0+incompatible
 	github.com/manifoldco/promptui v0.8.0
 	github.com/mattn/go-colorable v0.1.7 // indirect
+	github.com/mattn/go-runewidth v0.0.9 // indirect
 	github.com/oklog/ulid v1.3.1
 	github.com/rs/zerolog v1.20.0
 	github.com/spf13/afero v1.4.1

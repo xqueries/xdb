@@ -13,6 +13,7 @@ type Command string
 const (
 	CommandPages       = Command("Pages")
 	CommandPage        = Command("Page")
+	CommandTables      = Command("Tables")
 	CommandTable       = Command("Table")
 	CommandOverview    = Command("Overview")
 	CommandUnsupported = Command("Unsupported command")

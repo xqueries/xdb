@@ -15,6 +15,6 @@ func (c Col) String() string {
 	if c.Alias != "" {
 		result += "alias " + c.Alias + ", "
 	}
-	result += "type " + c.Type.String()
+	result += "type " + c.Type.String() + ")"
 	return result
 }

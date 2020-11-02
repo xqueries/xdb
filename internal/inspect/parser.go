@@ -8,6 +8,7 @@ import (
 const (
 	Pages    = "pages"
 	Page     = "page"
+	Tables   = "tables"
 	Table    = "table"
 	Overview = "overview"
 	Help     = "help"
@@ -36,6 +37,12 @@ func inputParser(input string) (CommandData, error) {
 			return CommandData{}, ErrInsufficientArgs
 		}
 		return NewCommandData(CommandPage, args[1]), nil
+	case Tables:
+		// Tables doesn't accept any arguments.
+		if len(args) > 1 {
+			return CommandData{}, ErrExcessArgs
+		}
+		return NewCommandData(CommandTables, ""), nil
 	case Table:
 		// Table takes exactly one argument with
 		// the command,

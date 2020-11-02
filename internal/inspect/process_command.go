@@ -14,6 +14,8 @@ func (i *Inspector) ProcessCommand(c CommandData) (string, error) {
 		res, err = i.ProcessPagesCommand()
 	case CommandPage:
 		res, err = i.ProcessPageCommand(c.Args)
+	case CommandTables:
+		res, err = i.ProcessTablesCommand()
 	case CommandTable:
 		res, err = i.ProcessTableCommand(c.Args)
 	case CommandOverview:
