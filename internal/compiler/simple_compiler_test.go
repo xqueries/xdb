@@ -15,12 +15,27 @@ type testcase struct {
 	wantErr bool
 }
 
-func Test_simpleCompiler_Compile_NoOptimizations(t *testing.T) {
+func TestSimpleCompiler_Compile_NoOptimizations(t *testing.T) {
 	t.Run("select", _TestSimpleCompilerCompileSelectNoOptimizations)
 	t.Run("delete", _TestSimpleCompilerCompileDeleteNoOptimizations)
 	t.Run("drop", _TestSimpleCompilerCompileDropNoOptimizations)
 	t.Run("update", _TestSimpleCompilerCompileUpdateNoOptimizations)
 	t.Run("insert", _TestSimpleCompilerCompileInsertNoOptimizations)
+	t.Run("negative test", _TestSimpleCompilerNegativeTests)
+}
+
+func _TestSimpleCompilerNegativeTests(t *testing.T) {
+	tests := []testcase{
+		{
+			name:    "nothing to select from",
+			input:   `WITH myTable AS (SELECT *) SELECT *`,
+			want:    nil,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, _TestCompile(tt))
+	}
 }
 
 func _TestSimpleCompilerCompileInsertNoOptimizations(t *testing.T) {
