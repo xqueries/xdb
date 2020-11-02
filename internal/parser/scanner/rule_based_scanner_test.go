@@ -50,6 +50,28 @@ func TestRuleBasedScanner(t *testing.T) {
 			},
 		},
 		{
+			"linefeed",
+			`
+SELECT
+*
+FROM
+-- this is a comment
+someTable
+
+;
+
+`,
+			ruleset.Default,
+			[]token.Token{
+				token.New(2, 1, 1, 6, token.KeywordSelect, "SELECT"),
+				token.New(3, 1, 8, 1, token.BinaryOperator, "*"),
+				token.New(4, 1, 10, 4, token.KeywordFrom, "FROM"),
+				token.New(6, 1, 36, 9, token.Literal, "someTable"),
+				token.New(8, 1, 47, 1, token.StatementSeparator, ";"),
+				token.New(10, 1, 50, 0, token.EOF, ""),
+			},
+		},
+		{
 			"many whitespaces with delimiters and literals",
 			"SELECT      FROM || & +7 5 \"foobar\"",
 			ruleset.Default,
@@ -430,6 +452,11 @@ func _TestRuleBasedScannerWithRuleset(input string, ruleset ruleset.Ruleset, wan
 				break
 			}
 		}
+
+		for _, next := range got {
+			t.Logf("(%d:%d offset=%d) %s(%q)", next.Line(), next.Col(), next.Offset(), next.Type(), next.Value())
+		}
+
 		assert.Equalf(len(want), len(got), "did not receive as much tokens as expected (expected %d, but got %d)", len(want), len(got))
 
 		limit := len(want)
