@@ -6,12 +6,13 @@ import (
 	"github.com/xqueries/xdb/internal/engine/storage/page"
 )
 
-// Info holds information about different components of the opened database.
 type (
+	// Info holds information about different components of the opened database.
 	Info struct {
 		tables map[string]TableInfo
 	}
 
+	// TableInfo holds information about a single table.
 	TableInfo struct {
 		// Page is the ID of the table page of this table.
 		Page page.ID
