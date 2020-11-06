@@ -19,6 +19,9 @@ const (
 	CommandUnsupported = Command("Unsupported command")
 	CommandHelp        = Command("help")
 	CommandK           = Command("k")
+
+	CommandCells    = Command("cells")
+	CommandKeyQuery = Command("CommandKeyQuery")
 )
 
 func (c Command) String() string { return string(c) }

@@ -128,3 +128,12 @@ func (m *PageManager) loadPageIDs(fileSize int64) error {
 	}
 	return nil
 }
+
+// AllPageIDs returns a slice holding all page ids that this manager has control
+// over.
+func (m PageManager) AllPageIDs() (ids []page.ID) {
+	for k := range m.pageOffsets {
+		ids = append(ids, k)
+	}
+	return
+}

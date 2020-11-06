@@ -7,12 +7,7 @@ import (
 )
 
 func (i *Inspector) ProcessTablesCommand() (string, error) {
-	info, err := i.e.Info()
-	if err != nil {
-		return "", err
-	}
-
-	return format.Tables(info.TableNames()), nil
+	return format.Tables(i.info.TableNames()), nil
 }
 
 // ProcessTableCommand responds to the command related to a table.

@@ -9,20 +9,32 @@ func (i *Inspector) ProcessCommand(c CommandData) (string, error) {
 		res string
 		err error
 	)
-	switch c.Type {
-	case CommandPages:
-		res, err = i.ProcessPagesCommand()
-	case CommandPage:
-		res, err = i.ProcessPageCommand(c.Args)
-	case CommandTables:
-		res, err = i.ProcessTablesCommand()
-	case CommandTable:
-		res, err = i.ProcessTableCommand(c.Args)
-	case CommandOverview:
-	case CommandHelp:
-		res, err = i.ProcessHelpCommand(c.Args)
-	case CommandK:
-		res, err = i.ProcessKCommand()
+	if i.CurrentScope == i.HomeScope {
+		switch c.Type {
+		case CommandPages:
+			res, err = i.ProcessPagesCommand()
+		case CommandPage:
+			res, err = i.ProcessPageCommand(c.Args)
+		case CommandTables:
+			res, err = i.ProcessTablesCommand()
+		case CommandTable:
+			res, err = i.ProcessTableCommand(c.Args)
+		case CommandOverview:
+		case CommandHelp:
+			res, err = i.ProcessHelpCommand(c.Args)
+		case CommandK:
+			res, err = i.ProcessKCommand()
+		default:
+			res, err = "", ErrUnsupportedCommand
+		}
+	} else {
+		scope := i.CurrentScope.id
+		switch c.Type {
+		case CommandCells:
+			res, err = i.ProcessCellsCommand(scope)
+		case CommandKeyQuery:
+			res, err = i.ProcessPageQueryCommand(scope, c.Args)
+		}
 	}
 	return res, err
 }

@@ -16,6 +16,10 @@ func Page(page *page.Page) string {
 	return sb.String()
 }
 
+func Cells(cells []page.Slot) string {
+	return fmt.Sprint(cells)
+}
+
 func appendID(p *page.Page, sb strings.Builder) strings.Builder {
 	sb.WriteString("ID: ")
 	sb.WriteString(fmt.Sprint(p.ID()))

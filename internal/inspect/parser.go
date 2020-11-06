@@ -13,6 +13,9 @@ const (
 	Overview = "overview"
 	Help     = "help"
 	K        = "k"
+
+	Cells = "cells"
+	Key   = "key"
 )
 
 // inputParser is a temporary parser that will be removed when
@@ -67,7 +70,6 @@ func inputParser(input string) (CommandData, error) {
 		if len(args) != 1 {
 			argument = args[1]
 		}
-
 		return NewCommandData(CommandHelp, argument), nil
 	case K:
 		// K doesn't need any arguments.
@@ -75,6 +77,17 @@ func inputParser(input string) (CommandData, error) {
 			return CommandData{}, ErrExcessArgs
 		}
 		return NewCommandData(CommandK, ""), nil
+	case Cells:
+		if len(args) > 1 {
+			return CommandData{}, ErrExcessArgs
+		}
+		return NewCommandData(CommandCells, ""), nil
+	case Key:
+		// Key needs exactly one argument except the query name.
+		if len(args) == 1 {
+			return CommandData{}, ErrInsufficientArgs
+		}
+		return NewCommandData(CommandKeyQuery, args[1]), nil
 	}
 	return NewCommandData(CommandUnsupported, ""), nil
 }

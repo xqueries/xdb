@@ -19,8 +19,10 @@ import (
 func inspectXDB(cmd *cobra.Command, args []string) {
 	log := cmd.Context().Value(ctxKeyLog).(zerolog.Logger)
 
-	i := inspect.NewInspector(args[0], log)
-
+	i, err := inspect.NewInspector(args[0], log)
+	if err != nil {
+		i.Log.Error().Err(err).Msg("error in starting inspector")
+	}
 	validate := func(input string) error {
 		return nil
 	}

@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/xqueries/xdb/internal/engine/storage"
+	"github.com/xqueries/xdb/internal/engine/storage/page"
+
 	"github.com/xqueries/xdb/internal/inspect/format"
 )
 
@@ -12,8 +13,8 @@ import (
 // The response is a pre-formatted string which can be printed
 // on the CLI.
 func (i *Inspector) ProcessPagesCommand() (string, error) {
-
-	return "", nil
+	ids := i.pgMgr.AllPageIDs()
+	return fmt.Sprint(ids), nil
 }
 
 // ProcessPagesCommand responds to a "Page" query command.
@@ -23,22 +24,46 @@ func (i *Inspector) ProcessPagesCommand() (string, error) {
 // The response is a pre-formatted string which can be printed
 // on the CLI.
 func (i *Inspector) ProcessPageCommand(args string) (string, error) {
-	pageManager, err := storage.NewPageManager(i.file)
-	if err != nil {
-		return "", err
-	}
 
-	intID, err := strconv.Atoi(args)
-	if err != nil {
-		return "", err
-	}
-
-	page, err := pageManager.ReadPage(uint32(intID))
+	page, err := i.getPageFromID(args)
 	if err != nil {
 		return "", err
 	}
 
 	i.enterScope(NewScope("page", fmt.Sprint(page.ID())))
+	i.PageData = NewPageData(nil)
 
 	return format.Page(page), nil
+}
+
+func (i *Inspector) ProcessCellsCommand(scope string) (string, error) {
+	page, err := i.getPageFromID(scope)
+	if err != nil {
+		return "", err
+	}
+
+	slots := page.OccupiedSlots()
+	i.PageData.slots = slots
+
+	return format.Cells(slots), nil
+}
+
+func (i *Inspector) ProcessPageQueryCommand(scope string, args string) (string, error) {
+	page, err := i.getPageFromID(scope)
+	if err != nil {
+		return "", err
+	}
+	intArg, _ := strconv.Atoi(args)
+	cell := page.CellAt(i.PageData.slots[intArg])
+
+	return fmt.Sprint(cell), nil
+}
+
+func (i *Inspector) getPageFromID(arg string) (*page.Page, error) {
+	intID, err := strconv.Atoi(arg)
+	if err != nil {
+		return nil, err
+	}
+
+	return i.pgMgr.ReadPage(uint32(intID))
 }
