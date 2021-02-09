@@ -49,10 +49,11 @@ type PersistentState struct {
 	VotedFor    id.ID // VotedFor is nil at init, and id.ID of the node after voting is complete.
 	Log         []*message.LogData
 
+	peerIPs []network.Conn // peerIPs has the connection variables of all the other nodes in the cluster.
+
 	SelfID    id.ID
-	LeaderID  id.ID          // LeaderID is nil at init, and the ID of the node after the leader is elected.
-	PeerIPs   []network.Conn // PeerIPs has the connection variables of all the other nodes in the cluster.
-	ConnIDMap map[id.ID]int  // ConnIDMap has a mapping of the ID of the server to its connection.
+	LeaderID  id.ID         // LeaderID is nil at init, and the ID of the node after the leader is elected.
+	ConnIDMap map[id.ID]int // ConnIDMap has a mapping of the ID of the server to its connection.
 	mu        deadlock.Mutex
 }
 
@@ -63,7 +64,8 @@ type VolatileState struct {
 	Votes       int32
 }
 
-// VolatileStateLeader describes the volatile state data that exists on a raft leader.
+// VolatileStateLeader describes the volatile state data
+// that exists on a raft leader.
 type VolatileStateLeader struct {
 	NextIndex  []int // Holds the nextIndex value for each of the followers in the cluster.
 	MatchIndex []int // Holds the matchIndex value for each of the followers in the cluster.
@@ -85,7 +87,9 @@ type SimpleServer struct {
 	onLeaderElected         func()
 	onAppendEntriesRequest  func(network.Conn)
 	onAppendEntriesResponse func()
-	onCompleteOneRound      func()
+	// onCompleteOneRound signifies whether a single
+	// round of raft completed successfully(?).
+	onCompleteOneRound func()
 
 	timerReset chan struct{}
 }
@@ -117,6 +121,9 @@ func newServer(log zerolog.Logger, cluster Cluster, timeoutProvider func(*Node) 
 }
 
 // NewRaftNode creates a raft node for the given cluster.
+//
+// It returns with default values for the raft variables
+// and accompanying data structures for operation.
 func NewRaftNode(cluster Cluster) *Node {
 	var nextIndex, matchIndex []int
 
@@ -137,7 +144,7 @@ func NewRaftNode(cluster Cluster) *Node {
 			CurrentTerm: 0,
 			VotedFor:    nil,
 			SelfID:      cluster.OwnID(),
-			PeerIPs:     cluster.Nodes(),
+			peerIPs:     cluster.Nodes(),
 			ConnIDMap:   connIDMap,
 		},
 		VolatileState: &VolatileState{
@@ -157,16 +164,16 @@ func NewRaftNode(cluster Cluster) *Node {
 // Start starts a single raft node into beginning raft operations.
 //
 // This function starts the leader election and keeps a check on whether
-// regular heartbeats to the node exists. It restarts leader election on failure to do so.
-// This function also continuously listens on all the connections to the nodes
-// and routes the requests to appropriate functions.
+// regular heartbeats to the node exists. It restarts leader election on
+// failure to do so. This function also continuously listens on all the
+// connections to the nodes and routes the requests to appropriate functions.
 //
 // This function is responsible for ALL the data entering this node.
 // Once a goroutine is spawned to requesting votes or appending logs, those
 // don't wait for the responses, instead those are waited for in this function.
-// This allows us to have a HQ for all data coming to the node and have all related
-// data that has to be worked on with the requests in the same place, making it more
-// efficient and easier.
+// This allows us to have a HQ for all data coming to the node and have all
+// related data that has to be worked on with the requests in the same place,
+// making it more efficient and easier.
 //
 // This function returns when the contextually upper level functions return
 // or the network/raft nodes are closed.
@@ -180,11 +187,14 @@ func (s *SimpleServer) Start(ctx context.Context) (err error) {
 		s.lock.Unlock()
 		return network.ErrOpen
 	}
+
 	// Initialise all raft variables in this node.
 	node := NewRaftNode(s.cluster)
 	node.PersistentState.mu.Lock()
 	node.log = s.log
 	s.node = node
+	fmt.Println("THIS IS MINE")
+	fmt.Println(node.PersistentState.peerIPs)
 	selfID := node.PersistentState.SelfID
 	node.PersistentState.mu.Unlock()
 	s.lock.Unlock()
@@ -244,8 +254,8 @@ func (s *SimpleServer) Start(ctx context.Context) (err error) {
 			}
 			// If this node is already the leader the time-outs are irrelevant.
 			if s.node.PersistentState.LeaderID != s.node.PersistentState.SelfID {
-				// One round is said to be complete when leader election
-				// is started for all terms except the first term.
+				// One round is said to be complete when the state machines
+				// are in the first non-initial term (i.e >=2)
 				if s.node.PersistentState.CurrentTerm != 1 && s.onCompleteOneRound != nil {
 					s.onCompleteOneRound()
 				}
@@ -306,7 +316,6 @@ func (s *SimpleServer) Close() error {
 
 	s.node.PersistentState.mu.Lock()
 	s.node.Closed = true
-
 	s.node.PersistentState.mu.Unlock()
 
 	err := s.cluster.Close()
@@ -368,14 +377,18 @@ func (s *SimpleServer) processIncomingData(ctx context.Context, data *incomingDa
 					Msg("node voting for itself")
 				votesReceived = atomic.AddInt32(&s.node.VolatileState.Votes, 1)
 			}
-			// Election win criteria, votes this node has is majority in the cluster and
+			// Election win criteria: votes this node has is majority in the cluster and
 			// this node is not already the Leader.
+			fmt.Println("X")
 			fmt.Println(votesReceived)
-			fmt.Println(s.node.PersistentState.PeerIPs)
-			fmt.Println(len(s.node.PersistentState.PeerIPs))
-			fmt.Println(len(s.node.PersistentState.PeerIPs) / 2)
-			fmt.Println(int32(len(s.node.PersistentState.PeerIPs) / 2))
-			if votesReceived >= int32(len(s.node.PersistentState.PeerIPs)/2) && s.node.State != StateLeader.String() {
+			fmt.Println("X")
+			fmt.Println(s.node.PersistentState.peerIPs)
+			fmt.Println("X")
+			fmt.Println(len(s.node.PersistentState.peerIPs))
+			fmt.Println("X")
+			fmt.Println(len(s.node.PersistentState.peerIPs) / 2)
+			fmt.Println(int32(len(s.node.PersistentState.peerIPs) / 2))
+			if votesReceived >= int32(len(s.node.PersistentState.peerIPs)/2) && s.node.State != StateLeader.String() {
 				// This node has won the election.
 				s.node.State = StateLeader.String()
 				s.node.PersistentState.LeaderID = selfID
@@ -501,7 +514,7 @@ func (s *SimpleServer) OnCompleteOneRound(hook func()) {
 func (s *SimpleServer) getNodeID(conn network.Conn) id.ID {
 	s.node.PersistentState.mu.Lock()
 	for k, v := range s.node.PersistentState.ConnIDMap {
-		if s.node.PersistentState.PeerIPs[v] == conn {
+		if s.node.PersistentState.peerIPs[v] == conn {
 			s.node.PersistentState.mu.Unlock()
 			return k
 		}
@@ -519,8 +532,8 @@ func (s *SimpleServer) getNodeID(conn network.Conn) id.ID {
 // supposed to happen, EVER.
 func (s *SimpleServer) getNextIndex(conn network.Conn) (int, int) {
 	s.node.PersistentState.mu.Lock()
-	for i := range s.node.PersistentState.PeerIPs {
-		if conn == s.node.PersistentState.PeerIPs[i] {
+	for i := range s.node.PersistentState.peerIPs {
+		if conn == s.node.PersistentState.peerIPs[i] {
 			s.node.PersistentState.mu.Unlock()
 			return s.node.VolatileStateLeader.NextIndex[i], i
 		}

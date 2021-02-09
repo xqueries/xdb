@@ -2,6 +2,7 @@ package cluster
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -36,11 +37,14 @@ func NewTCPTestNetwork(t *testing.T, num int) *TCPTestNetwork {
 		}
 
 		for _, otherCluster := range clusters {
-			conn, err := network.DialTCP(ctx, c.OwnID(), otherCluster.server.Addr().String())
+			_, err := network.DialTCP(ctx, c.OwnID(), otherCluster.server.Addr().String())
 			assert.NoError(err)
-			c.AddConnection(conn)
 		}
 		clusters = append(clusters, c)
+	}
+
+	for _, c := range clusters {
+		fmt.Println(c.Nodes())
 	}
 
 	return &TCPTestNetwork{

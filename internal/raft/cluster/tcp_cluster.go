@@ -200,7 +200,7 @@ func (c *tcpCluster) RemoveConnection(conn network.Conn) {
 
 func (c *tcpCluster) handshake(conn network.Conn) {
 	// TODO: implement
-	c.AddConnection(conn)
+	//c.AddConnection(conn)
 }
 
 func (c *tcpCluster) sendMessage(ctx context.Context, conn network.Conn, msg message.Message) error {

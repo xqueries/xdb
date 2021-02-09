@@ -47,7 +47,7 @@ func TestAppendEntries(t *testing.T) {
 			CurrentTerm: 0,
 			VotedFor:    nil,
 			SelfID:      cluster.OwnID(),
-			PeerIPs:     cluster.Nodes(),
+			peerIPs:     cluster.Nodes(),
 		},
 		VolatileState: &VolatileState{
 			CommitIndex: -1,

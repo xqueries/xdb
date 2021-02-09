@@ -27,7 +27,7 @@ func (s *SimpleServer) StartElection(ctx context.Context) {
 	}
 	lastLogIndex = int32(len(s.node.PersistentState.Log))
 	selfID := s.node.PersistentState.SelfID
-	numNodes := s.node.PersistentState.PeerIPs
+	numNodes := s.node.PersistentState.peerIPs
 	s.node.log.
 		Debug().
 		Str("self-id", selfID.String()).
@@ -49,7 +49,7 @@ func (s *SimpleServer) StartElection(ctx context.Context) {
 			if s.node.Closed {
 				return
 			}
-			nodeConn := s.node.PersistentState.PeerIPs[i]
+			nodeConn := s.node.PersistentState.peerIPs[i]
 			s.lock.Unlock()
 
 			err := s.RequestVote(ctx, nodeConn, req)

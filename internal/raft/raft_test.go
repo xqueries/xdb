@@ -265,15 +265,15 @@ func TestIntegration(t *testing.T) {
 				4,
 			},
 		},
-		{
-			Op: RestartNode,
-			Data: &OpRestartNode{
-				3,
-			},
-		},
+		//{
+		//	Op: RestartNode,
+		//	Data: &OpRestartNode{
+		//		3,
+		//	},
+		//},
 	}
 	opParams := OperationParameters{
-		Rounds:             2,
+		Rounds:             10,
 		TimeLimit:          5,
 		Operations:         operations,
 		OperationPushDelay: 500,

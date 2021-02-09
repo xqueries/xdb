@@ -86,7 +86,7 @@ func (s *SimpleServer) sendHeartBeats(ctx context.Context, selfIDString string, 
 	s.node.PersistentState.mu.Unlock()
 
 	// Parallelly send AppendEntriesRPC to all followers.
-	for i := range s.node.PersistentState.PeerIPs {
+	for i := range s.node.PersistentState.peerIPs {
 		select {
 		case <-stopLeaderOps:
 			s.node.log.
@@ -109,7 +109,7 @@ func (s *SimpleServer) sendHeartBeats(ctx context.Context, selfIDString string, 
 					prevLogTerm = int(s.node.PersistentState.Log[prevLogIndex].Term)
 				}
 				commitIndex := s.node.VolatileState.CommitIndex
-				conn := s.node.PersistentState.PeerIPs[i]
+				conn := s.node.PersistentState.peerIPs[i]
 				selfID := s.node.PersistentState.SelfID
 				// Logs are included from the nextIndex value to the current appended values
 				// in the leader node. If there are none, no logs will be appended.
