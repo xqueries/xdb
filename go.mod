@@ -7,7 +7,7 @@ require (
 	github.com/oklog/ulid v1.3.1
 	github.com/rs/zerolog v1.20.0
 	github.com/spf13/afero v1.5.1
-	github.com/spf13/cobra v1.1.1
+	github.com/spf13/cobra v1.1.2
 	github.com/stretchr/testify v1.7.0
 	golang.org/x/net v0.0.0-20200822124328-c89045814202
 	golang.org/x/sync v0.0.0-20200625203802-6e8e738ad208
