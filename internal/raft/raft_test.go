@@ -2,6 +2,7 @@ package raft
 
 import (
 	"context"
+	"github.com/xqueries/xdb/internal/compiler/command"
 	"os"
 	"testing"
 	"time"
@@ -9,7 +10,6 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"github.com/xqueries/xdb/internal/compiler/command"
 	"github.com/xqueries/xdb/internal/id"
 	"github.com/xqueries/xdb/internal/network"
 	networkmocks "github.com/xqueries/xdb/internal/network/mocks"
@@ -30,9 +30,9 @@ import (
 // 6. Cluster's "Nodes", "OwnID", "Receive" characteristics are set to appropriate responses.
 // 7. The hooks are set in order to end the raft operation as soon as the append entries
 // 	  requests are registered.
-// 8. The mechanism of a response to recieve is set only such that a RequestVote is asked for,
-// 	  the cluster.Receive function responsds. This is done by listening on a closing channel,
-//	  where the channel is closed if the RequestVote or the AppendEntries is recevied.
+// 8. The mechanism of a response to receive is set only such that a RequestVote is asked for,
+// 	  the cluster.Receive function responds. This is done by listening on a closing channel,
+//	  where the channel is closed if the RequestVote or the AppendEntries is received.
 func TestRaftFromLeaderPerspective(t *testing.T) {
 	assert := assert.New(t)
 	ctx := context.Background()
@@ -73,6 +73,9 @@ func TestRaftFromLeaderPerspective(t *testing.T) {
 		chanConn4 = make(chan time.Time)
 	)
 
+	// This function lets the other functionality know,
+	// on which connection the call was made. It does so
+	// by closing a channel, which would have blocked forever.
 	server.OnRequestVotes(func(conn network.Conn) {
 		switch conn {
 		case conn1:
@@ -131,6 +134,7 @@ func TestRaftFromLeaderPerspective(t *testing.T) {
 
 	reqVRes1 := message.NewRequestVoteResponse(1, true)
 
+	// These lines wait until their respective call was made to the connection and then return.
 	cluster.On("Receive", ctx).Return(conn1, reqVRes1, nil).WaitUntil(chanConn1).Once()
 	cluster.On("Receive", ctx).Return(conn2, reqVRes1, nil).WaitUntil(chanConn2).Once()
 	cluster.On("Receive", ctx).Return(conn3, reqVRes1, nil).WaitUntil(chanConn3).Once()
@@ -241,7 +245,14 @@ func timeoutProvider(node *Node) *time.Timer {
 	return time.NewTimer(time.Duration(150) * time.Millisecond)
 }
 
-func TestIntegration(t *testing.T) {
+// TestRaftIntegration was created on the principles of witnessing
+// raft run in all its glory. While doing this, it is validated for
+// every state it moves past while accounting for the random nature
+// of the election and raft itself.
+//
+// The test creates a raft cluster, lets it reach consensus and
+// throws some problems at it to see whether it can handle it.
+func TestRaftIntegration(t *testing.T) {
 
 	log := zerolog.New(os.Stdout).With().Logger().Level(zerolog.GlobalLevel())
 
@@ -265,12 +276,12 @@ func TestIntegration(t *testing.T) {
 				4,
 			},
 		},
-		//{
-		//	Op: RestartNode,
-		//	Data: &OpRestartNode{
-		//		3,
-		//	},
-		//},
+		{
+			Op: RestartNode,
+			Data: &OpRestartNode{
+				3,
+			},
+		},
 	}
 	opParams := OperationParameters{
 		Rounds:             10,
@@ -291,4 +302,24 @@ func TestIntegration(t *testing.T) {
 
 	err := raftTest.BeginTest(ctx)
 	assert.Nil(err)
+}
+
+// TestRaftSendDataToNode tests whether sending data through a functioning
+// raft cluster achieves consensus in the cluster.
+func TestRaftSendDataToNode(t *testing.T) {
+
+}
+
+// TestRaftStopSingleNode tests whether a functioning raft cluster is
+// robust enough to suffer a single node fault. (Which is acceptable
+// in theory)
+func TestRaftStopSingleNode(t *testing.T) {
+
+}
+
+// TestRaftRestartDeadNode tests whether a dead node coming back to life
+// in a perfectly functioning raft cluster can later lead to the cluster
+// achieving consensus.
+func TestRaftRestartDeadNode(t *testing.T) {
+
 }

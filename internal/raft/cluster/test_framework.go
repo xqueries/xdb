@@ -37,8 +37,9 @@ func NewTCPTestNetwork(t *testing.T, num int) *TCPTestNetwork {
 		}
 
 		for _, otherCluster := range clusters {
-			_, err := network.DialTCP(ctx, c.OwnID(), otherCluster.server.Addr().String())
+			conn, err := network.DialTCP(ctx, c.OwnID(), otherCluster.server.Addr().String())
 			assert.NoError(err)
+			c.AddConnection(conn)
 		}
 		clusters = append(clusters, c)
 	}

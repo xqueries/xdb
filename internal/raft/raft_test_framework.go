@@ -235,8 +235,6 @@ func (t *SimpleRaftTest) SendData(d *OpSendData) {
 // a failure of a node.
 func (t *SimpleRaftTest) StopNode(d *OpStopNode) {
 	t.raftNodes[d.NodeID].node.PersistentState.mu.Lock()
-	//fmt.Println("THIS IS IT")
-	//t.raftNodes
 	if t.raftNodes[d.NodeID].node.Closed {
 		t.log.Debug().
 			Int("node ID", d.NodeID).
