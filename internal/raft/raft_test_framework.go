@@ -265,9 +265,10 @@ func (t *SimpleRaftTest) PartitionNetwork(d *OpPartitionNetwork) {
 	fmt.Println("Partition network invoked")
 }
 
-// RestartNode restarts a previously stopped node which has
+// StartNode starts a previously stopped node which has
 // all resources allocated to it but went down for any reason.
-func (t *SimpleRaftTest) RestartNode(d *OpRestartNode) {
+// TODO: Definition change needs some changes wrt to approach.
+func (t *SimpleRaftTest) StartNode(d *OpRestartNode) {
 	t.log.Debug().
 		Int("node ID", d.NodeID).
 		Msg("restarting the node")
@@ -280,6 +281,12 @@ func (t *SimpleRaftTest) RestartNode(d *OpRestartNode) {
 	go func() {
 		_ = t.raftNodes[d.NodeID].Start(t.ctx)
 	}()
+}
+
+// RestartNode restarts a functioning node. This involves
+// stopping the node and then starting it again.
+func (t *SimpleRaftTest) RestartNode(d *OpRestartNode) {
+
 }
 
 func createRaftNodes(log zerolog.Logger, cluster *cluster.TCPTestNetwork) []*SimpleServer {

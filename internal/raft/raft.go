@@ -192,6 +192,9 @@ func (s *SimpleServer) Start(ctx context.Context) (err error) {
 	node.PersistentState.mu.Lock()
 	node.log = s.log
 	s.node = node
+
+	s.node.Closed = false
+
 	selfID := node.PersistentState.SelfID
 	node.PersistentState.mu.Unlock()
 	s.lock.Unlock()
@@ -322,6 +325,7 @@ func (s *SimpleServer) Close() error {
 
 // randomTimer returns timers ranging from 150ms to 300ms.
 func randomTimer(node *Node) *time.Timer {
+	/* #nosec */
 	randomInt := rand.Intn(150) + 150
 	node.log.
 		Debug().

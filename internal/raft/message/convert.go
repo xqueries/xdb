@@ -37,8 +37,7 @@ func ConvertCommandToMessage(cmd command.Command) (Message, error) {
 	// case command.Insert:
 	// 	return ConvertCommandInsertToMessageInsert(c)
 	// }
-	// return nil, ErrUnknownCommandKind
-	panic("to be implemented")
+	return nil, ErrUnknownCommandKind
 }
 
 // // ConvertCommandTableToMessageTable converts a command.Table to a SimpleTable.
@@ -916,8 +915,7 @@ func ConvertMessageToCommand(msg Message) command.Command {
 	// case *Command_Insert:
 	// 	return ConvertMessageInsertToCommandInsert(m)
 	// }
-	// return nil
-	panic("to be implemented")
+	return nil
 }
 
 // // ConvertMessageTableToCommandTable converts a message.SimpleTable to a command.Table.

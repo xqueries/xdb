@@ -133,7 +133,7 @@ func (s *SimpleServer) sendHeartBeats(ctx context.Context, selfIDString string, 
 					s.node.log.
 						Err(err).
 						Str("Node", selfIDString).
-						Msg("error")
+						Msg("Error marshalling append entries request in leader")
 					return
 				}
 
@@ -142,7 +142,7 @@ func (s *SimpleServer) sendHeartBeats(ctx context.Context, selfIDString string, 
 					s.node.log.
 						Err(err).
 						Str("Node", selfIDString).
-						Msg("error")
+						Msg("Error sending append entries request over network")
 					return
 				}
 
