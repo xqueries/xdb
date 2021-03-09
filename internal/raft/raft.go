@@ -2,7 +2,6 @@ package raft
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"log"
 	"math/rand"
@@ -193,8 +192,6 @@ func (s *SimpleServer) Start(ctx context.Context) (err error) {
 	node.PersistentState.mu.Lock()
 	node.log = s.log
 	s.node = node
-	fmt.Println("THIS IS MINE")
-	fmt.Println(node.PersistentState.peerIPs)
 	selfID := node.PersistentState.SelfID
 	node.PersistentState.mu.Unlock()
 	s.lock.Unlock()
@@ -379,15 +376,6 @@ func (s *SimpleServer) processIncomingData(ctx context.Context, data *incomingDa
 			}
 			// Election win criteria: votes this node has is majority in the cluster and
 			// this node is not already the Leader.
-			fmt.Println("X")
-			fmt.Println(votesReceived)
-			fmt.Println("X")
-			fmt.Println(s.node.PersistentState.peerIPs)
-			fmt.Println("X")
-			fmt.Println(len(s.node.PersistentState.peerIPs))
-			fmt.Println("X")
-			fmt.Println(len(s.node.PersistentState.peerIPs) / 2)
-			fmt.Println(int32(len(s.node.PersistentState.peerIPs) / 2))
 			if votesReceived >= int32(len(s.node.PersistentState.peerIPs)/2) && s.node.State != StateLeader.String() {
 				// This node has won the election.
 				s.node.State = StateLeader.String()

@@ -167,6 +167,7 @@ func TestRaftFromFollowerPerspective(t *testing.T) {
 	conn3 := new(networkmocks.Conn)
 	conn4 := new(networkmocks.Conn)
 
+	// The real connection.
 	connSlice := []network.Conn{
 		conn1Leader,
 		conn2,
@@ -308,18 +309,95 @@ func TestRaftIntegration(t *testing.T) {
 // raft cluster achieves consensus in the cluster.
 func TestRaftSendDataToNode(t *testing.T) {
 
+	assert := assert.New(t)
+
+	operations := []OpData {
+		{
+			Op: SendData,
+			Data: &OpSendData{
+				Data: []*command.Command{},
+			},
+		},
+	}
+
+	opParams := OperationParameters{
+		Rounds: 5,
+		TimeLimit: 5,
+		Operations: operations,
+		OperationPushDelay: 500,
+	}
+
+	assert.Nil(_TestRaftOperationWithOpInjection(t, opParams))
 }
 
 // TestRaftStopSingleNode tests whether a functioning raft cluster is
 // robust enough to suffer a single node fault. (Which is acceptable
 // in theory)
 func TestRaftStopSingleNode(t *testing.T) {
+	assert := assert.New(t)
 
+	operations := []OpData {
+		{
+			Op: StopNode,
+			Data: &OpStopNode{
+				1,
+			},
+		},
+	}
+
+	opParams := OperationParameters{
+		Rounds: 5,
+		TimeLimit: 5,
+		Operations: operations,
+		OperationPushDelay: 500,
+	}
+
+	assert.Nil(_TestRaftOperationWithOpInjection(t, opParams))
 }
 
 // TestRaftRestartDeadNode tests whether a dead node coming back to life
 // in a perfectly functioning raft cluster can later lead to the cluster
 // achieving consensus.
 func TestRaftRestartDeadNode(t *testing.T) {
+	assert := assert.New(t)
 
+	operations := []OpData {
+		{
+			Op: StopNode,
+			Data: &OpStopNode{
+				1,
+			},
+		},
+		{
+			Op: RestartNode,
+			Data: &OpRestartNode{
+				1,
+			},
+		},
+	}
+
+	opParams := OperationParameters{
+		Rounds: 5,
+		TimeLimit: 5,
+		Operations: operations,
+		OperationPushDelay: 500,
+	}
+
+	assert.Nil(_TestRaftOperationWithOpInjection(t, opParams))
+}
+
+func _TestRaftOperationWithOpInjection(t *testing.T, opParams OperationParameters) error {
+	log := zerolog.New(os.Stdout).With().Logger().Level(zerolog.GlobalLevel())
+
+	testNetwork := cluster.NewTCPTestNetwork(t,3)
+	cfg := NetworkConfiguration{}
+	ctx := context.Background()
+	ctx, cancelFunc := context.WithCancel(ctx)
+
+	raftNodes := createRaftNodes(log, testNetwork)
+
+	raftTest := NewSimpleRaftTest(log, opParams, cfg, raftNodes, cancelFunc)
+
+	err := raftTest.BeginTest(ctx)
+	return err
 }

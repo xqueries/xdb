@@ -91,7 +91,6 @@ func (s *SimpleServer) RequestVoteResponse(req *message.RequestVoteRequest) *mes
 	}
 	s.node.PersistentState.mu.Unlock()
 
-	fmt.Println("Am I falsing here")
 	return &message.RequestVoteResponse{
 		Term:        currentTerm,
 		VoteGranted: false,
