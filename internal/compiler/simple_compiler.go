@@ -483,12 +483,20 @@ func (c *simpleCompiler) compileSelectCoreSelect(core *ast.SelectCore) (command.
 
 	// cols are the projection columns.
 	var cols []command.Column
+	wantsAsterisk := false
 	for _, resultColumn := range core.ResultColumn {
+		if resultColumn.Asterisk != nil {
+			wantsAsterisk = true
+		}
 		col, err := c.compileResultColumn(resultColumn)
 		if err != nil {
 			return nil, fmt.Errorf("result column: %w", err)
 		}
 		cols = append(cols, col)
+	}
+
+	if wantsAsterisk && core.From == nil {
+		return nil, fmt.Errorf("nothing to select from")
 	}
 
 	// selectionInput is the scan or join that is selected from.
