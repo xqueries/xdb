@@ -5,11 +5,12 @@ import (
 	"io"
 	"log"
 	"math/rand"
+	"strconv"
+	"sync"
 	"sync/atomic"
 	"time"
 
 	"github.com/rs/zerolog"
-	"github.com/sasha-s/go-deadlock"
 	"github.com/xqueries/xdb/internal/id"
 	"github.com/xqueries/xdb/internal/network"
 	"github.com/xqueries/xdb/internal/raft/message"
@@ -46,14 +47,14 @@ type Node struct {
 type PersistentState struct {
 	CurrentTerm int32
 	VotedFor    id.ID // VotedFor is nil at init, and id.ID of the node after voting is complete.
-	Log         []*message.LogData
+	Log         []*message.LogData // Logs are commands for the state machine to execute.
 
 	peerIPs []network.Conn // peerIPs has the connection variables of all the other nodes in the cluster.
 
 	SelfID    id.ID
 	LeaderID  id.ID         // LeaderID is nil at init, and the ID of the node after the leader is elected.
 	ConnIDMap map[id.ID]int // ConnIDMap has a mapping of the ID of the server to its connection.
-	mu        deadlock.Mutex
+	mu        sync.Mutex
 }
 
 // VolatileState describes the volatile state data on a raft node.
@@ -61,6 +62,8 @@ type VolatileState struct {
 	CommitIndex int32
 	LastApplied int32
 	Votes       int32
+
+	mu sync.Mutex
 }
 
 // VolatileStateLeader describes the volatile state data
@@ -79,7 +82,7 @@ type SimpleServer struct {
 	onReplication   ReplicationHandler
 	log             zerolog.Logger
 	timeoutProvider func(*Node) *time.Timer
-	lock            deadlock.Mutex
+	lock            sync.Mutex
 
 	// Function setters.
 	onRequestVotes          func(network.Conn)
@@ -387,7 +390,7 @@ func (s *SimpleServer) processIncomingData(ctx context.Context, data *incomingDa
 				s.node.log.
 					Debug().
 					Str("self-id", selfID.String()).
-					Msg("node elected leader")
+					Msg("node elected leader at " + strconv.Itoa(int(votesReceived)) + " votes")
 				// Reset the votes of this term once its elected leader.
 				s.node.VolatileState.Votes = 0
 				s.node.PersistentState.mu.Unlock()

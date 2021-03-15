@@ -277,6 +277,12 @@ func TestRaftIntegration(t *testing.T) {
 				4,
 			},
 		},
+		{
+			Op: StopNode,
+			Data: &OpStopNode{
+				2,
+			},
+		},
 		// TODO: Restart needs a deeper look into network.
 		//{
 		//	Op: RestartNode,
