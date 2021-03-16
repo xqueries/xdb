@@ -210,7 +210,7 @@ func TestRaftFromFollowerPerspective(t *testing.T) {
 	conn3.On("Send", ctx, mock.IsType([]byte{})).Return(nil)
 	conn4.On("Send", ctx, mock.IsType([]byte{})).Return(nil)
 
-	appEnt := message.NewAppendEntriesRequest(3, leaderID, 1, 1, nil, 1)
+	appEnt := message.NewAppendEntriesRequest(3, leaderID, -1, -1, nil, 1)
 
 	cluster.On("Receive", ctx).Return(conn1Leader, appEnt, nil)
 
