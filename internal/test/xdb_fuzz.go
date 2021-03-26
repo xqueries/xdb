@@ -4,6 +4,7 @@ package test
 
 import (
 	"github.com/spf13/afero"
+
 	"github.com/xqueries/xdb/internal/compiler"
 	"github.com/xqueries/xdb/internal/engine"
 	"github.com/xqueries/xdb/internal/engine/storage"
@@ -27,7 +28,10 @@ func Fuzz(data []byte) int {
 	statement := string(data)
 
 	// try to parse the input
-	p := parser.New(statement)
+	p, err := parser.New(statement)
+	if err != nil {
+		return DataNotInteresting
+	}
 	stmt, errs, ok := p.Next()
 	if !ok {
 		return DataNotInteresting
