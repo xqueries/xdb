@@ -1,5 +1,7 @@
 package table
 
+import "io"
+
 var (
 	// Empty is an empty table with no cols and no rows.
 	Empty Table = inMemoryTable{
@@ -22,10 +24,11 @@ type Table interface {
 }
 
 // RowIterator is an iterator that can be reset, which results in Next obtaining the rows
-// in the beginning again.
+// in the beginning again. It must be closed after use.
 type RowIterator interface {
 	Next() (Row, error)
 	Reset() error
+	io.Closer
 }
 
 // FindColumnForNameOrAlias checks the given table for a column that has the given nameOrAlias

@@ -91,6 +91,10 @@ func (i *projectedTableIterator) Reset() error {
 	return i.underlying.Reset()
 }
 
+func (i *projectedTableIterator) Close() error {
+	return i.underlying.Close()
+}
+
 // projectedColumnsImplySingleRowTable checks whether the projected columns imply, that the resulting
 // table should only consist of a single row. This would be the case if they contain constant columns,
 // as in

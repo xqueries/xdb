@@ -7,7 +7,7 @@ import (
 
 	"github.com/xqueries/xdb/internal/compiler"
 	"github.com/xqueries/xdb/internal/engine"
-	"github.com/xqueries/xdb/internal/engine/storage"
+	"github.com/xqueries/xdb/internal/engine/dbfs"
 	"github.com/xqueries/xdb/internal/parser"
 )
 
@@ -49,12 +49,8 @@ func Fuzz(data []byte) int {
 
 	// create a new im-memory db file if none is set
 	fs := afero.NewMemMapFs()
-	f, err := fs.Create("mydbfile")
-	if err != nil {
-		panic(err)
-	}
 
-	dbFile, err := storage.Create(f)
+	dbFile, err := dbfs.CreateNew(fs)
 	if err != nil {
 		panic(err)
 	}

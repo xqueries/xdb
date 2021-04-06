@@ -21,3 +21,7 @@ func (i inMemoryRowIterator) Reset() error {
 	i.index = 0
 	return nil
 }
+
+func (i inMemoryRowIterator) Close() error {
+	return nil
+}

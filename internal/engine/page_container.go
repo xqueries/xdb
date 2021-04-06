@@ -3,8 +3,7 @@ package engine
 import (
 	"fmt"
 
-	"github.com/xqueries/xdb/internal/engine/storage/cache"
-	"github.com/xqueries/xdb/internal/engine/storage/page"
+	"github.com/xqueries/xdb/internal/engine/page"
 )
 
 // PageContainer is a re-usable way to load and unload pages from
@@ -33,15 +32,17 @@ import (
 // DOES NOT ZERO THE POINTER AFTER UNLOADING, SINCE THAT IS LIKELY TO CAUSE
 // A RACE CONDITION.
 type PageContainer struct {
-	pageID page.ID
-	cache  cache.Cache
+	pageID  page.ID
+	load    func() (*page.Page, error)
+	release func()
 }
 
 // NewPageContainer creates a new PageContainer for a page with the given page ID.
-func (e Engine) NewPageContainer(id page.ID) PageContainer {
+func (e Engine) NewPageContainer(id page.ID, load func() (*page.Page, error), release func()) PageContainer {
 	return PageContainer{
-		pageID: id,
-		cache:  e.pageCache,
+		pageID:  id,
+		load:    load,
+		release: release,
 	}
 }
 
@@ -49,7 +50,7 @@ func (e Engine) NewPageContainer(id page.ID) PageContainer {
 // the page in the cache.
 // To unpin the page in the cache, call Unload.
 func (c PageContainer) Load() (*page.Page, error) {
-	p, err := c.cache.FetchAndPin(c.pageID)
+	p, err := c.load()
 	if err != nil {
 		return nil, fmt.Errorf("fetch and pin: %w", err)
 	}
@@ -59,5 +60,5 @@ func (c PageContainer) Load() (*page.Page, error) {
 // Unload unpins the page of this container in the cache.
 // This does not cause the page to be synchronized with secondary storage.
 func (c PageContainer) Unload() {
-	c.cache.Unpin(c.pageID)
+	c.release()
 }

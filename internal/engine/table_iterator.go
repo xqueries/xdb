@@ -3,26 +3,34 @@ package engine
 import (
 	"fmt"
 
+	"github.com/xqueries/xdb/internal/engine/page"
+
+	"github.com/xqueries/xdb/internal/engine/dbfs"
 	"github.com/xqueries/xdb/internal/engine/profile"
-	"github.com/xqueries/xdb/internal/engine/storage/page"
+	"github.com/xqueries/xdb/internal/engine/schema"
 	"github.com/xqueries/xdb/internal/engine/table"
 )
 
 type tableRowIterator struct {
 	profiler *profile.Profiler
 
-	cols     []table.Col
-	dataPage *page.Page
+	schema *schema.Schema
+	data   *dbfs.PagedFile
 
-	index int
-	slots []page.Slot
+	pages            []page.ID
+	currentPageIndex int
+	currentPage      *page.Page
+
+	slots       []page.Slot
+	currentSlot int
 }
 
-func newTableRowIterator(profiler *profile.Profiler, cols []table.Col, dataPage *page.Page) *tableRowIterator {
+func newTableRowIterator(profiler *profile.Profiler, schema *schema.Schema, data *dbfs.PagedFile) *tableRowIterator {
 	return &tableRowIterator{
 		profiler: profiler,
-		cols:     cols,
-		dataPage: dataPage,
+		schema:   schema,
+		data:     data,
+		pages:    data.Pages(),
 	}
 }
 
@@ -30,16 +38,36 @@ func newTableRowIterator(profiler *profile.Profiler, cols []table.Col, dataPage 
 func (i *tableRowIterator) Next() (table.Row, error) {
 	i.profiler.Enter("next row").Exit()
 
-	if i.slots == nil {
-		i.slots = i.dataPage.OccupiedSlots()
-	}
-	if i.index >= len(i.slots) {
+	if len(i.pages) == 0 {
 		return table.Row{}, table.ErrEOT
 	}
 
-	cell := i.dataPage.CellAt(i.slots[i.index]).(page.RecordCell)
-	i.index++
-	row, err := deserializeRow(i.cols, cell.Record)
+start:
+	if i.currentPageIndex >= len(i.pages) {
+		return table.Row{}, table.ErrEOT
+	}
+
+	if i.currentPage == nil {
+		p, err := i.data.LoadPage(i.pages[i.currentPageIndex])
+		if err != nil {
+			return table.Row{}, fmt.Errorf("load page: %w", err)
+		}
+		i.currentPage = p
+	}
+
+	if i.slots == nil {
+		i.slots = i.currentPage.OccupiedSlots()
+	}
+	if i.currentSlot >= len(i.slots) {
+		i.currentSlot = 0
+		i.currentPage = nil
+		i.currentPageIndex++
+		goto start
+	}
+
+	cell := i.currentPage.CellAt(i.slots[i.currentSlot]).(page.RecordCell)
+	i.currentSlot++
+	row, err := deserializeRow(i.schema.Cols(), cell.Record)
 	if err != nil {
 		return table.Row{}, fmt.Errorf("deserialize: %w", err)
 	}
@@ -48,6 +76,11 @@ func (i *tableRowIterator) Next() (table.Row, error) {
 
 // Reset makes this iterator start over from the first row.
 func (i *tableRowIterator) Reset() error {
-	i.index = 0
+	i.currentPageIndex = 0
+	i.currentSlot = 0
 	return nil
+}
+
+func (i *tableRowIterator) Close() error {
+	return i.data.Close()
 }

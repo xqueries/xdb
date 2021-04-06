@@ -8,10 +8,10 @@ import (
 	"unsafe"
 
 	"github.com/rs/zerolog"
+
 	"github.com/xqueries/xdb/internal/compiler/command"
+	"github.com/xqueries/xdb/internal/engine/dbfs"
 	"github.com/xqueries/xdb/internal/engine/profile"
-	"github.com/xqueries/xdb/internal/engine/storage"
-	"github.com/xqueries/xdb/internal/engine/storage/cache"
 	"github.com/xqueries/xdb/internal/engine/table"
 )
 
@@ -24,23 +24,19 @@ type randomProvider func() int64
 
 // Engine is the component that is used to evaluate commands.
 type Engine struct {
-	log       zerolog.Logger
-	dbFile    *storage.DBFile
-	pageCache cache.Cache
-	profiler  *profile.Profiler
+	log      zerolog.Logger
+	dbfs     *dbfs.DBFS
+	profiler *profile.Profiler
 
 	timeProvider   timeProvider
 	randomProvider randomProvider
-
-	tablesPageContainer PageContainer
 }
 
 // New creates a new engine object and applies the given options to it.
-func New(dbFile *storage.DBFile, opts ...Option) (Engine, error) {
+func New(dbfs *dbfs.DBFS, opts ...Option) (Engine, error) {
 	e := Engine{
-		log:       zerolog.Nop(),
-		dbFile:    dbFile,
-		pageCache: dbFile.Cache(),
+		log:  zerolog.Nop(),
+		dbfs: dbfs,
 
 		timeProvider: time.Now,
 		randomProvider: func() int64 {
@@ -49,7 +45,6 @@ func New(dbFile *storage.DBFile, opts ...Option) (Engine, error) {
 			return int64(byteOrder.Uint64(buf))
 		},
 	}
-	e.tablesPageContainer = e.NewPageContainer(e.dbFile.TablesPageID())
 	for _, opt := range opts {
 		opt(&e)
 	}
@@ -85,29 +80,15 @@ func (e Engine) Evaluate(cmd command.Command) (table.Table, error) {
 }
 
 // HasTable determines whether the engine has a table with the given name
-// in the currently loaded database file.
+// in the currently loaded database.
 func (e Engine) HasTable(name string) bool {
-	tablesPageID := e.dbFile.TablesPageID()
-	tablesPage, err := e.pageCache.FetchAndPin(tablesPageID)
-	if err != nil {
-		return false
-	}
-	defer e.pageCache.Unpin(tablesPageID)
-
-	_, ok := tablesPage.Cell([]byte(name))
-	return ok
-}
-
-// Closed determines whether the underlying database file was closed. If so,
-// this engine is considered closed, as it can no longer operate on the
-// underlying file.
-func (e Engine) Closed() bool {
-	return e.dbFile.Closed()
+	ok, err := e.dbfs.HasTable(name)
+	return ok && err == nil
 }
 
 // Close closes the underlying database file.
 func (e Engine) Close() error {
 	defer e.profiler.Enter("close").Exit()
 
-	return e.dbFile.Close()
+	return e.dbfs.Close()
 }

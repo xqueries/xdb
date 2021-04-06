@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+
 	"github.com/xqueries/xdb/internal/engine"
 	"github.com/xqueries/xdb/internal/engine/profile"
 )
@@ -94,21 +95,6 @@ func TestExample07(t *testing.T) {
 	RunAndCompare(t, Test{
 		Name:      "example07",
 		Statement: `SELECT column1 a, column2 b, column3 c FROM (VALUES (1, 9, 3), (3, 2, 19), (4, 5, 6), (3, 6, 1)) WHERE b >= 2*3-1`,
-		EngineOptions: []engine.Option{
-			engine.WithProfiler(p),
-		},
-	})
-
-	t.Logf("profile:\n%v", p.Profile().String())
-}
-
-func TestExample08(t *testing.T) {
-	p := profile.NewProfiler()
-
-	RunAndCompare(t, Test{
-		Name:       "example08",
-		DBFileName: "trivial.xdb",
-		Statement:  `SELECT col2 FROM table1`,
 		EngineOptions: []engine.Option{
 			engine.WithProfiler(p),
 		},
