@@ -10,7 +10,7 @@ import (
 
 // PagedFile provides access to pages within a file that is made up
 // of pages. Everything about this file is expensive, and pages and objects
-// of this type should probably cached whenever possible.
+// of this type should probably be cached whenever possible.
 type PagedFile struct {
 	file          afero.File
 	offsetIndex   map[page.ID]int64
@@ -110,18 +110,23 @@ func (pf *PagedFile) StorePage(p *page.Page) error {
 // AllocateNewPage will create a new page in this file.
 func (pf *PagedFile) AllocateNewPage() (*page.Page, error) {
 	newID := pf.highestPageID + 1
+	// if there are no pages yet, first page must be ID 0
 	if pf.PageCount() == 0 {
 		newID = page.ID(0)
 	}
 
+	// newID is always the highest ID of all pages
 	pf.highestPageID = newID
 	newPage, err := page.New(newID)
 	if err != nil {
 		return nil, fmt.Errorf("new page: %w", err)
 	}
-	pageOffset := pf.fileSize
-	pf.offsetIndex[newID] = pageOffset
-	pf.fileSize += page.Size
+	pageOffset := pf.fileSize          // offset of the page in the file
+	pf.offsetIndex[newID] = pageOffset // remember the offset
+	pf.fileSize += page.Size           // update the file size by adding the size of one full page
+
+	// store the new page. we can do this, since the new page
+	// already has an offset in the offset index.
 	if err := pf.StorePage(newPage); err != nil {
 		return nil, fmt.Errorf("store new page: %w", err)
 	}
