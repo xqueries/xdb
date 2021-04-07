@@ -6,8 +6,9 @@ import (
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
+
 	"github.com/xqueries/xdb/internal/compiler"
-	"github.com/xqueries/xdb/internal/engine/storage"
+	"github.com/xqueries/xdb/internal/engine/dbfs"
 	"github.com/xqueries/xdb/internal/engine/table"
 	"github.com/xqueries/xdb/internal/parser"
 )
@@ -21,13 +22,13 @@ type EngineSuite struct {
 
 	ctx    ExecutionContext
 	engine Engine
-	dbFile *storage.DBFile
+	dbfs   *dbfs.DBFS
 }
 
 func (suite *EngineSuite) SetupTest() {
 	suite.ctx = newEmptyExecutionContext()
 	suite.engine = createEngineOnEmptyDatabase(suite.T())
-	suite.dbFile = suite.engine.dbFile
+	suite.dbfs = suite.engine.dbfs
 }
 
 // createEngineOnEmptyDatabase creates a new, clean, ready to use in-memory database file
@@ -37,9 +38,7 @@ func createEngineOnEmptyDatabase(t assert.TestingT) Engine {
 	assert := assert.New(t)
 
 	fs := afero.NewMemMapFs()
-	f, err := fs.Create("mydbfile")
-	assert.NoError(err)
-	dbFile, err := storage.Create(f)
+	dbFile, err := dbfs.CreateNew(fs)
 	assert.NoError(err)
 
 	e, err := New(dbFile)

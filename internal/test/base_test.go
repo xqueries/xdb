@@ -10,9 +10,10 @@ import (
 
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
+
 	"github.com/xqueries/xdb/internal/compiler"
 	"github.com/xqueries/xdb/internal/engine"
-	"github.com/xqueries/xdb/internal/engine/storage"
+	"github.com/xqueries/xdb/internal/engine/dbfs"
 	"github.com/xqueries/xdb/internal/engine/table"
 	"github.com/xqueries/xdb/internal/parser"
 )
@@ -57,18 +58,11 @@ func runAndCompare(t *testing.T, tt Test) {
 		t.Fail()
 	}
 
-	var dbFile *storage.DBFile
-	if tt.DBFileName == "" {
-		// create a new im-memory db file if none is set
-		fs := afero.NewMemMapFs()
-		f, err := fs.Create("mydbfile")
-		assert.NoError(err)
+	// create a new im-memory db file if none is set
+	fs := afero.NewMemMapFs()
 
-		dbFile, err = storage.Create(f)
-		assert.NoError(err)
-	} else {
-		dbFile = loadDBFile(t, tt.DBFileName)
-	}
+	dbfs, err := dbfs.CreateNew(fs)
+	assert.NoError(err)
 
 	totalStart := time.Now()
 	parseStart := time.Now()
@@ -94,7 +88,7 @@ func runAndCompare(t *testing.T, tt Test) {
 
 	engineStart := time.Now()
 
-	e, err := engine.New(dbFile, tt.EngineOptions...)
+	e, err := engine.New(dbfs, tt.EngineOptions...)
 	assert.NoError(err, "create engine")
 
 	t.Logf("start engine: %v", time.Since(engineStart))
@@ -120,19 +114,6 @@ func runAndCompare(t *testing.T, tt Test) {
 		expectedData := loadExpectedFile(t, tt.Name)
 		assert.Equal(string(expectedData), tableString)
 	}
-}
-
-func loadDBFile(t *testing.T, fileName string) *storage.DBFile {
-	assert := assert.New(t)
-
-	fs := afero.NewBasePathFs(afero.NewOsFs(), "testdata")
-	f, err := fs.OpenFile(fileName, os.O_RDONLY, 0666)
-	assert.NoError(err)
-
-	dbFile, err := storage.Open(f)
-	assert.NoError(err)
-
-	return dbFile
 }
 
 func writeExpectedFile(t *testing.T, testName string, output string) {

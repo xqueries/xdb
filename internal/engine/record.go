@@ -8,6 +8,8 @@ import (
 	"github.com/xqueries/xdb/internal/engine/types"
 )
 
+var _ = serializeRow // FIXME: remove when InsertRow is implemented, this us just to avoid the 'unused' linter warning
+
 func serializeRow(row table.Row) ([]byte, error) {
 	var buf bytes.Buffer
 

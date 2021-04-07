@@ -57,3 +57,7 @@ func (i *filteredColIterator) Reset() error {
 	i.underlying = rows
 	return nil
 }
+
+func (i *filteredColIterator) Close() error {
+	return i.underlying.Close()
+}

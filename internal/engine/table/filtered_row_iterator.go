@@ -46,3 +46,7 @@ func (i *filteredRowIterator) Reset() error {
 	i.underlying = rows
 	return nil
 }
+
+func (i *filteredRowIterator) Close() error {
+	return i.underlying.Close()
+}

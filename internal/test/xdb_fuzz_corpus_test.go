@@ -7,9 +7,10 @@ import (
 
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
+
 	"github.com/xqueries/xdb/internal/compiler"
 	"github.com/xqueries/xdb/internal/engine"
-	"github.com/xqueries/xdb/internal/engine/storage"
+	"github.com/xqueries/xdb/internal/engine/dbfs"
 	"github.com/xqueries/xdb/internal/parser"
 )
 
@@ -55,12 +56,10 @@ func _TestCorpusFile(file string) func(*testing.T) {
 			return
 		}
 
-		// create a new im-memory db file if none is set
+		// create a new im-memory db
 		fs := afero.NewMemMapFs()
-		f, err := fs.Create("mydbfile")
-		assert.NoError(err)
 
-		dbFile, err := storage.Create(f)
+		dbFile, err := dbfs.CreateNew(fs)
 		assert.NoError(err)
 		defer func() { _ = dbFile.Close() }()
 
