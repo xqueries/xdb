@@ -3,7 +3,6 @@ module github.com/xqueries/xdb
 go 1.13
 
 require (
-	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/google/go-cmp v0.5.5
 	github.com/oklog/ulid v1.3.1
 	github.com/rs/zerolog v1.21.0
@@ -14,5 +13,5 @@ require (
 	golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9
 	golang.org/x/text v0.3.6
 	golang.org/x/tools v0.1.0
-	gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c // indirect
+	gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c
 )
