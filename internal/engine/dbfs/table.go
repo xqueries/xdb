@@ -19,7 +19,7 @@ type Table struct {
 // Calling this will load a new PagedFile, which is expensive. Cache the returned page
 // if possible.
 func (t Table) DataFile() (*PagedFile, error) {
-	f, err := t.fs.Open(TableDataFile)
+	f, err := t.fs.OpenFile(TableDataFile, os.O_RDWR, defaultFilePerm)
 	if err != nil {
 		return nil, fmt.Errorf("open '%s/%s': %w", t.id.String(), TableDataFile, err)
 	}
@@ -32,11 +32,17 @@ func (t Table) DataFile() (*PagedFile, error) {
 	return pf, nil
 }
 
-// SchemaFile returns the file which stores the schema information of this database.
-func (t Table) SchemaFile() (afero.File, error) {
+// SchemaFile returns a new schema file which contains information about the table schema.
+func (t Table) SchemaFile() (*SchemaFile, error) {
 	f, err := t.fs.OpenFile(TableSchemaFile, os.O_RDWR, defaultFilePerm)
 	if err != nil {
 		return nil, fmt.Errorf("open '%s/%s': %w", t.id.String(), TableSchemaFile, err)
 	}
-	return f, nil
+
+	sf, err := newSchemaFile(f)
+	if err != nil {
+		return nil, fmt.Errorf("load schema file '%s/%s': %w", t.id.String(), TableSchemaFile, err)
+	}
+
+	return sf, nil
 }

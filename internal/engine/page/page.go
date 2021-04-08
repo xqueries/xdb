@@ -260,25 +260,30 @@ func (p *Page) storeRawCell(rawCell []byte) error {
 // This assumes, that the cell data has already been inserted into the page at the given
 // slot.
 func (p *Page) storeCellSlot(slot Slot) {
-	offsets := append(p.OccupiedSlots(), slot)
-	sort.Slice(offsets, func(i, j int) bool {
-		var leftKey, rightKey []byte
-		switch c := p.CellAt(offsets[i]).(type) {
+	slots := p.OccupiedSlots()
+	var pivotKey []byte
+	switch c := p.CellAt(slot).(type) {
+	case RecordCell:
+		pivotKey = c.Key
+	case PointerCell:
+		pivotKey = c.Key
+	}
+
+	insertIndex := sort.Search(len(slots), func(i int) bool {
+		var candidateKey []byte
+		switch c := p.CellAt(slots[i]).(type) {
 		case RecordCell:
-			leftKey = c.Key
+			candidateKey = c.Key
 		case PointerCell:
-			leftKey = c.Key
+			candidateKey = c.Key
 		}
-		switch c := p.CellAt(offsets[j]).(type) {
-		case RecordCell:
-			rightKey = c.Key
-		case PointerCell:
-			rightKey = c.Key
-		}
-		return bytes.Compare(leftKey, rightKey) >= 0
+		return bytes.Compare(candidateKey, pivotKey) >= 0
 	})
-	for i, offset := range offsets {
-		offset.encodeInto(p.body[BodySize-(i+1)*int(SlotByteSize):])
+
+	slots = append(slots[:insertIndex], append([]Slot{slot}, slots[insertIndex:]...)...)
+
+	for i, slot := range slots {
+		slot.encodeInto(p.body[BodySize-(i+1)*int(SlotByteSize):])
 	}
 }
 

@@ -102,3 +102,23 @@ func TestExample07(t *testing.T) {
 
 	t.Logf("profile:\n%v", p.Profile().String())
 }
+
+func TestExample08(t *testing.T) {
+	p := profile.NewProfiler()
+
+	RunAndCompare(t, Test{
+		Name: "example08",
+		SetupSQL: `
+CREATE TABLE 'myTable' (myCol string);
+INSERT INTO 'myTable' VALUES
+("a"),
+("b"),
+("c")`,
+		Statement: `SELECT * FROM 'myTable'`,
+		EngineOptions: []engine.Option{
+			engine.WithProfiler(p),
+		},
+	})
+
+	t.Logf("profile:\n%v", p.Profile().String())
+}

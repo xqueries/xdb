@@ -5,8 +5,8 @@ import (
 
 	"github.com/xqueries/xdb/internal/compiler/command"
 	"github.com/xqueries/xdb/internal/engine/dbfs"
+	"github.com/xqueries/xdb/internal/engine/page"
 	"github.com/xqueries/xdb/internal/engine/profile"
-	"github.com/xqueries/xdb/internal/engine/schema"
 	"github.com/xqueries/xdb/internal/engine/table"
 )
 
@@ -41,9 +41,10 @@ type Inserter interface {
 type Table struct {
 	profiler *profile.Profiler
 
-	name         string
-	schema       *schema.Schema
-	dataProvider func() (*dbfs.PagedFile, error)
+	name string
+
+	openSchemaFile func() (*dbfs.SchemaFile, error)
+	openDataFile   func() (*dbfs.PagedFile, error)
 }
 
 // LoadTable loads a table with the given name from secondary storage. Only table meta
@@ -58,25 +59,11 @@ func (e Engine) LoadTable(name string) (table.Table, error) {
 		return nil, fmt.Errorf("table: %w", err)
 	}
 
-	schemaFile, err := tableMeta.SchemaFile()
-	if err != nil {
-		return nil, fmt.Errorf("obtain schema file: %w", err)
-	}
-	defer func() {
-		_ = schemaFile.Close()
-	}()
-
-	var sch schema.Schema
-	_, err = sch.ReadFrom(schemaFile)
-	if err != nil {
-		return nil, fmt.Errorf("load schema: %w", err)
-	}
-
 	return &Table{
-		profiler:     e.profiler,
-		dataProvider: tableMeta.DataFile,
-		name:         name,
-		schema:       &sch,
+		profiler:       e.profiler,
+		openSchemaFile: tableMeta.SchemaFile,
+		openDataFile:   tableMeta.DataFile,
+		name:           name,
 	}, nil
 }
 
@@ -87,46 +74,93 @@ func (t Table) Name() string {
 
 // Cols returns the column information of this table as a slice of projectedColumns.
 func (t Table) Cols() []table.Col {
-	return t.schema.Cols()
+	schemaFile, err := t.openSchemaFile()
+	if err != nil {
+		return nil
+	}
+	defer func() {
+		_ = schemaFile.Close()
+	}()
+	return schemaFile.Columns()
 }
 
 // Rows returns a row iterator that will lazily load rows from secondary
 // storage. PLEASE NOTE THAT THE CALLER IS RESPONSIBLE FOR CLOSING THE
 // OBTAINED ITERATOR, SO IT DOESN'T LEAK MEMORY.
 func (t Table) Rows() (table.RowIterator, error) {
-	data, err := t.dataProvider()
+	data, err := t.openDataFile()
 	if err != nil {
-		return nil, fmt.Errorf("obtain data: %w", err)
+		return nil, fmt.Errorf("open data file: %w", err)
 	}
-	return newTableRowIterator(t.profiler, t.schema, data), nil
+	return newTableRowIterator(t.profiler, t.Cols(), data), nil
 }
 
 // Insert inserts the given row into this table in secondary storage.
-// This is done by simply adding a cell with the serialized row to the
-// data page of this table.
 func (t *Table) Insert(row table.Row) error {
-	return ErrUnsupported
-	// dataPage, err := t.dataPage.Load()
-	// if err != nil {
-	// 	return fmt.Errorf("load data page: %w", err)
-	// }
-	// defer t.dataPage.Unload()
-	//
-	// serializedRow, err := serializeRow(row)
-	// if err != nil {
-	// 	return fmt.Errorf("serialize row: %w", err)
-	// }
-	//
-	// key := make([]byte, 4)
-	// byteOrder.PutUint32(key, t.highestRowID)
-	// t.highestRowID++
-	// if err := dataPage.StoreRecordCell(page.RecordCell{
-	// 	Key:    key,
-	// 	Record: serializedRow,
-	// }); err != nil {
-	// 	return fmt.Errorf("store record cell: %w", err)
-	// }
-	// return nil
+	dataFile, err := t.openDataFile()
+	if err != nil {
+		return fmt.Errorf("open data file: %w", err)
+	}
+	defer func() {
+		_ = dataFile.Close()
+	}()
+
+	schemaFile, err := t.openSchemaFile()
+	if err != nil {
+		return fmt.Errorf("open schema file: %w", err)
+	}
+	defer func() {
+		_ = schemaFile.Close()
+	}()
+
+	var p *page.Page
+	if dataFile.PageCount() == 0 {
+		// there are no pages in the data file yet, allocate one
+		p, err = dataFile.AllocateNewPage()
+		if err != nil {
+			return fmt.Errorf("allocate first page: %w", err)
+		}
+	} else {
+		// load last page in the data file
+		highestPageID := dataFile.HighestPageID()
+		p, err = dataFile.LoadPage(highestPageID)
+		if err != nil {
+			return fmt.Errorf("load page %v: %w", highestPageID, err)
+		}
+	}
+
+	serializedRow, err := serializeRow(row)
+	if err != nil {
+		return fmt.Errorf("serialize row: %w", err)
+	}
+
+	key := make([]byte, 4)
+	byteOrder.PutUint32(key, uint32(schemaFile.HighestRowID()))
+	schemaFile.IncrementHighestRowID()
+	if err := schemaFile.Store(); err != nil {
+		return fmt.Errorf("store schema: %w", err)
+	}
+
+store:
+	if err := p.StoreRecordCell(page.RecordCell{
+		Key:    key,
+		Record: serializedRow,
+	}); err != nil {
+		if err == page.ErrPageFull {
+			p, err = dataFile.AllocateNewPage()
+			if err != nil {
+				return fmt.Errorf("allocate new page: %w", err)
+			}
+			goto store
+		}
+		return fmt.Errorf("store record cell: %w", err)
+	}
+
+	if err := dataFile.StorePage(p); err != nil {
+		return fmt.Errorf("store page %v: %w", p.ID(), err)
+	}
+
+	return nil
 }
 
 // evaluateCreateTable creates a new table from the given command.
@@ -151,6 +185,11 @@ func (e Engine) evaluateCreateTable(_ ExecutionContext, cmd command.CreateTable)
 		return nil, fmt.Errorf("create table files: %w", err)
 	}
 
+	schemaFile, err := tableMeta.SchemaFile()
+	if err != nil {
+		return nil, fmt.Errorf("load schema: %w", err)
+	}
+
 	// create schema
 	var cols []table.Col
 	for _, def := range cmd.ColumnDefs {
@@ -159,16 +198,9 @@ func (e Engine) evaluateCreateTable(_ ExecutionContext, cmd command.CreateTable)
 			Type:          def.Type,
 		})
 	}
-	newSchema := schema.New(cols)
-
-	// store schema
-	schemaFile, err := tableMeta.SchemaFile()
-	if err != nil {
-		return nil, fmt.Errorf("obtain schema: %w", err)
-	}
-	_, err = newSchema.WriteTo(schemaFile)
-	if err != nil {
-		return nil, fmt.Errorf("write schema: %w", err)
+	schemaFile.SetColumns(cols)
+	if err := schemaFile.Store(); err != nil {
+		return nil, fmt.Errorf("store schema: %w", err)
 	}
 
 	return table.Empty, nil

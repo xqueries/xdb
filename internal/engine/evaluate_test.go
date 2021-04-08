@@ -1,23 +1,54 @@
 package engine
 
 import (
-	"testing"
-
-	"github.com/stretchr/testify/assert"
 	"github.com/xqueries/xdb/internal/compiler/command"
+	"github.com/xqueries/xdb/internal/engine/table"
+	"github.com/xqueries/xdb/internal/engine/types"
 )
 
-func TestFullTableScan(t *testing.T) {
-	t.Skip("full table scan not implemented yet")
+func (suite *EngineSuite) TestFullTableScan() {
+	_, err := suite.engine.evaluateCreateTable(suite.ctx, command.CreateTable{
+		Name: "myTable",
+		ColumnDefs: []command.ColumnDef{
+			{
+				Name: "myCol",
+				Type: types.String,
+			},
+		},
+	})
+	suite.NoError(err)
 
-	assert := assert.New(t)
+	_, err = suite.engine.evaluateInsert(suite.ctx, command.Insert{
+		Table: command.SimpleTable{
+			Table: "myTable",
+		},
+		Input: command.Values{
+			Values: [][]command.Expr{
+				{command.ConstantLiteral{Value: "myContent"}},
+				{command.ConstantLiteral{Value: "mySecondContent"}},
+				{command.ConstantLiteral{Value: "myThirdContent"}},
+			},
+		},
+	})
+	suite.NoError(err)
 
-	e := createEngineOnEmptyDatabase(t)
-	result, err := e.Evaluate(command.Scan{
+	tbl, err := suite.engine.Evaluate(command.Scan{
 		Table: command.SimpleTable{
 			Table: "myTable",
 		},
 	})
-	assert.NoError(err)
-	assert.Nil(result)
+	suite.NoError(err)
+	suite.EqualTables(table.NewInMemory(
+		[]table.Col{
+			{
+				QualifiedName: "myCol",
+				Type:          types.String,
+			},
+		},
+		[]table.Row{
+			{Values: []types.Value{types.NewString("myContent")}},
+			{Values: []types.Value{types.NewString("mySecondContent")}},
+			{Values: []types.Value{types.NewString("myThirdContent")}},
+		},
+	), tbl)
 }

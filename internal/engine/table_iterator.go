@@ -7,15 +7,14 @@ import (
 
 	"github.com/xqueries/xdb/internal/engine/dbfs"
 	"github.com/xqueries/xdb/internal/engine/profile"
-	"github.com/xqueries/xdb/internal/engine/schema"
 	"github.com/xqueries/xdb/internal/engine/table"
 )
 
 type tableRowIterator struct {
 	profiler *profile.Profiler
 
-	schema *schema.Schema
-	data   *dbfs.PagedFile
+	data *dbfs.PagedFile
+	cols []table.Col
 
 	pages            []page.ID
 	currentPageIndex int
@@ -25,10 +24,10 @@ type tableRowIterator struct {
 	currentSlot int
 }
 
-func newTableRowIterator(profiler *profile.Profiler, schema *schema.Schema, data *dbfs.PagedFile) *tableRowIterator {
+func newTableRowIterator(profiler *profile.Profiler, cols []table.Col, data *dbfs.PagedFile) *tableRowIterator {
 	return &tableRowIterator{
 		profiler: profiler,
-		schema:   schema,
+		cols:     cols,
 		data:     data,
 		pages:    data.Pages(),
 	}
@@ -64,6 +63,7 @@ start:
 	// if the current slot is out of the bounds of the current slots, that means we are done
 	// with this page and we should continue with the slots from the next page
 	if i.currentSlot >= len(i.slots) {
+		i.slots = nil
 		i.currentSlot = 0
 		i.currentPage = nil
 		i.currentPageIndex++
@@ -75,7 +75,7 @@ start:
 	// get the record and deserialize it
 	cell := i.currentPage.CellAt(i.slots[i.currentSlot]).(page.RecordCell)
 	i.currentSlot++
-	row, err := deserializeRow(i.schema.Cols(), cell.Record)
+	row, err := deserializeRow(i.cols, cell.Record)
 	if err != nil {
 		return table.Row{}, fmt.Errorf("deserialize: %w", err)
 	}
