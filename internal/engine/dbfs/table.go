@@ -34,7 +34,7 @@ func (t Table) DataFile() (*PagedFile, error) {
 
 // SchemaFile returns the file which stores the schema information of this database.
 func (t Table) SchemaFile() (afero.File, error) {
-	f, err := t.fs.OpenFile(TableSchemaFile, os.O_RDWR, defaultPerm)
+	f, err := t.fs.OpenFile(TableSchemaFile, os.O_RDWR, defaultFilePerm)
 	if err != nil {
 		return nil, fmt.Errorf("open '%s/%s': %w", t.id.String(), TableSchemaFile, err)
 	}

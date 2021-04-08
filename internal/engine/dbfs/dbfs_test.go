@@ -2,6 +2,7 @@ package dbfs
 
 import (
 	"path/filepath"
+	"strconv"
 	"testing"
 
 	"github.com/spf13/afero"
@@ -47,15 +48,14 @@ func (suite *DBFSSuite) DirEmpty(fs afero.Fs, path string) {
 func (suite *DBFSSuite) TestCreateNew() {
 	fs := afero.NewMemMapFs()
 
-	_, err := CreateNew(fs)
+	dbfs, err := CreateNew(fs)
 	suite.NoError(err)
 
-	suite.DirExists(fs, TablesDirectory)
-	suite.FileExists(fs, filepath.Join(TablesDirectory, TablesInfoFile))
-	suite.FileEmpty(fs, filepath.Join(TablesDirectory, TablesInfoFile))
-	files, err := afero.ReadDir(fs, TablesDirectory)
+	suite.NoError(Validate(fs))
+
+	tblCount, err := dbfs.TableCount()
 	suite.NoError(err)
-	suite.Len(files, 1)
+	suite.Equal(0, tblCount)
 }
 
 func (suite *DBFSSuite) TestCreateTable() {
@@ -64,11 +64,51 @@ func (suite *DBFSSuite) TestCreateTable() {
 	dbfs, err := CreateNew(fs)
 	suite.NoError(err)
 
+	infos, err := dbfs.loadTablesInfo()
+	suite.NoError(err)
+	suite.Equal(0, infos.Count)
+	suite.Len(infos.Tables, 0)
+
 	tbl, err := dbfs.CreateTable("myTable")
 	suite.NoError(err)
 
-	tableDir := filepath.Join(TablesDirectory, tbl.id.String())
-	suite.DirExists(fs, tableDir)
-	suite.FileEmpty(fs, filepath.Join(tableDir, TableDataFile))
-	suite.FileEmpty(fs, filepath.Join(tableDir, TableSchemaFile))
+	suite.NoError(Validate(fs))
+
+	infos, err = dbfs.loadTablesInfo()
+	suite.NoError(err)
+	suite.EqualValues(TablesInfo{
+		Tables: map[string]string{
+			"myTable": tbl.id.String(),
+		},
+		Count: 1,
+	}, infos)
+
+	suite.NoError(Validate(fs))
+}
+
+func (suite *DBFSSuite) TestManyTables() {
+	fs := afero.NewMemMapFs()
+
+	dbfs, err := CreateNew(fs)
+	suite.NoError(err)
+
+	for i := 0; i < 100; i++ {
+		infos, err := dbfs.loadTablesInfo()
+		suite.NoError(err)
+		suite.Equal(i, infos.Count)
+		suite.Len(infos.Tables, i)
+
+		tbl, err := dbfs.CreateTable("myTable" + strconv.Itoa(i))
+		suite.NoError(err)
+
+		infos, err = dbfs.loadTablesInfo()
+		suite.NoError(err)
+		suite.Equal(i+1, infos.Count)
+		suite.Len(infos.Tables, i+1)
+
+		tableDir := filepath.Join(TablesDirectory, tbl.id.String())
+		suite.DirExists(fs, tableDir)
+		suite.FileEmpty(fs, filepath.Join(tableDir, TableDataFile))
+		suite.FileEmpty(fs, filepath.Join(tableDir, TableSchemaFile))
+	}
 }
