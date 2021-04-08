@@ -11,6 +11,9 @@ import (
 	"github.com/xqueries/xdb/internal/engine/types"
 )
 
+// SchemaFile provides access to the schema of a table.
+// After modification, call Store to write the modified
+// schema back to disk.
 type SchemaFile struct {
 	file         afero.File
 	highestRowID int
@@ -64,18 +67,25 @@ func (sf *SchemaFile) load() error {
 	return nil
 }
 
+// HighestRowID returns the highest row ID that exists in this table.
 func (sf *SchemaFile) HighestRowID() int {
 	return sf.highestRowID
 }
 
+// IncrementHighestRowID increments the highest row ID in this schema file by
+// one. To persist this change to disk, call Store afterwards.
 func (sf *SchemaFile) IncrementHighestRowID() {
 	sf.highestRowID++
 }
 
+// Columns returns the columns in the table that this schema belongs to.
 func (sf *SchemaFile) Columns() []table.Col {
 	return sf.columns
 }
 
+// SetColumns changes the columns in this schema, potentially breaking deserialization
+// logic of rows. Don't use this unless you know what you're doing.
+// To persist this change to disk, call Store afterwards.
 func (sf *SchemaFile) SetColumns(cols []table.Col) {
 	sf.columns = cols
 }
@@ -106,6 +116,7 @@ func (sf *SchemaFile) Store() error {
 	return nil
 }
 
+// Close closes the schema file.
 func (sf *SchemaFile) Close() error {
 	return sf.file.Close()
 }

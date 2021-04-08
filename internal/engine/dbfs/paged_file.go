@@ -55,6 +55,7 @@ func (pf *PagedFile) initOffsetIndex() error {
 	return nil
 }
 
+// HighestPageID returns the highest page ID that exists in this paged file.
 func (pf PagedFile) HighestPageID() page.ID {
 	return pf.highestPageID
 }

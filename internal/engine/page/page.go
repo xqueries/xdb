@@ -282,8 +282,9 @@ func (p *Page) storeCellSlot(slot Slot) {
 
 	slots = append(slots[:insertIndex], append([]Slot{slot}, slots[insertIndex:]...)...)
 
+	slotsSize := len(slots) * int(SlotByteSize)
 	for i, slot := range slots {
-		slot.encodeInto(p.body[BodySize-(i+1)*int(SlotByteSize):])
+		slot.encodeInto(p.body[BodySize-slotsSize+i*int(SlotByteSize):])
 	}
 }
 
