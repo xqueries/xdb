@@ -10,15 +10,6 @@ import (
 	"github.com/xqueries/xdb/internal/engine/table"
 )
 
-// Constants for cells that are required in every table page.
-// Obtain the value with CellByString(theConstant).
-const (
-	TableKeyName         = "name"
-	TableKeyData         = "data"
-	TableKeyColInfo      = "colinfo"
-	TableKeyHighestRowID = "highestROWID"
-)
-
 var _ Namer = (*Table)(nil)
 var _ Inserter = (*Table)(nil)
 
