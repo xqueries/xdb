@@ -26,9 +26,13 @@ type EngineSuite struct {
 }
 
 func (suite *EngineSuite) SetupTest() {
-	suite.ctx = newEmptyExecutionContext()
 	suite.engine = createEngineOnEmptyDatabase(suite.T())
 	suite.dbfs = suite.engine.dbfs
+
+	tx, err := suite.engine.txmgr.Start()
+	suite.Require().NoError(err)
+
+	suite.ctx = newEmptyExecutionContext(tx)
 }
 
 // createEngineOnEmptyDatabase creates a new, clean, ready to use in-memory database file

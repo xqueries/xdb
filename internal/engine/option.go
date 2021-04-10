@@ -2,6 +2,7 @@ package engine
 
 import (
 	"github.com/rs/zerolog"
+
 	"github.com/xqueries/xdb/internal/engine/profile"
 )
 
@@ -37,5 +38,13 @@ func WithTimeProvider(tp timeProvider) Option {
 func WithRandomProvider(rp randomProvider) Option {
 	return func(e *Engine) {
 		e.randomProvider = rp
+	}
+}
+
+// WithTransactionManager sets a transaction manager that will be used by the
+// engine to start and submit transactions.
+func WithTransactionManager(txmgr TransactionManager) Option {
+	return func(e *Engine) {
+		e.txmgr = txmgr
 	}
 }

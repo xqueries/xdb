@@ -11,11 +11,13 @@ type ExecutionContext struct {
 	id id.ID
 
 	intermediateRow table.RowWithColInfo
+	tx              *Transaction
 }
 
-func newEmptyExecutionContext() ExecutionContext {
+func newEmptyExecutionContext(tx *Transaction) ExecutionContext {
 	return ExecutionContext{
 		id: id.Create(),
+		tx: tx,
 	}
 }
 
