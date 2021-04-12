@@ -37,6 +37,7 @@ func (suite *EngineSuite) SetupTest() {
 func createEngineOnEmptyDatabase(t assert.TestingT) Engine {
 	assert := assert.New(t)
 
+	// fs := afero.NewBasePathFs(afero.NewOsFs(), "testdata")
 	fs := afero.NewMemMapFs()
 	dbFile, err := dbfs.CreateNew(fs)
 	assert.NoError(err)
@@ -53,14 +54,33 @@ func (suite *EngineSuite) EqualTables(expected, got table.Table) {
 	suite.NoError(err)
 	gotIt, err := got.Rows()
 	suite.NoError(err)
+
+	var expectedRows []table.Row
+	var expectedErr error
+	var gotRows []table.Row
+	var gotErr error
+
 	for {
-		expectedNext, expectedErr := expectedIt.Next()
-		gotNext, gotErr := gotIt.Next()
-		suite.EqualValues(expectedErr, gotErr)
-		suite.Equal(expectedNext, gotNext)
-		if !(expectedErr == nil && gotErr == nil) {
+		expectedNext, err := expectedIt.Next()
+		expectedRows = append(expectedRows, expectedNext)
+		expectedErr = err
+		if err != nil {
 			break
 		}
+	}
+	for {
+		gotNext, err := gotIt.Next()
+		gotRows = append(gotRows, gotNext)
+		gotErr = err
+		if err != nil {
+			break
+		}
+	}
+	suite.EqualValues(expectedErr, gotErr)
+	suite.Len(gotRows, len(expectedRows))
+
+	for _, row := range gotRows {
+		suite.Contains(expectedRows, row)
 	}
 }
 

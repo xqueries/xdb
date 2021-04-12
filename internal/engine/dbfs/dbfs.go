@@ -12,7 +12,8 @@ import (
 	"github.com/xqueries/xdb/internal/id"
 )
 
-const defaultPerm os.FileMode = 0600
+const defaultDirPerm os.FileMode = 0744
+const defaultFilePerm os.FileMode = 0644
 
 // DBFS represents the structure of a single DataBase-FileSystem.
 // It provides easy access to all folders and files within the root
@@ -42,7 +43,9 @@ func CreateNew(fs afero.Fs) (*DBFS, error) {
 
 // Load loads a DBFS from the given file system.
 func Load(fs afero.Fs) (*DBFS, error) {
-	// FIXME: perform checks
+	if err := Validate(fs); err != nil {
+		return nil, fmt.Errorf("validate: %w", err)
+	}
 	return &DBFS{
 		fs: fs,
 	}, nil
@@ -52,6 +55,16 @@ func Load(fs afero.Fs) (*DBFS, error) {
 func (dbfs *DBFS) Close() error {
 	// nothing to do here yet
 	return nil
+}
+
+// TableCount returns the amount of tables that currently exist in this database.
+func (dbfs *DBFS) TableCount() (int, error) {
+	infos, err := dbfs.loadTablesInfo()
+	if err != nil {
+		return 0, err
+	}
+
+	return infos.Count, nil
 }
 
 // Table returns a Table object representing the files and directories
@@ -64,7 +77,7 @@ func (dbfs *DBFS) Table(name string) (Table, error) {
 	}
 
 	// perform checks
-	tblID, ok := infos[name]
+	tblID, ok := infos.Tables[name]
 	if !ok {
 		return Table{}, fmt.Errorf("table '%s' does not exist", name)
 	}
@@ -82,7 +95,7 @@ func (dbfs *DBFS) HasTable(name string) (bool, error) {
 		return false, err
 	}
 
-	_, ok := infos[name]
+	_, ok := infos.Tables[name]
 	return ok, nil
 }
 
@@ -95,13 +108,14 @@ func (dbfs *DBFS) CreateTable(name string) (Table, error) {
 		return Table{}, err
 	}
 
-	if _, ok := infos[name]; ok {
+	if _, ok := infos.Tables[name]; ok {
 		return Table{}, fmt.Errorf("table '%s' already exists", name)
 	}
 
 	newTableID := id.Create()
 	newTableIDString := newTableID.String()
-	infos[name] = newTableIDString
+	infos.Tables[name] = newTableIDString
+	infos.Count++
 	if err := dbfs.storeTablesInfo(infos); err != nil {
 		return Table{}, fmt.Errorf("store table info: %w", err)
 	}
@@ -123,35 +137,36 @@ func (dbfs *DBFS) CreateTable(name string) (Table, error) {
 	}, nil
 }
 
-func (dbfs *DBFS) loadTablesInfo() (map[string]string, error) {
+func (dbfs *DBFS) loadTablesInfo() (TablesInfo, error) {
 	// load infos to check whether and where the table exists
 	infoFilePath := filepath.Join(TablesDirectory, TablesInfoFile)
-	tablesInfo, err := dbfs.fs.Open(infoFilePath)
+	infoFile, err := dbfs.fs.Open(infoFilePath)
 	if err != nil {
-		return nil, fmt.Errorf("open '%s': %w", infoFilePath, err)
+		return TablesInfo{}, fmt.Errorf("open '%s': %w", infoFilePath, err)
 	}
 	defer func() {
-		_ = tablesInfo.Close()
+		_ = infoFile.Close()
 	}()
 
-	infos := make(map[string]string)
-	if err := yaml.NewDecoder(tablesInfo).Decode(infos); err != nil && err != io.EOF {
-		return nil, fmt.Errorf("decode infos: %w", err)
+	var infos TablesInfo
+	infos.Tables = make(map[string]string)
+	if err := yaml.NewDecoder(infoFile).Decode(&infos); err != nil && err != io.EOF {
+		return TablesInfo{}, fmt.Errorf("decode infos: %w", err)
 	}
 	return infos, nil
 }
 
-func (dbfs *DBFS) storeTablesInfo(info map[string]string) error {
+func (dbfs *DBFS) storeTablesInfo(info TablesInfo) error {
 	infoFilePath := filepath.Join(TablesDirectory, TablesInfoFile)
-	tablesInfo, err := dbfs.fs.OpenFile(infoFilePath, os.O_RDWR, defaultPerm)
+	infoFile, err := dbfs.fs.OpenFile(infoFilePath, os.O_RDWR, defaultFilePerm)
 	if err != nil {
 		return fmt.Errorf("open '%s': %w", infoFilePath, err)
 	}
 	defer func() {
-		_ = tablesInfo.Close()
+		_ = infoFile.Close()
 	}()
 
-	if err := yaml.NewEncoder(tablesInfo).Encode(info); err != nil {
+	if err := yaml.NewEncoder(infoFile).Encode(&info); err != nil {
 		return fmt.Errorf("encode infos: %w", err)
 	}
 	return nil
@@ -159,7 +174,7 @@ func (dbfs *DBFS) storeTablesInfo(info map[string]string) error {
 
 // touch creates an empty file with the given path in this DBFS.
 func (dbfs *DBFS) touch(path string) error {
-	f, err := dbfs.fs.OpenFile(path, os.O_CREATE, defaultPerm)
+	f, err := dbfs.fs.OpenFile(path, os.O_CREATE, defaultFilePerm)
 	if err != nil {
 		return fmt.Errorf("create '%s': %w", path, err)
 	}
@@ -172,7 +187,7 @@ func (dbfs *DBFS) touch(path string) error {
 // mkdir creates an empty directory with the given path in this DBFS.
 // Parent directories must exist beforehand.
 func (dbfs *DBFS) mkdir(path string) error {
-	if err := dbfs.fs.Mkdir(path, defaultPerm); err != nil {
+	if err := dbfs.fs.Mkdir(path, defaultDirPerm); err != nil {
 		return fmt.Errorf("mkdir '%s': %w", path, err)
 	}
 	return nil

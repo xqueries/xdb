@@ -55,7 +55,13 @@ func (pf *PagedFile) initOffsetIndex() error {
 	return nil
 }
 
+// HighestPageID returns the highest page ID that exists in this paged file.
+func (pf PagedFile) HighestPageID() page.ID {
+	return pf.highestPageID
+}
+
 // Pages returns a slice of page IDs that are present in this paged file.
+// The returned slice is not sorted.
 func (pf *PagedFile) Pages() []page.ID {
 	res := make([]page.ID, 0, len(pf.offsetIndex))
 	for k := range pf.offsetIndex {
@@ -70,7 +76,9 @@ func (pf *PagedFile) PageCount() int {
 }
 
 // LoadPage loads a page with the given ID from the disk. If no such page exists,
-// an error is returned.
+// an error is returned. The returned page is an in-memory copy of the page on disk,
+// and modifying will not change any data on the disk. To modify disk data,
+// modify the page and call StorePage with the modified page.
 func (pf *PagedFile) LoadPage(id page.ID) (*page.Page, error) {
 	offset, ok := pf.offsetIndex[id]
 	if !ok {
@@ -107,7 +115,8 @@ func (pf *PagedFile) StorePage(p *page.Page) error {
 	return nil
 }
 
-// AllocateNewPage will create a new page in this file.
+// AllocateNewPage will create a new page in this file and immediately
+// write it to disk.
 func (pf *PagedFile) AllocateNewPage() (*page.Page, error) {
 	newID := pf.highestPageID + 1
 	// if there are no pages yet, first page must be ID 0

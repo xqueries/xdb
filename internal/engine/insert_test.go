@@ -1,12 +1,24 @@
 package engine
 
 import (
+	"testing"
+
+	"github.com/stretchr/testify/suite"
+
 	"github.com/xqueries/xdb/internal/compiler/command"
 	"github.com/xqueries/xdb/internal/engine/table"
 	"github.com/xqueries/xdb/internal/engine/types"
 )
 
-func (suite *EngineSuite) TestFullTableScan() {
+func TestInsertSuite(t *testing.T) {
+	suite.Run(t, new(InsertSuite))
+}
+
+type InsertSuite struct {
+	EngineSuite
+}
+
+func (suite *InsertSuite) TestSimpleInsert() {
 	_, err := suite.engine.evaluateCreateTable(suite.ctx, command.CreateTable{
 		Name: "myTable",
 		ColumnDefs: []command.ColumnDef{
@@ -32,9 +44,12 @@ func (suite *EngineSuite) TestFullTableScan() {
 	})
 	suite.NoError(err)
 
-	tbl, err := suite.engine.Evaluate(command.Scan{
-		Table: command.SimpleTable{
-			Table: "myTable",
+	tbl, err := suite.engine.evaluateSelection(suite.ctx, command.Select{
+		Filter: command.ConstantBooleanExpr{Value: true},
+		Input: command.Scan{
+			Table: command.SimpleTable{
+				Table: "myTable",
+			},
 		},
 	})
 	suite.NoError(err)

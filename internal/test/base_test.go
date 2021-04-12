@@ -19,7 +19,7 @@ import (
 )
 
 var (
-	overwriteExpected bool
+	update bool
 )
 
 type Test struct {
@@ -29,11 +29,12 @@ type Test struct {
 	EngineOptions  []engine.Option
 	DBFileName     string
 
+	SetupSQL  string
 	Statement string
 }
 
 func TestMain(m *testing.M) {
-	flag.BoolVar(&overwriteExpected, "update", false, "overwrite / update expected output files")
+	flag.BoolVar(&update, "update", false, "overwrite / update expected output files")
 	flag.Parse()
 
 	os.Exit(m.Run())
@@ -53,7 +54,7 @@ func runAndCompare(t *testing.T, tt Test) {
 
 	assert := assert.New(t)
 
-	if overwriteExpected {
+	if update {
 		t.Log("OVERWRITING EXPECTED FILE")
 		t.Fail()
 	}
@@ -63,6 +64,41 @@ func runAndCompare(t *testing.T, tt Test) {
 
 	dbfs, err := dbfs.CreateNew(fs)
 	assert.NoError(err)
+
+	engineStart := time.Now()
+
+	e, err := engine.New(dbfs, tt.EngineOptions...)
+	assert.NoError(err, "create engine")
+
+	t.Logf("start engine: %v", time.Since(engineStart))
+
+	c := compiler.New(tt.CompileOptions...)
+
+	// run setup sql script
+	t.Logf("execute setup script")
+	setupParser, err := parser.New(tt.SetupSQL)
+	assert.NoError(err)
+	for i := 0; ; i++ {
+		start := time.Now()
+
+		stmt, errs, ok := setupParser.Next()
+		if !ok {
+			break
+		}
+		for _, err := range errs {
+			assert.NoErrorf(err, "parse setup %v", i)
+		}
+
+		cmd, err := c.Compile(stmt)
+		assert.NoError(err)
+
+		_, err = e.Evaluate(cmd)
+		assert.NoError(err, "evaluate setup")
+
+		t.Logf("setup %v in %v", i, time.Since(start))
+	}
+
+	t.Logf("execute test script")
 
 	totalStart := time.Now()
 	parseStart := time.Now()
@@ -80,18 +116,10 @@ func runAndCompare(t *testing.T, tt Test) {
 
 	compileStart := time.Now()
 
-	c := compiler.New(tt.CompileOptions...)
 	cmd, err := c.Compile(stmt)
 	assert.NoError(err, "compile")
 
 	t.Logf("compile: %v", time.Since(compileStart))
-
-	engineStart := time.Now()
-
-	e, err := engine.New(dbfs, tt.EngineOptions...)
-	assert.NoError(err, "create engine")
-
-	t.Logf("start engine: %v", time.Since(engineStart))
 
 	evalStart := time.Now()
 
@@ -108,7 +136,7 @@ func runAndCompare(t *testing.T, tt Test) {
 
 	t.Logf("evaluation result:\n%v", tableString)
 
-	if overwriteExpected {
+	if update {
 		writeExpectedFile(t, tt.Name, tableString)
 	} else {
 		expectedData := loadExpectedFile(t, tt.Name)
