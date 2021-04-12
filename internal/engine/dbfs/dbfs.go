@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/afero"
 	"gopkg.in/yaml.v3"
 
+	"github.com/xqueries/xdb/internal/engine/types"
 	"github.com/xqueries/xdb/internal/id"
 )
 
@@ -59,7 +60,7 @@ func (dbfs *DBFS) Close() error {
 
 // TableCount returns the amount of tables that currently exist in this database.
 func (dbfs *DBFS) TableCount() (int, error) {
-	infos, err := dbfs.loadTablesInfo()
+	infos, err := dbfs.LoadTablesInfo()
 	if err != nil {
 		return 0, err
 	}
@@ -71,7 +72,7 @@ func (dbfs *DBFS) TableCount() (int, error) {
 // for the table with the given name, or an error if the table does not
 // exist. Call HasTable to see whether a table with a given name exists.
 func (dbfs *DBFS) Table(name string) (Table, error) {
-	infos, err := dbfs.loadTablesInfo()
+	infos, err := dbfs.LoadTablesInfo()
 	if err != nil {
 		return Table{}, err
 	}
@@ -90,7 +91,7 @@ func (dbfs *DBFS) Table(name string) (Table, error) {
 // HasTable determines whether or not a table with the given name exists in this
 // database.
 func (dbfs *DBFS) HasTable(name string) (bool, error) {
-	infos, err := dbfs.loadTablesInfo()
+	infos, err := dbfs.LoadTablesInfo()
 	if err != nil {
 		return false, err
 	}
@@ -103,7 +104,7 @@ func (dbfs *DBFS) HasTable(name string) (bool, error) {
 // This will return an error if a table with the given name already exists.
 // Calling this method will also create an entry in the tables info file.
 func (dbfs *DBFS) CreateTable(name string) (Table, error) {
-	infos, err := dbfs.loadTablesInfo()
+	infos, err := dbfs.LoadTablesInfo()
 	if err != nil {
 		return Table{}, err
 	}
@@ -116,7 +117,7 @@ func (dbfs *DBFS) CreateTable(name string) (Table, error) {
 	newTableIDString := newTableID.String()
 	infos.Tables[name] = newTableIDString
 	infos.Count++
-	if err := dbfs.storeTablesInfo(infos); err != nil {
+	if err := dbfs.StoreTablesInfo(infos); err != nil {
 		return Table{}, fmt.Errorf("store table info: %w", err)
 	}
 
@@ -137,7 +138,7 @@ func (dbfs *DBFS) CreateTable(name string) (Table, error) {
 	}, nil
 }
 
-func (dbfs *DBFS) loadTablesInfo() (TablesInfo, error) {
+func (dbfs *DBFS) LoadTablesInfo() (TablesInfo, error) {
 	// load infos to check whether and where the table exists
 	infoFilePath := filepath.Join(TablesDirectory, TablesInfoFile)
 	infoFile, err := dbfs.fs.Open(infoFilePath)
@@ -156,11 +157,17 @@ func (dbfs *DBFS) loadTablesInfo() (TablesInfo, error) {
 	return infos, nil
 }
 
-func (dbfs *DBFS) storeTablesInfo(info TablesInfo) error {
+func (dbfs *DBFS) StoreTablesInfo(info TablesInfo) error {
 	infoFilePath := filepath.Join(TablesDirectory, TablesInfoFile)
 	infoFile, err := dbfs.fs.OpenFile(infoFilePath, os.O_RDWR, defaultFilePerm)
 	if err != nil {
 		return fmt.Errorf("open '%s': %w", infoFilePath, err)
+	}
+	if err := infoFile.Truncate(0); err != nil {
+		return fmt.Errorf("truncate: %w", err)
+	}
+	if _, err := infoFile.Seek(0, io.SeekStart); err != nil {
+		return fmt.Errorf("seek: %w", err)
 	}
 	defer func() {
 		_ = infoFile.Close()
@@ -168,6 +175,33 @@ func (dbfs *DBFS) storeTablesInfo(info TablesInfo) error {
 
 	if err := yaml.NewEncoder(infoFile).Encode(&info); err != nil {
 		return fmt.Errorf("encode infos: %w", err)
+	}
+	return nil
+}
+
+func (dbfs *DBFS) StoreSchema(table string, sf *SchemaFile) error {
+	tbl, err := dbfs.Table(table)
+	if err != nil {
+		return fmt.Errorf("table: %w", err)
+	}
+	f, err := tbl.fs.OpenFile(TableSchemaFile, os.O_RDWR, defaultFilePerm)
+	if err != nil {
+		return fmt.Errorf("open '%s/%s': %w", tbl.id.String(), TableSchemaFile, err)
+	}
+
+	var syaml schemaYaml
+	syaml.HighestRowID = sf.HighestRowID
+	for _, column := range sf.Columns {
+		syaml.Columns = append(syaml.Columns, columnYaml{
+			QualifiedName: column.QualifiedName,
+			Alias:         column.Alias,
+			Type:          types.IndicatorFor(column.Type),
+		})
+	}
+
+	enc := yaml.NewEncoder(f)
+	if err := enc.Encode(&syaml); err != nil {
+		return fmt.Errorf("encode: %w", err)
 	}
 	return nil
 }

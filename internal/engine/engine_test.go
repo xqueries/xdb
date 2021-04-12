@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/spf13/afero"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/xqueries/xdb/internal/compiler"
@@ -26,8 +25,16 @@ type EngineSuite struct {
 }
 
 func (suite *EngineSuite) SetupTest() {
-	suite.engine = createEngineOnEmptyDatabase(suite.T())
-	suite.dbfs = suite.engine.dbfs
+
+	fs := afero.NewMemMapFs()
+	dbfs, err := dbfs.CreateNew(fs)
+	suite.NoError(err)
+
+	e, err := New(dbfs)
+	suite.NoError(err)
+
+	suite.engine = e
+	suite.dbfs = dbfs
 
 	tx, err := suite.engine.txmgr.Start()
 	suite.Require().NoError(err)
@@ -35,25 +42,13 @@ func (suite *EngineSuite) SetupTest() {
 	suite.ctx = newEmptyExecutionContext(tx)
 }
 
-// createEngineOnEmptyDatabase creates a new, clean, ready to use in-memory database file
-// together with a new engine that uses the fresh database. The result is a ready-to-use
-// engine on a completely empty database file that is not on the OS's file system.
-func createEngineOnEmptyDatabase(t assert.TestingT) Engine {
-	assert := assert.New(t)
-
-	// fs := afero.NewBasePathFs(afero.NewOsFs(), "testdata")
-	fs := afero.NewMemMapFs()
-	dbFile, err := dbfs.CreateNew(fs)
-	assert.NoError(err)
-
-	e, err := New(dbFile)
-	assert.NoError(err)
-	return e
-}
-
 func (suite *EngineSuite) EqualTables(expected, got table.Table) {
 	suite.NotNil(got)
-	suite.Equal(expected.Cols(), got.Cols())
+	expectedCols, err := expected.Cols()
+	suite.NoError(err)
+	gotCols, err := got.Cols()
+	suite.NoError(err)
+	suite.Equal(expectedCols, gotCols)
 	expectedIt, err := expected.Rows()
 	suite.NoError(err)
 	gotIt, err := got.Rows()

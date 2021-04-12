@@ -16,7 +16,7 @@ var (
 // sequence. Multiple calls to RowIterator must result in different iterators.
 type Table interface {
 	// Cols returns all column information of this table.
-	Cols() []Col
+	Cols() ([]Col, error)
 	// Rows returns a resettable row iterator, which can be used to iterate over all
 	// rows in this table. Multiple calls to this method result in different row iterator
 	// objects.
@@ -35,7 +35,7 @@ type RowIterator interface {
 // as name or as an alias. Every column is first checked for its name, then for its alias.
 // A nameOrAlias "*" will NOT yield a column.
 func FindColumnForNameOrAlias(tbl Table, nameOrAlias string) (foundColumn Col, found bool) {
-	cols := tbl.Cols()
+	cols, _ := tbl.Cols()
 	for _, col := range cols {
 		if col.QualifiedName == nameOrAlias {
 			return col, true

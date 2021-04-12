@@ -39,10 +39,10 @@ func (t Table) SchemaFile() (*SchemaFile, error) {
 		return nil, fmt.Errorf("open '%s/%s': %w", t.id.String(), TableSchemaFile, err)
 	}
 
-	sf, err := newSchemaFile(f)
-	if err != nil {
+	var sf SchemaFile
+	if err := sf.load(f); err != nil {
 		return nil, fmt.Errorf("load schema file '%s/%s': %w", t.id.String(), TableSchemaFile, err)
 	}
 
-	return sf, nil
+	return &sf, nil
 }

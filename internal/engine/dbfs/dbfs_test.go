@@ -64,7 +64,7 @@ func (suite *DBFSSuite) TestCreateTable() {
 	dbfs, err := CreateNew(fs)
 	suite.NoError(err)
 
-	infos, err := dbfs.loadTablesInfo()
+	infos, err := dbfs.LoadTablesInfo()
 	suite.NoError(err)
 	suite.Equal(0, infos.Count)
 	suite.Len(infos.Tables, 0)
@@ -74,7 +74,7 @@ func (suite *DBFSSuite) TestCreateTable() {
 
 	suite.NoError(Validate(fs))
 
-	infos, err = dbfs.loadTablesInfo()
+	infos, err = dbfs.LoadTablesInfo()
 	suite.NoError(err)
 	suite.EqualValues(TablesInfo{
 		Tables: map[string]string{
@@ -93,7 +93,7 @@ func (suite *DBFSSuite) TestManyTables() {
 	suite.NoError(err)
 
 	for i := 0; i < 100; i++ {
-		infos, err := dbfs.loadTablesInfo()
+		infos, err := dbfs.LoadTablesInfo()
 		suite.NoError(err)
 		suite.Equal(i, infos.Count)
 		suite.Len(infos.Tables, i)
@@ -101,7 +101,7 @@ func (suite *DBFSSuite) TestManyTables() {
 		tbl, err := dbfs.CreateTable("myTable" + strconv.Itoa(i))
 		suite.NoError(err)
 
-		infos, err = dbfs.loadTablesInfo()
+		infos, err = dbfs.LoadTablesInfo()
 		suite.NoError(err)
 		suite.Equal(i+1, infos.Count)
 		suite.Len(infos.Tables, i+1)

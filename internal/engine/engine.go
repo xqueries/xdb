@@ -13,6 +13,7 @@ import (
 	"github.com/xqueries/xdb/internal/engine/dbfs"
 	"github.com/xqueries/xdb/internal/engine/profile"
 	"github.com/xqueries/xdb/internal/engine/table"
+	"github.com/xqueries/xdb/internal/engine/transaction"
 )
 
 var (
@@ -25,9 +26,8 @@ type randomProvider func() int64
 // Engine is the component that is used to evaluate commands.
 type Engine struct {
 	log      zerolog.Logger
-	dbfs     *dbfs.DBFS
 	profiler *profile.Profiler
-	txmgr    TransactionManager
+	txmgr    transaction.Manager
 
 	timeProvider   timeProvider
 	randomProvider randomProvider
@@ -35,10 +35,12 @@ type Engine struct {
 
 // New creates a new engine object and applies the given options to it.
 func New(dbfs *dbfs.DBFS, opts ...Option) (Engine, error) {
+	if dbfs == nil {
+		return Engine{}, fmt.Errorf("dbfs cannot be nil")
+	}
+
 	e := Engine{
-		log:   zerolog.Nop(),
-		dbfs:  dbfs,
-		txmgr: &brokenTransactionManager{},
+		log: zerolog.Nop(),
 
 		timeProvider: time.Now,
 		randomProvider: func() int64 {
@@ -51,18 +53,16 @@ func New(dbfs *dbfs.DBFS, opts ...Option) (Engine, error) {
 		opt(&e)
 	}
 
-	if e.dbfs == nil {
-		return Engine{}, fmt.Errorf("dbfs cannot be nil")
-	}
 	if e.txmgr == nil {
-		return Engine{}, fmt.Errorf("txmgr cannot be nil")
+		e.txmgr = transaction.NewMemoryManager(e.log, dbfs)
 	}
 
 	return e, nil
 }
 
-// Evaluate evaluates the given command. This may mutate the state of the
-// database, and changes may occur to the database file.
+// Evaluate evaluates the given command. This implicitly creates a transaction
+// and attempts to submit it after the evaluation. To pass in an explicit
+// transaction, call EvaluateInTransaction.
 func (e Engine) Evaluate(cmd command.Command) (table.Table, error) {
 	_ = e.eq
 	_ = e.lt
@@ -80,7 +80,7 @@ func (e Engine) Evaluate(cmd command.Command) (table.Table, error) {
 		return nil, fmt.Errorf("start new transaction: %w", err)
 	}
 	e.log.Trace().
-		Stringer("tx", tx.ID()).
+		Stringer("tx", tx.ID).
 		Msg("start new transaction")
 
 	resultTbl, err := e.EvaluateInTransaction(cmd, tx)
@@ -89,19 +89,21 @@ func (e Engine) Evaluate(cmd command.Command) (table.Table, error) {
 		return nil, fmt.Errorf("evaluate in transaction: %w", err)
 	}
 
-	if err := e.txmgr.Submit(tx); err != nil {
-		return nil, fmt.Errorf("submit transaction: %w", err)
+	if err := e.txmgr.Commit(tx); err != nil {
+		return nil, fmt.Errorf("commit transaction: %w", err)
 	}
 
 	return resultTbl, nil
 }
 
-func (e Engine) EvaluateInTransaction(cmd command.Command, tx *Transaction) (table.Table, error) {
+// EvaluateInTransaction will evaluate the given command within the given transaction.
+// The caller is responsible for submitting the transaction.
+func (e Engine) EvaluateInTransaction(cmd command.Command, tx *transaction.TX) (table.Table, error) {
 	ctx := newEmptyExecutionContext(tx)
 
 	e.log.Debug().
 		Str("ctx", ctx.String()).
-		Stringer("tx", tx.ID()).
+		Stringer("tx", tx.ID).
 		Str("command", cmd.String()).
 		Msg("evaluate")
 
@@ -111,13 +113,6 @@ func (e Engine) EvaluateInTransaction(cmd command.Command, tx *Transaction) (tab
 	}
 
 	return result, nil
-}
-
-// HasTable determines whether the engine has a table with the given name
-// in the currently loaded database.
-func (e Engine) HasTable(name string) bool {
-	ok, err := e.dbfs.HasTable(name)
-	return ok && err == nil
 }
 
 // Close closes the underlying database file.
@@ -130,8 +125,10 @@ func (e Engine) Close() error {
 			errs = append(errs, err)
 		}
 	}
+
+	// perform all closes and let 'do' collect
+	// the errors
 	do(e.txmgr.Close())
-	do(e.dbfs.Close())
 
 	if len(errs) == 1 {
 		return errs[0]

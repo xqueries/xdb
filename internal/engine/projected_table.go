@@ -32,7 +32,11 @@ func (e Engine) newProjectedTable(ctx ExecutionContext, originalTable table.Tabl
 		switch expr := colNameExpr.Expr.(type) {
 		case command.ColumnReference:
 			if expr.Name == "*" {
-				cols = append(cols, originalTable.Cols()...)
+				originalTableCols, err := originalTable.Cols()
+				if err != nil {
+					return projectedTable{}, fmt.Errorf("cols: %w", err)
+				}
+				cols = append(cols, originalTableCols...)
 			} else {
 				foundCol, ok := table.FindColumnForNameOrAlias(originalTable, expr.Name)
 				if !ok {
@@ -85,8 +89,8 @@ func (e Engine) newProjectedTable(ctx ExecutionContext, originalTable table.Tabl
 }
 
 // Cols returns the columns of the projected table.
-func (t projectedTable) Cols() []table.Col {
-	return t.columns
+func (t projectedTable) Cols() ([]table.Col, error) {
+	return t.columns, nil
 }
 
 // Rows returns a row iterator of the projected table. Use it to read rows one by one.

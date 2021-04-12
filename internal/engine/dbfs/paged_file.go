@@ -12,10 +12,9 @@ import (
 // of pages. Everything about this file is expensive, and pages and objects
 // of this type should probably be cached whenever possible.
 type PagedFile struct {
-	file          afero.File
-	offsetIndex   map[page.ID]int64
-	highestPageID page.ID
-	fileSize      int64
+	file        afero.File
+	offsetIndex map[page.ID]int64
+	fileSize    int64
 }
 
 func newPagedFile(file afero.File) (*PagedFile, error) {
@@ -47,17 +46,9 @@ func (pf *PagedFile) initOffsetIndex() error {
 			return fmt.Errorf("read at %v: %w", i, err)
 		}
 		id := page.DecodeID(idBuf)
-		if id > pf.highestPageID {
-			pf.highestPageID = id
-		}
 		pf.offsetIndex[id] = i
 	}
 	return nil
-}
-
-// HighestPageID returns the highest page ID that exists in this paged file.
-func (pf PagedFile) HighestPageID() page.ID {
-	return pf.highestPageID
 }
 
 // Pages returns a slice of page IDs that are present in this paged file.
@@ -82,7 +73,7 @@ func (pf *PagedFile) PageCount() int {
 func (pf *PagedFile) LoadPage(id page.ID) (*page.Page, error) {
 	offset, ok := pf.offsetIndex[id]
 	if !ok {
-		return nil, fmt.Errorf("page %v does not exist", id)
+		return nil, ErrPageNotExist
 	}
 
 	buf := make([]byte, page.Size)
@@ -104,7 +95,7 @@ func (pf *PagedFile) StorePage(p *page.Page) error {
 	id := p.ID()
 	offset, ok := pf.offsetIndex[id]
 	if !ok {
-		return fmt.Errorf("page %v does not exist", id)
+		return ErrPageNotExist
 	}
 
 	data := p.CopyOfData()
@@ -118,21 +109,26 @@ func (pf *PagedFile) StorePage(p *page.Page) error {
 // AllocateNewPage will create a new page in this file and immediately
 // write it to disk.
 func (pf *PagedFile) AllocateNewPage() (*page.Page, error) {
-	newID := pf.highestPageID + 1
-	// if there are no pages yet, first page must be ID 0
-	if pf.PageCount() == 0 {
-		newID = page.ID(0)
+	newID, err := pf.FindUnusedPageID()
+	if err != nil {
+		return nil, fmt.Errorf("find unused page ID: %w", err)
 	}
 
-	// newID is always the highest ID of all pages
-	pf.highestPageID = newID
-	newPage, err := page.New(newID)
+	return pf.AllocatePageWithID(newID)
+}
+
+func (pf *PagedFile) AllocatePageWithID(id page.ID) (*page.Page, error) {
+	if _, ok := pf.offsetIndex[id]; ok {
+		return nil, fmt.Errorf("page already exists")
+	}
+
+	newPage, err := page.New(id)
 	if err != nil {
 		return nil, fmt.Errorf("new page: %w", err)
 	}
-	pageOffset := pf.fileSize          // offset of the page in the file
-	pf.offsetIndex[newID] = pageOffset // remember the offset
-	pf.fileSize += page.Size           // update the file size by adding the size of one full page
+	pageOffset := pf.fileSize       // offset of the page in the file
+	pf.offsetIndex[id] = pageOffset // remember the offset
+	pf.fileSize += page.Size        // update the file size by adding the size of one full page
 
 	// store the new page. we can do this, since the new page
 	// already has an offset in the offset index.
@@ -140,6 +136,14 @@ func (pf *PagedFile) AllocateNewPage() (*page.Page, error) {
 		return nil, fmt.Errorf("store new page: %w", err)
 	}
 	return newPage, nil
+}
+
+func (pf *PagedFile) FindUnusedPageID() (page.ID, error) {
+	for i := page.ID(0); ; i++ {
+		if _, ok := pf.offsetIndex[i]; !ok {
+			return i, nil
+		}
+	}
 }
 
 // Close will close the underlying file.

@@ -32,7 +32,7 @@ func (suite *EngineSuite) TestFullTableScan() {
 	})
 	suite.NoError(err)
 
-	tbl, err := suite.engine.Evaluate(command.Scan{
+	tbl, err := suite.engine.evaluateScan(suite.ctx, command.Scan{
 		Table: command.SimpleTable{
 			Table: "myTable",
 		},
