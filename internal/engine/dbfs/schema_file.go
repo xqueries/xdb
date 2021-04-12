@@ -20,11 +20,15 @@ type SchemaFile struct {
 	columns      []table.Col
 }
 
+// schemaYaml is an intermediate structure used for encoding
+// a SchemaFile into yaml.
 type schemaYaml struct {
 	HighestRowID int          `yaml:"highest_row_id"`
 	Columns      []columnYaml `yaml:"columns"`
 }
 
+// columnYaml is an intermediate structure used for encoding
+// a table.Col into yaml.
 type columnYaml struct {
 	QualifiedName string              `yaml:"qualified_name"`
 	Alias         string              `yaml:"alias"`
