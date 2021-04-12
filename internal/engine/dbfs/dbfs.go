@@ -138,6 +138,9 @@ func (dbfs *DBFS) CreateTable(name string) (Table, error) {
 	}, nil
 }
 
+// LoadTablesInfo loads the content of the tables.info file as structured content.
+// The returned TablesInfo is a value, and must be stored using StoreTablesInfo to
+// persist any changes.
 func (dbfs *DBFS) LoadTablesInfo() (TablesInfo, error) {
 	// load infos to check whether and where the table exists
 	infoFilePath := filepath.Join(TablesDirectory, TablesInfoFile)
@@ -157,6 +160,8 @@ func (dbfs *DBFS) LoadTablesInfo() (TablesInfo, error) {
 	return infos, nil
 }
 
+// StoreTablesInfo stores the given TablesInfo in the tables.info file.
+// This completely overwrites the existing content in the file.
 func (dbfs *DBFS) StoreTablesInfo(info TablesInfo) error {
 	infoFilePath := filepath.Join(TablesDirectory, TablesInfoFile)
 	infoFile, err := dbfs.fs.OpenFile(infoFilePath, os.O_RDWR, defaultFilePerm)
@@ -179,6 +184,10 @@ func (dbfs *DBFS) StoreTablesInfo(info TablesInfo) error {
 	return nil
 }
 
+// StoreSchema will store the given schema information in the schema
+// file of the table with the given name. If the table doesn't exist, an
+// error is returned. The current content of the schema file will be
+// overwritten.
 func (dbfs *DBFS) StoreSchema(table string, sf *SchemaFile) error {
 	tbl, err := dbfs.Table(table)
 	if err != nil {
@@ -188,6 +197,15 @@ func (dbfs *DBFS) StoreSchema(table string, sf *SchemaFile) error {
 	if err != nil {
 		return fmt.Errorf("open '%s/%s': %w", tbl.id.String(), TableSchemaFile, err)
 	}
+	if err := f.Truncate(0); err != nil {
+		return fmt.Errorf("truncate: %w", err)
+	}
+	if _, err := f.Seek(0, io.SeekStart); err != nil {
+		return fmt.Errorf("seek: %w", err)
+	}
+	defer func() {
+		_ = f.Close()
+	}()
 
 	var syaml schemaYaml
 	syaml.HighestRowID = sf.HighestRowID

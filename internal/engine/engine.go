@@ -54,7 +54,7 @@ func New(dbfs *dbfs.DBFS, opts ...Option) (Engine, error) {
 	}
 
 	if e.txmgr == nil {
-		e.txmgr = transaction.NewMemoryManager(e.log, dbfs)
+		e.txmgr = transaction.NewBrokenManager(e.log, dbfs)
 	}
 
 	return e, nil

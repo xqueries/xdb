@@ -56,6 +56,7 @@ type TX struct {
 	// Schemas and data pages of this transaction may reference
 	// tables that do not exist on disk yet, however, these tables
 	// will be created (on disk), if they are listed in this slice.
+	// This is expected to be sorted.
 	createdTables []string
 
 	newlyAllocatedPages map[string][]*page.Page
@@ -79,10 +80,16 @@ func newTransaction(secondaryStorage secondaryStorage) *TX {
 	}
 }
 
+// State returns the state that this transaction is currently in.
 func (tx TX) State() State {
 	return tx.state
 }
 
+// DataPage attempts to lookup a page with the given ID from the data
+// file of the table with the given name.
+// This will also check pages that were created in this transaction and
+// are not written to disk yet.
+// This will cache loaded pages.
 func (tx *TX) DataPage(table string, id page.ID) (*page.Page, error) {
 	pr := pageref{id, table}
 	if cached, ok := tx.dataPages[pr]; ok {
@@ -135,6 +142,9 @@ func (tx *TX) DataPageReadOnly(table string, id page.ID) (*page.Page, error) {
 	return p, nil
 }
 
+// SchemaFile returns the schema file for the table with the given name.
+// This respects changes to the schema file that were performed in this transaction.
+// Schema files will be cached.
 func (tx *TX) SchemaFile(table string) (*dbfs.SchemaFile, error) {
 	if cached, ok := tx.tableSchemas[table]; ok {
 		return cached, nil
@@ -154,11 +164,16 @@ func (tx *TX) SchemaFile(table string) (*dbfs.SchemaFile, error) {
 	return info, nil
 }
 
+// tableWasCreatedInThisTransaction indicates whether - within this transaction - we
+// already created a table with the given name.
 func (tx *TX) tableWasCreatedInThisTransaction(name string) bool {
 	index := sort.SearchStrings(tx.createdTables, name)
 	return index < len(tx.createdTables) && tx.createdTables[index] == name
 }
 
+// HasTable indicates whether this transaction has access to a table with the given name.
+// This also accounts for tables that were created in this transaction and do not exist
+// on disk yet.
 func (tx *TX) HasTable(name string) (bool, error) {
 	if tx.tableWasCreatedInThisTransaction(name) {
 		return true, nil
@@ -167,6 +182,8 @@ func (tx *TX) HasTable(name string) (bool, error) {
 	return tx.secondaryStorage.hasTable(name)
 }
 
+// CreateTable creates a table in this transaction. If such a table already exists, this will return
+// an error.
 func (tx *TX) CreateTable(name string) error {
 	if ok, err := tx.HasTable(name); ok {
 		return fmt.Errorf("table already exists in this transaction")
@@ -182,7 +199,15 @@ func (tx *TX) CreateTable(name string) error {
 	return nil
 }
 
+// AllocateNewDataPage will attempt to allocate a new page in the data file of the table
+// with the given name. If the table does not exist, an error will be returned.
 func (tx *TX) AllocateNewDataPage(table string) (*page.Page, error) {
+	if ok, err := tx.HasTable(table); !ok {
+		return nil, fmt.Errorf("table does not exixst in this transaction")
+	} else if err != nil {
+		return nil, fmt.Errorf("has table: %w", err)
+	}
+
 	var newID page.ID
 
 	if tx.tableWasCreatedInThisTransaction(table) {
@@ -210,7 +235,16 @@ func (tx *TX) AllocateNewDataPage(table string) (*page.Page, error) {
 	return newPage, nil
 }
 
+// ExistingDataPagesForTable returns a slice of page IDs that exist in the data
+// file of the table with the given name. If the table does not exist, an error
+// will be returned.
 func (tx *TX) ExistingDataPagesForTable(table string) ([]page.ID, error) {
+	if ok, err := tx.HasTable(table); !ok {
+		return nil, fmt.Errorf("table does not exist in this transaction")
+	} else if err != nil {
+		return nil, fmt.Errorf("has table: %w", err)
+	}
+
 	var ids []page.ID
 	for _, p := range tx.newlyAllocatedPages[table] {
 		ids = append(ids, p.ID())

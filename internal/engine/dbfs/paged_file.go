@@ -107,7 +107,8 @@ func (pf *PagedFile) StorePage(p *page.Page) error {
 }
 
 // AllocateNewPage will create a new page in this file and immediately
-// write it to disk.
+// write it to disk. The ID of the new page will be determined by calling
+// FindUnusedPageID.
 func (pf *PagedFile) AllocateNewPage() (*page.Page, error) {
 	newID, err := pf.FindUnusedPageID()
 	if err != nil {
@@ -117,6 +118,11 @@ func (pf *PagedFile) AllocateNewPage() (*page.Page, error) {
 	return pf.AllocatePageWithID(newID)
 }
 
+// AllocatePageWithID will allocate a new page, but instead of finding
+// an available page ID, this will use the given ID. If a page with that ID
+// already exists, an error is returned.
+// Otherwise, the page is added to the PagedFile and a full page is allocated
+// on disk.
 func (pf *PagedFile) AllocatePageWithID(id page.ID) (*page.Page, error) {
 	if _, ok := pf.offsetIndex[id]; ok {
 		return nil, fmt.Errorf("page already exists")
@@ -138,6 +144,9 @@ func (pf *PagedFile) AllocatePageWithID(id page.ID) (*page.Page, error) {
 	return newPage, nil
 }
 
+// FindUnusedPageID finds an unused page ID in this paged file.
+// You can use this together with AllocatePageWithID, or use
+// AllocateNewPage in the first place.
 func (pf *PagedFile) FindUnusedPageID() (page.ID, error) {
 	for i := page.ID(0); ; i++ {
 		if _, ok := pf.offsetIndex[i]; !ok {

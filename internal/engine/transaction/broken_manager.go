@@ -18,7 +18,9 @@ type brokenManager struct {
 	pendingTransactions map[id.ID]*TX
 }
 
-func NewMemoryManager(log zerolog.Logger, dbfs *dbfs.DBFS) Manager {
+// NewBrokenManager returns a transaction manager that probably works, but it's just as likely
+// that it is broken - as the name says.
+func NewBrokenManager(log zerolog.Logger, dbfs *dbfs.DBFS) Manager {
 	return &brokenManager{
 		log:                 log,
 		dbfs:                dbfs,
