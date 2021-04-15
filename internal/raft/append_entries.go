@@ -88,35 +88,31 @@ func (s *SimpleServer) AppendEntriesResponse(req *message.AppendEntriesRequest) 
 	// because this can still be a heartbeat.
 	if len(entries) > 0 {
 		s.node.PersistentState.mu.Lock()
-		// If there are additional entries to be committed,
+		// If an existing entry conflicts with a new one (same index
+		// but different terms), delete the existing entry and all that
+		// follow it.
 		if req.GetPrevLogIndex() < commitIndex {
 			// This statement is disregarding all the unchecked logs in this node
 			// and cutting them off.
 			s.node.PersistentState.Log = s.node.PersistentState.Log[:req.GetPrevLogIndex()]
 		}
-		// Later, that node gets appended the entries that came in the request.
+		// Append any new entries not already in the log, entries that came in the request.
 		s.node.PersistentState.Log = append(s.node.PersistentState.Log, entries...)
 		s.node.PersistentState.mu.Unlock()
 
-		/*
-			TODO:
-				1. If an existing entry conflicts with a new one (same index
-					but different terms), delete the existing entry and all that
-					follow it. - Looks like theres no option other than checking all indices.
-				2.  Append any new entries not already in the log
-				3.  If leaderCommit > commitIndex, set commitIndex =
-					min(leaderCommit, index of last new entry in follower)
-		*/
-
+		// If leaderCommit > commitIndex, set commitIndex =
+		// min(leaderCommit, index of last new entry in follower)
 		leaderCommitIndex := req.GetLeaderCommit()
 		if leaderCommitIndex > commitIndex {
-
+			s.node.VolatileState.mu.Lock()
 			if int(leaderCommitIndex) > len(nodePersistentState.Log) {
-				leaderCommitIndex = int32(len(nodePersistentState.Log))
+				s.node.VolatileState.CommitIndex = int32(len(nodePersistentState.Log))
+			} else {
+				s.node.VolatileState.CommitIndex = leaderCommitIndex
 			}
+			s.node.VolatileState.mu.Unlock()
 
-			// TODO: CHANGE BASED ON ALGO
-			s.node.VolatileState.CommitIndex = leaderCommitIndex
+
 			/* FIX ISSUE #152 from this
 			commandEntries := getCommandFromLogs(entries)
 			succeeded := s.onReplication(commandEntries)

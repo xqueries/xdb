@@ -79,12 +79,14 @@ var _ Server = (*SimpleServer)(nil)
 type SimpleServer struct {
 	node            *Node
 	cluster         Cluster
-	onReplication   ReplicationHandler
 	log             zerolog.Logger
 	timeoutProvider func(*Node) *time.Timer
 	lock            sync.Mutex
 
+
+
 	// Function setters.
+	onReplication   ReplicationHandler
 	onRequestVotes          func(network.Conn)
 	onLeaderElected         func()
 	onAppendEntriesRequest  func(network.Conn)
@@ -284,12 +286,27 @@ func (s *SimpleServer) Start(ctx context.Context) (err error) {
 }
 
 // OnReplication is a handler setter.
+//
+// This must be called from the Database functions before
+// executing the commands that were received. Once this function's
+// handler returns the number of commands that were safely
+// replicated on a majority of the nodes, only then, those
+// commands will be executed by the Database functions.
+//
+// The actual details of the above functionality is handled by the
+// onReplication function and the ReplicationHandler, which is
+// called on a successful replication.
 func (s *SimpleServer) OnReplication(handler ReplicationHandler) {
 	s.onReplication = handler
 }
 
-// Input appends the input log into the leaders log, only if the current node is the leader.
-// If this was not a leader, the request is routed to the leader.
+// Input appends the input log into the leaders log, only if the
+// current node is the leader. If this was not a leader, the
+// request is routed to the leader.
+//
+// This function must be called by the Database functionalities
+// once am operation is received by it. This must be used in conjunction
+// with the OnReplication handler setter which 
 func (s *SimpleServer) Input(input *message.Command) {
 	s.node.PersistentState.mu.Lock()
 	defer s.node.PersistentState.mu.Unlock()

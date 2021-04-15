@@ -94,13 +94,15 @@ func (n *Node) performLogonHandshake(cluster cluster.Cluster, conn network.Conn)
 
 func (n *Node) startNode(ctx context.Context) error {
 	n.raft = raft.NewServer(n.log, n.cluster)
+	// The replication function is set to allow command
+	// execution on replication of messages in the nodes.
 	n.raft.OnReplication(n.replicate)
 
 	return n.raft.Start(ctx)
 }
 
 // replicate returns the number of commands that were executed from the
-// given slice of commands. -1 is returned if no commands were executed.
+// given slice of commands. -1 is returned if no commands were executed.  
 func (n *Node) replicate(input []*message.Command) int {
 	for i := range input {
 		cmd := message.ConvertMessageToCommand(input[i])
