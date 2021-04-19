@@ -25,5 +25,5 @@ func NewReal(v float64) RealValue {
 }
 
 func (v RealValue) String() string {
-	return strconv.FormatFloat(v.Value, 'e', -1, 8)
+	return strconv.FormatFloat(v.Value, 'e', -1, 64)
 }
