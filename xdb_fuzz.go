@@ -1,6 +1,6 @@
 // +build gofuzz
 
-package test
+package xdb
 
 import (
 	"github.com/spf13/afero"
