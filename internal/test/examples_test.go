@@ -11,7 +11,7 @@ import (
 )
 
 func TestExample01(t *testing.T) {
-	RunAndCompare(t, Test{
+	RunAndCompare(t, Testcase{
 		Name:      "example01",
 		Statement: `VALUES (RANDOM())`,
 		EngineOptions: []engine.Option{
@@ -24,7 +24,7 @@ func TestExample02(t *testing.T) {
 	timestamp, err := time.Parse(time.RFC3339, "2020-07-02T14:03:27Z")
 	assert.NoError(t, err)
 
-	RunAndCompare(t, Test{
+	RunAndCompare(t, Testcase{
 		Name:      "example02",
 		Statement: `VALUES (NOW(), RANDOM())`,
 		EngineOptions: []engine.Option{
@@ -40,7 +40,7 @@ func TestExample02WithProfile(t *testing.T) {
 
 	p := profile.NewProfiler()
 
-	RunAndCompare(t, Test{
+	RunAndCompare(t, Testcase{
 		Name:      "example02",
 		Statement: `VALUES (NOW(), RANDOM())`,
 		EngineOptions: []engine.Option{
@@ -54,21 +54,21 @@ func TestExample02WithProfile(t *testing.T) {
 }
 
 func TestExample03(t *testing.T) {
-	RunAndCompare(t, Test{
+	RunAndCompare(t, Testcase{
 		Name:      "example03",
 		Statement: `SELECT * FROM (VALUES (1, 2, 3), (4, 5, 6), (7, 5, 9))`,
 	})
 }
 
 func TestExample04(t *testing.T) {
-	RunAndCompare(t, Test{
+	RunAndCompare(t, Testcase{
 		Name:      "example04",
 		Statement: `SELECT * FROM (VALUES (1, 2, 3), (4, 5, 6), (7, 5, 9)) WHERE column2 = 5`,
 	})
 }
 
 func TestExample05(t *testing.T) {
-	RunAndCompare(t, Test{
+	RunAndCompare(t, Testcase{
 		Name:      "example05",
 		Statement: `SELECT column2 AS leftCol, column3 AS rightCol FROM (VALUES (1, 2, 3), (4, 3, 6), (7, 5, 9)) WHERE column2 >= 3`,
 	})
@@ -77,7 +77,7 @@ func TestExample05(t *testing.T) {
 func TestExample06(t *testing.T) {
 	p := profile.NewProfiler()
 
-	RunAndCompare(t, Test{
+	RunAndCompare(t, Testcase{
 		Name:      "example06",
 		Statement: `CREATE TABLE myTbl (id INTEGER, foo TEXT)`,
 		EngineOptions: []engine.Option{
@@ -92,7 +92,7 @@ func TestExample07(t *testing.T) {
 	t.Skip("see issue #70")
 	p := profile.NewProfiler()
 
-	RunAndCompare(t, Test{
+	RunAndCompare(t, Testcase{
 		Name:      "example07",
 		Statement: `SELECT column1 a, column2 b, column3 c FROM (VALUES (1, 9, 3), (3, 2, 19), (4, 5, 6), (3, 6, 1)) WHERE b >= 2*3-1`,
 		EngineOptions: []engine.Option{
@@ -106,7 +106,7 @@ func TestExample07(t *testing.T) {
 func TestExample08(t *testing.T) {
 	p := profile.NewProfiler()
 
-	RunAndCompare(t, Test{
+	RunAndCompare(t, Testcase{
 		Name: "example08",
 		SetupSQL: `
 CREATE TABLE 'myTable' (myCol string);
