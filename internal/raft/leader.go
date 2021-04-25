@@ -103,7 +103,7 @@ func (s *SimpleServer) sendHeartBeats(ctx context.Context, selfIDString string, 
 				s.node.PersistentState.mu.Lock()
 
 				nextIndex := s.node.VolatileStateLeader.NextIndex[i]
-				prevLogIndex := nextIndex
+				prevLogIndex := nextIndex - 1
 				prevLogTerm := -1
 				if prevLogIndex >= 0 {
 					prevLogTerm = int(s.node.PersistentState.Log[prevLogIndex].Term)

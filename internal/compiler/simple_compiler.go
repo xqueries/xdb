@@ -154,6 +154,8 @@ func (c *simpleCompiler) compileCreateTable(stmt *ast.CreateTableStmt) (command.
 			colType = types.String
 		case "date":
 			colType = types.Date
+		case "string":
+			colType = types.String
 		default:
 			return command.CreateTable{}, fmt.Errorf("unknown type '%v'", def.TypeName.Name[0].Value())
 		}

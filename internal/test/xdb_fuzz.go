@@ -4,9 +4,10 @@ package test
 
 import (
 	"github.com/spf13/afero"
+
 	"github.com/xqueries/xdb/internal/compiler"
 	"github.com/xqueries/xdb/internal/engine"
-	"github.com/xqueries/xdb/internal/engine/storage"
+	"github.com/xqueries/xdb/internal/engine/dbfs"
 	"github.com/xqueries/xdb/internal/parser"
 )
 
@@ -27,7 +28,10 @@ func Fuzz(data []byte) int {
 	statement := string(data)
 
 	// try to parse the input
-	p := parser.New(statement)
+	p, err := parser.New(statement)
+	if err != nil {
+		return DataNotInteresting
+	}
 	stmt, errs, ok := p.Next()
 	if !ok {
 		return DataNotInteresting
@@ -45,12 +49,8 @@ func Fuzz(data []byte) int {
 
 	// create a new im-memory db file if none is set
 	fs := afero.NewMemMapFs()
-	f, err := fs.Create("mydbfile")
-	if err != nil {
-		panic(err)
-	}
 
-	dbFile, err := storage.Create(f)
+	dbFile, err := dbfs.CreateNew(fs)
 	if err != nil {
 		panic(err)
 	}

@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
+
 	"github.com/xqueries/xdb/internal/compiler/command"
 	"github.com/xqueries/xdb/internal/engine/table"
 	"github.com/xqueries/xdb/internal/engine/types"
@@ -56,7 +57,7 @@ func (suite *TableSuite) TestEngine_LoadTable() {
 	)
 
 	tbl, err := suite.engine.LoadTable(tableName)
-	suite.EqualError(err, "no table with name '"+tableName+"'")
+	suite.EqualError(err, "table: table '"+tableName+"' does not exist")
 	suite.Zero(tbl)
 
 	_, err = suite.engine.evaluateCreateTable(suite.ctx, command.CreateTable{

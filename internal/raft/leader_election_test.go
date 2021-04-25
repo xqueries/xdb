@@ -2,96 +2,53 @@ package raft
 
 import (
 	"context"
-	"net"
-	"os"
-	"sync"
-	"testing"
-
 	"github.com/rs/zerolog"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"github.com/xqueries/xdb/internal/id"
 	"github.com/xqueries/xdb/internal/network"
-	"github.com/xqueries/xdb/internal/raft/cluster"
-	"github.com/xqueries/xdb/internal/raft/message"
-	"gotest.tools/assert/cmp"
+	networkmocks "github.com/xqueries/xdb/internal/network/mocks"
+	raftmocks "github.com/xqueries/xdb/internal/raft/mocks"
+	"os"
+	"testing"
+	"time"
 )
 
-func Test_LeaderElection(t *testing.T) {
-	t.SkipNow()
-	assert := assert.New(t)
-
-	zerolog.New(os.Stdout).With().
-		Str("foo", "bar").
-		Logger()
-
-	ctx := context.TODO()
+// Test_StartElection tests the StartElection function whose sole
+// responsibility is to eventually call Send on the connections
+// that are in the SimpleServer's cluster, which is being tested here.
+func Test_StartElection(t *testing.T) {
+	ctx := context.Background()
 	log := zerolog.New(os.Stdout).With().Logger().Level(zerolog.GlobalLevel())
-	cluster := cluster.NewTCPCluster(log)
 
-	conn1, conn2 := net.Pipe()
-	conn3, conn4 := net.Pipe()
-	tcp1int, tcp1ext := network.NewTCPConn(conn1), network.NewTCPConn(conn2)
-	tcp2int, tcp2ext := network.NewTCPConn(conn3), network.NewTCPConn(conn4)
-	defer func() {
-		_ = tcp1int.Close()
-		_ = tcp1ext.Close()
-		_ = tcp2int.Close()
-		_ = tcp2ext.Close()
-	}()
-	cluster.AddConnection(tcp1int)
-	cluster.AddConnection(tcp2int)
+	cluster := new(raftmocks.Cluster)
+	clusterID := id.Create()
 
-	node := NewRaftNode(cluster)
+	conn1 := new(networkmocks.Conn)
+	conn2 := new(networkmocks.Conn)
 
-	var wg sync.WaitGroup
-
-	wg.Add(1)
-	go func() {
-		res, err := tcp1ext.Receive(ctx)
-		assert.Nil(err)
-
-		msg, err := message.Unmarshal(res)
-		assert.Nil(err)
-		_ = msg
-		_ = res
-		resP := message.NewRequestVoteResponse(1, true)
-
-		payload, err := message.Marshal(resP)
-		assert.Nil(err)
-
-		err = tcp1ext.Send(ctx, payload)
-		assert.Nil(err)
-		wg.Done()
-	}()
-
-	wg.Add(1)
-	go func() {
-		res, err := tcp2ext.Receive(ctx)
-		assert.Nil(err)
-
-		msg, err := message.Unmarshal(res)
-		assert.Nil(err)
-		_ = msg
-		_ = res
-		resP := message.NewRequestVoteResponse(1, true)
-
-		payload, err := message.Marshal(resP)
-		assert.Nil(err)
-		err = tcp2ext.Send(ctx, payload)
-		assert.Nil(err)
-		wg.Done()
-	}()
-
-	server := SimpleServer{
-		node:    node,
-		cluster: cluster,
-		log:     log,
+	connSlice := []network.Conn{
+		conn1,
+		conn2,
 	}
 
+	conn1 = addRemoteID(conn1)
+	conn2 = addRemoteID(conn2)
+
+	server := newServer(
+		log,
+		cluster,
+		timeoutProvider,
+	)
+
+	cluster.On("Nodes").Return(connSlice)
+	cluster.On("OwnID").Return(clusterID)
+
+	conn1.On("Send", ctx, mock.IsType([]byte{})).Return(nil)
+	conn2.On("Send", ctx, mock.IsType([]byte{})).Return(nil)
+
+	node := NewRaftNode(cluster)
+	server.node = node
 	server.StartElection(ctx)
 
-	wg.Wait()
-
-	node.PersistentState.mu.Lock()
-	assert.True(cmp.Equal(node.PersistentState.SelfID, node.PersistentState.LeaderID)().Success())
-	node.PersistentState.mu.Unlock()
+	time.Sleep(5* time.Second)
 }

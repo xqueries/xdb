@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+
 	"github.com/xqueries/xdb/internal/engine"
 	"github.com/xqueries/xdb/internal/engine/profile"
 )
@@ -106,9 +107,14 @@ func TestExample08(t *testing.T) {
 	p := profile.NewProfiler()
 
 	RunAndCompare(t, Test{
-		Name:       "example08",
-		DBFileName: "trivial.xdb",
-		Statement:  `SELECT col2 FROM table1`,
+		Name: "example08",
+		SetupSQL: `
+CREATE TABLE 'myTable' (myCol string);
+INSERT INTO 'myTable' VALUES
+("a"),
+("b"),
+("c")`,
+		Statement: `SELECT * FROM 'myTable'`,
 		EngineOptions: []engine.Option{
 			engine.WithProfiler(p),
 		},

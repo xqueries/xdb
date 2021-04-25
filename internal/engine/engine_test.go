@@ -6,8 +6,9 @@ import (
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
+
 	"github.com/xqueries/xdb/internal/compiler"
-	"github.com/xqueries/xdb/internal/engine/storage"
+	"github.com/xqueries/xdb/internal/engine/dbfs"
 	"github.com/xqueries/xdb/internal/engine/table"
 	"github.com/xqueries/xdb/internal/parser"
 )
@@ -21,13 +22,13 @@ type EngineSuite struct {
 
 	ctx    ExecutionContext
 	engine Engine
-	dbFile *storage.DBFile
+	dbfs   *dbfs.DBFS
 }
 
 func (suite *EngineSuite) SetupTest() {
 	suite.ctx = newEmptyExecutionContext()
 	suite.engine = createEngineOnEmptyDatabase(suite.T())
-	suite.dbFile = suite.engine.dbFile
+	suite.dbfs = suite.engine.dbfs
 }
 
 // createEngineOnEmptyDatabase creates a new, clean, ready to use in-memory database file
@@ -36,10 +37,9 @@ func (suite *EngineSuite) SetupTest() {
 func createEngineOnEmptyDatabase(t assert.TestingT) Engine {
 	assert := assert.New(t)
 
+	// fs := afero.NewBasePathFs(afero.NewOsFs(), "testdata")
 	fs := afero.NewMemMapFs()
-	f, err := fs.Create("mydbfile")
-	assert.NoError(err)
-	dbFile, err := storage.Create(f)
+	dbFile, err := dbfs.CreateNew(fs)
 	assert.NoError(err)
 
 	e, err := New(dbFile)
@@ -54,14 +54,33 @@ func (suite *EngineSuite) EqualTables(expected, got table.Table) {
 	suite.NoError(err)
 	gotIt, err := got.Rows()
 	suite.NoError(err)
+
+	var expectedRows []table.Row
+	var expectedErr error
+	var gotRows []table.Row
+	var gotErr error
+
 	for {
-		expectedNext, expectedErr := expectedIt.Next()
-		gotNext, gotErr := gotIt.Next()
-		suite.EqualValues(expectedErr, gotErr)
-		suite.Equal(expectedNext, gotNext)
-		if !(expectedErr == nil && gotErr == nil) {
+		expectedNext, err := expectedIt.Next()
+		expectedRows = append(expectedRows, expectedNext)
+		expectedErr = err
+		if err != nil {
 			break
 		}
+	}
+	for {
+		gotNext, err := gotIt.Next()
+		gotRows = append(gotRows, gotNext)
+		gotErr = err
+		if err != nil {
+			break
+		}
+	}
+	suite.EqualValues(expectedErr, gotErr)
+	suite.Len(gotRows, len(expectedRows))
+
+	for _, row := range gotRows {
+		suite.Contains(expectedRows, row)
 	}
 }
 

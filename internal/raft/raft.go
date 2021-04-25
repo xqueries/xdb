@@ -2,6 +2,7 @@ package raft
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"log"
 	"math/rand"
@@ -409,6 +410,8 @@ func (s *SimpleServer) processIncomingData(ctx context.Context, data *incomingDa
 					Str("self-id", selfID.String()).
 					Msg("node elected leader at " + strconv.Itoa(int(votesReceived)) + " votes")
 				// Reset the votes of this term once its elected leader.
+				s.node.resetVolatileStateLeader()
+				s.node.setNextIndexValues()
 				s.node.VolatileState.Votes = 0
 				s.node.PersistentState.mu.Unlock()
 				s.startLeader(ctx, selfID.String())
@@ -556,6 +559,28 @@ func (s *SimpleServer) getNextIndex(conn network.Conn) (int, int) {
 
 func (s *SimpleServer) updateNextIndex(len, offset, currNextIndex int) {
 	s.node.VolatileStateLeader.NextIndex[offset] = currNextIndex + len
+}
+
+// resetVolatileState resets the volatile state of the given node.
+//
+// This assumes that the necessary locks are in place in the contextual
+// upper level to operate on the underlying parameters.
+func (node *Node) resetVolatileStateLeader() {
+	node.VolatileStateLeader.NextIndex = []int{}
+	node.VolatileStateLeader.MatchIndex = []int{}
+}
+
+// setNextIndexValues sets the values for the next index for each
+// node respectively. The value set will be the index just after the
+// last one in its log (leader's).
+func (node *Node) setNextIndexValues() {
+	nextIndex := len(node.PersistentState.Log)
+
+	for range node.PersistentState.peerIPs {
+		node.VolatileStateLeader.NextIndex = append(node.VolatileStateLeader.NextIndex,nextIndex)
+	}
+
+	fmt.Println("G")
 }
 
 func newIncomingData(conn network.Conn, msg message.Message) *incomingData {

@@ -1,132 +1,231 @@
 package raft
 
 import (
-	"net"
+	"github.com/xqueries/xdb/internal/id"
+	networkmocks "github.com/xqueries/xdb/internal/network/mocks"
+	raftmocks "github.com/xqueries/xdb/internal/raft/mocks"
+	"os"
 	"testing"
 
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
 	"github.com/xqueries/xdb/internal/network"
-	"github.com/xqueries/xdb/internal/raft/cluster"
 	"github.com/xqueries/xdb/internal/raft/message"
 )
 
-// TestAppendEntries function checks the correctness of AppendEntriesResponse
-// function. In this test function, we check how the function will respond to
-// if node Term is less than leader node, node Log Index is less than leader
-// commitIndex and checks if logs are appended correctly to node Log.
-func TestAppendEntries(t *testing.T) {
-	t.SkipNow()
-	assert := assert.New(t)
+// Test_FailureAppendEntriesResponse1 tests for failure of append entries
+// due to leader term being lesser than the term of the operating node i.e
+// the node who was requested the append entries.
+func Test_FailureAppendEntriesResponse1(t *testing.T) {
 
-	log := zerolog.Nop()
-	cluster := cluster.NewTCPCluster(log)
-
-	conn1, conn2 := net.Pipe()
-	conn3, conn4 := net.Pipe()
-	tcp1int, tcp1ext := network.NewTCPConn(conn1), network.NewTCPConn(conn2)
-	tcp2int, tcp2ext := network.NewTCPConn(conn3), network.NewTCPConn(conn4)
-	defer func() {
-		_ = tcp1int.Close()
-		_ = tcp1ext.Close()
-		_ = tcp2int.Close()
-		_ = tcp2ext.Close()
-	}()
-	cluster.AddConnection(tcp1int)
-	cluster.AddConnection(tcp2int)
-
-	// Created a mock node with default values for PersistentState
-	// and Volatile State.
-	// For Volatile State, CommitIndex given -1 to show no commit is
-	// applied as Log Index start with 0, so -1 show value before any
-	// log committed and same logic goes with LastApplied as -1 show
-	// no logs with given Index is applied to State Machine.
-	node := &Node{
-		State: StateFollower.String(),
-		PersistentState: &PersistentState{
-			CurrentTerm: 0,
-			VotedFor:    nil,
-			SelfID:      cluster.OwnID(),
-			peerIPs:     cluster.Nodes(),
-		},
-		VolatileState: &VolatileState{
-			CommitIndex: -1,
-			LastApplied: -1,
-		},
+	node,cluster,log := prepareBaseSystem()
+	node.PersistentState.CurrentTerm = 3
+	node.PersistentState.Log = []*message.LogData{
+		{Term: 1, Entry: nil},
+		{Term: 1, Entry: nil},
 	}
-
-	entries := []*message.LogData{
-		message.NewLogData(
-			2,
-			&message.Command_Scan{
-				Table: &message.SimpleTable{
-					Table: "table1",
-				},
-			},
-		),
-		message.NewLogData(
-			2,
-			&message.Command_Scan{
-				Table: &message.SimpleTable{
-					Table: "table2",
-				},
-			},
-		),
-	}
-	// Creating a mock msg AppendEntriesRequest with default values
-	// Leader commit specifies the Index of Log commited by leader and
-	// entries include msg LogData sent to nodes.
-	msg := &message.AppendEntriesRequest{
-		Term:         1,
-		PrevLogIndex: -1,
-		PrevLogTerm:  1,
-		Entries:      entries,
-		LeaderCommit: 3,
-	}
-
 	server := SimpleServer{
-		node:    node,
-		cluster: cluster,
-		log:     log,
+		node:            node,
+		log:             log,
+		cluster:         cluster,
+		timeoutProvider: timeoutProvider,
+
 	}
+
+	msg := message.NewAppendEntriesRequest(2,id.Create(),1,1,nil,1)
+	res := server.AppendEntriesResponse(msg)
+	assert.Equal(t, int32(3),res.GetTerm())
+	assert.False(t, res.GetSuccess())
+	assert.Equal(t, int32(0), res.GetEntriesLength())
+}
+
+// Test_FailureAppendEntriesResponse2 tests for failure of append entries
+// due to the committed logs not having the same term.
+func Test_FailureAppendEntriesResponse2(t *testing.T) {
+	node, cluster, log := prepareBaseSystem()
+
+	node.PersistentState.CurrentTerm = 1
+	node.PersistentState.Log = []*message.LogData{
+		{Term: 1, Entry: nil},
+		{Term: 1, Entry: nil},
+	}
+	node.VolatileState.CommitIndex = 2
+	server := SimpleServer{
+		node:            node,
+		log:             log,
+		cluster:         cluster,
+		timeoutProvider: timeoutProvider,
+
+	}
+
+	msg := message.NewAppendEntriesRequest(3,id.Create(),1,1,nil,1)
+	res := server.AppendEntriesResponse(msg)
+	assert.Equal(t, int32(1),res.GetTerm())
+	assert.False(t, res.GetSuccess())
+	assert.Equal(t, int32(0), res.GetEntriesLength())
+}
+
+// Test_FailureAppendEntriesResponse3 tests for failures of append
+// entries due to mismatch of the terms of the last committed logs
+// in both interacting machines.
+func Test_FailureAppendEntriesResponse3(t *testing.T) {
+	node, cluster, log := prepareBaseSystem()
+	node.PersistentState.CurrentTerm = 3
+	node.PersistentState.Log = []*message.LogData{
+		{Term: 1, Entry: nil},
+		{Term: 2, Entry: nil},
+	}
+	node.VolatileState.CommitIndex = -1
+	server := SimpleServer{
+		node:            node,
+		log:             log,
+		cluster:         cluster,
+		timeoutProvider: timeoutProvider,
+
+	}
+
+	msg := message.NewAppendEntriesRequest(3,id.Create(),1,1,nil,1)
+	res := server.AppendEntriesResponse(msg)
+	assert.Equal(t, int32(3),res.GetTerm())
+	assert.False(t, res.GetSuccess())
+	assert.Equal(t, int32(0), res.GetEntriesLength())
+}
+
+// Test_PassAppendEntries1 tests append entries where it returns
+// a success status. This test doesn't append any entries to the
+// approaching node's logs and can be considered a heartbeat type
+// method call.
+func Test_PassAppendEntries1(t *testing.T) {
+	node, cluster, log := prepareBaseSystem()
 
 	node.PersistentState.CurrentTerm = 3
-	res := server.AppendEntriesResponse(msg)
-	assert.False(res.Success, "Node Term is lesser than leader term")
-	msg.Term = 3
-	msg.PrevLogIndex = 3
-	node.VolatileState.CommitIndex = 2
-	res = server.AppendEntriesResponse(msg)
-	assert.False(res.Success, "Node Log Index is lesser than"+
-		"leader commit Index")
-	msg.Term = 2
-	node.PersistentState.CurrentTerm = 2
-	msg.PrevLogIndex = 1
-	msg.PrevLogTerm = 1
-	node.VolatileState.CommitIndex = 1
 	node.PersistentState.Log = []*message.LogData{
-		message.NewLogData(
-			2,
-			&message.Command_Scan{
-				Table: &message.SimpleTable{
-					Table: "table1",
-				},
-			},
-		),
-		message.NewLogData(
-			2,
-			&message.Command_Scan{
-				Table: &message.SimpleTable{
-					Table: "table2",
-				},
-			},
-		),
+		{Term: 1, Entry: nil},
+		{Term: 1, Entry: nil},
 	}
-	numberOfPersistentLog := len(node.PersistentState.Log)
-	res = server.AppendEntriesResponse(msg)
-	assert.True(res.Success, "Msg isn't appended to the node Logs")
-	assert.Equal(node.PersistentState.CurrentTerm, res.GetTerm(),
-		"Node doesn't have same term as leader")
-	assert.Equal(len(node.PersistentState.Log),
-		numberOfPersistentLog+len(entries), "LogData hasn't appended to the node ")
+	node.VolatileState.CommitIndex = -1
+	server := SimpleServer{
+		node:            node,
+		log:             log,
+		cluster:         cluster,
+		timeoutProvider: timeoutProvider,
+
+	}
+
+	msg := message.NewAppendEntriesRequest(3,id.Create(),1,1,nil,1)
+	res := server.AppendEntriesResponse(msg)
+	assert.Equal(t, int32(3),res.GetTerm())
+	assert.True(t, res.GetSuccess())
+	assert.Equal(t, int32(0), res.GetEntriesLength())
+}
+
+// Test_PassAppendEntries2 tests a successful append entries call
+// with a couple of entries to be added to the approaching node's
+// logs. This tests whether the logs were appended and the acknowledgement
+// of the function for the number of entries appended.
+func Test_PassAppendEntries2(t *testing.T) {
+	node, cluster, log := prepareBaseSystem()
+
+	node.PersistentState.CurrentTerm = 3
+	node.PersistentState.Log = []*message.LogData{
+		{Term: 1, Entry: nil},
+		{Term: 1, Entry: nil},
+	}
+	node.VolatileState.CommitIndex = -1
+	server := SimpleServer{
+		node:            node,
+		log:             log,
+		cluster:         cluster,
+		timeoutProvider: timeoutProvider,
+
+	}
+
+	msg := message.NewAppendEntriesRequest(3,
+		id.Create(),
+		1,
+		1,
+		[]*message.LogData{
+			{Term: 2, Entry: nil},
+			{Term: 2, Entry: nil},
+		},
+		1)
+
+	assert.Equal(t, 2, len(server.node.PersistentState.Log))
+
+	res := server.AppendEntriesResponse(msg)
+	assert.Equal(t, int32(3),res.GetTerm())
+	assert.True(t, res.GetSuccess())
+	assert.Equal(t, int32(2), res.GetEntriesLength())
+
+	assert.Equal(t,4, len(server.node.PersistentState.Log))
+}
+
+// Test_PassAppendEntries3 tests removing of conflicting logs in
+// the node's logs and then updating them up to the leader's logs.
+func Test_PassAppendEntries3(t *testing.T) {
+	node, cluster, log := prepareBaseSystem()
+
+	node.PersistentState.CurrentTerm = 3
+	node.PersistentState.Log = []*message.LogData{
+		{Term: 1, Entry: nil},
+		{Term: 1, Entry: nil},
+		{Term: 3, Entry: nil},
+		{Term: 3, Entry: nil},
+	}
+	node.VolatileState.CommitIndex = 1
+	server := SimpleServer{
+		node:            node,
+		log:             log,
+		cluster:         cluster,
+		timeoutProvider: timeoutProvider,
+
+	}
+
+	msg := message.NewAppendEntriesRequest(5,
+		id.Create(),
+		1,
+		1,
+		[]*message.LogData{
+			{Term: 4, Entry: nil},
+			{Term: 4, Entry: nil},
+		},
+		1)
+
+	// Pre check on the log length.
+	assert.Equal(t, 4, len(server.node.PersistentState.Log))
+
+	res := server.AppendEntriesResponse(msg)
+	// TODO: Check term is 3, I suspect it should be changed to 4.
+	assert.Equal(t, int32(3),res.GetTerm())
+	assert.True(t, res.GetSuccess())
+	assert.Equal(t, int32(2), res.GetEntriesLength())
+	// Newly appended logs must have removed conflicting logs.
+	assert.Equal(t,4, len(server.node.PersistentState.Log))
+	// New entry's term.
+	assert.Equal(t, int32(4),server.node.PersistentState.Log[2].GetTerm())
+}
+
+func prepareBaseSystem() (*Node,*raftmocks.Cluster,zerolog.Logger){
+	log := zerolog.New(os.Stdout).With().Logger().Level(zerolog.GlobalLevel())
+
+	cluster := new(raftmocks.Cluster)
+	clusterID := id.Create()
+
+	conn1 := new(networkmocks.Conn)
+	conn2 := new(networkmocks.Conn)
+
+	conn1 = addRemoteID(conn1)
+	conn2 = addRemoteID(conn2)
+
+	connSlice := []network.Conn{
+		conn1,
+		conn2,
+	}
+
+	cluster.On("Nodes").Return(connSlice)
+	cluster.On("OwnID").Return(clusterID)
+
+	node := NewRaftNode(cluster)
+
+	return node, cluster, log
 }
