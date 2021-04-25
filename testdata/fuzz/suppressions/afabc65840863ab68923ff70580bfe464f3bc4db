@@ -1,16 +1,8 @@
 panic: runtime error: invalid memory address or nil pointer dereference
-<<<<<<< HEAD
 github.com/xqueries/xdb/internal/compiler.(*simpleCompiler).compileQualifiedTableName
 github.com/xqueries/xdb/internal/compiler.(*simpleCompiler).compileDelete
 github.com/xqueries/xdb/internal/compiler.(*simpleCompiler).compileInternal
 github.com/xqueries/xdb/internal/compiler.(*simpleCompiler).Compile
 github.com/xqueries/xdb/internal/test.Fuzz
-=======
-github.com/xqueries/xdb/internal/compiler.(*simpleCompiler).compileQualifiedTableName
-github.com/xqueries/xdb/internal/compiler.(*simpleCompiler).compileDelete
-github.com/xqueries/xdb/internal/compiler.(*simpleCompiler).compileInternal
-github.com/xqueries/xdb/internal/compiler.(*simpleCompiler).Compile
-github.com/xqueries/xdb/internal/test.Fuzz
->>>>>>> 57c03a12442ace3901b0bc5aeb14549d21f22229
 go-fuzz-dep.Main
 main.main
