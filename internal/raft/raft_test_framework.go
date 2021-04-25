@@ -136,7 +136,9 @@ func (t *SimpleRaftTest) GracefulShutdown() error {
 	var errSlice multiError
 	var errLock sync.Mutex
 	for i := range t.raftNodes {
+		t.raftNodes[i].lock.Lock()
 		if !t.raftNodes[i].node.Closed {
+			t.raftNodes[i].lock.Unlock()
 			err := t.raftNodes[i].Close()
 			if err != nil && err != network.ErrClosed {
 				errLock.Lock()
