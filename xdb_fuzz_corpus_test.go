@@ -1,4 +1,4 @@
-package test
+package xdb
 
 import (
 	"io/ioutil"

@@ -5,7 +5,7 @@ import (
 )
 
 func TestIssue35(t *testing.T) {
-	RunAndCompare(t, Test{
+	RunAndCompare(t, Testcase{
 		Name:      "issue35",
 		Statement: `SELECT "abc" AS myCol`,
 	})

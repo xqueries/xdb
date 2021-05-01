@@ -8,7 +8,7 @@ import (
 )
 
 func TestIssue187(t *testing.T) {
-	RunAndCompare(t, Test{
+	RunAndCompare(t, Testcase{
 		Name:      "issue187",
 		Statement: `VALUES (1,"2",3), (4,"5",6)`,
 	})
@@ -16,7 +16,7 @@ func TestIssue187(t *testing.T) {
 
 func TestIssue187WithProfile(t *testing.T) {
 	prof := profile.NewProfiler()
-	RunAndCompare(t, Test{
+	RunAndCompare(t, Testcase{
 		Name:      "issue187",
 		Statement: `VALUES (1,"2",3), (4,"5",6)`,
 		EngineOptions: []engine.Option{

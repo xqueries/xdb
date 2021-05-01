@@ -22,7 +22,7 @@ var (
 	update bool
 )
 
-type Test struct {
+type Testcase struct {
 	Name string
 
 	CompileOptions []compiler.Option
@@ -40,7 +40,7 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
-func RunAndCompare(t *testing.T, tt Test) {
+func RunAndCompare(t *testing.T, tt Testcase) {
 	t.Helper()
 	t.Run(tt.Name, func(t *testing.T) {
 		t.Helper()
@@ -48,7 +48,7 @@ func RunAndCompare(t *testing.T, tt Test) {
 	})
 }
 
-func runAndCompare(t *testing.T, tt Test) {
+func runAndCompare(t *testing.T, tt Testcase) {
 	t.Helper()
 	t.Logf("statement: %v", tt.Statement)
 
