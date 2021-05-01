@@ -15,7 +15,7 @@ func NewFilteredRow(underlying Table, keep func(RowWithColInfo) (bool, error)) T
 }
 
 // Cols returns the columns of the underlying table.
-func (t filteredRowTable) Cols() []Col {
+func (t filteredRowTable) Cols() ([]Col, error) {
 	return t.underlying.Cols()
 }
 

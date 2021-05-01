@@ -20,13 +20,17 @@ func newFilteredRowIterator(origin Table, keep func(RowWithColInfo) (bool, error
 
 // Next returns the next not filtered row.
 func (i filteredRowIterator) Next() (Row, error) {
+	originCols, err := i.origin.Cols()
+	if err != nil {
+		return Row{}, err
+	}
 	for {
 		next, err := i.underlying.Next()
 		if err != nil {
 			return Row{}, err
 		}
 		if ok, err := i.keep(RowWithColInfo{
-			Cols: i.origin.Cols(),
+			Cols: originCols,
 			Row:  next,
 		}); err != nil {
 			return Row{}, err

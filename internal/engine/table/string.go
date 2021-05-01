@@ -27,8 +27,12 @@ func ToString(tbl Table) (string, error) {
 	var buf bytes.Buffer
 	w := tabwriter.NewWriter(&buf, 0, 1, 3, ' ', 0)
 
+	cols, err := tbl.Cols()
+	if err != nil {
+		return "", fmt.Errorf("cols: %w", err)
+	}
 	var colNames []string
-	for _, col := range tbl.Cols() {
+	for _, col := range cols {
 		colName := col.QualifiedName
 		if col.Alias != "" {
 			colName = col.Alias

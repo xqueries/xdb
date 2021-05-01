@@ -25,10 +25,14 @@ func (t projectedTable) createIterator() (*projectedTableIterator, error) {
 	if err != nil {
 		return nil, err
 	}
+	underlyingCols, err := t.originalTable.Cols()
+	if err != nil {
+		return nil, fmt.Errorf("cols: %w", err)
+	}
 	return &projectedTableIterator{
 		underlying:           underlyingIterator,
 		projectedColumns:     t.projectedColumns,
-		underlyingColumns:    t.originalTable.Cols(),
+		underlyingColumns:    underlyingCols,
 		ctx:                  t.ctx,
 		e:                    t.e,
 		isSingleRowTableOnce: &sync.Once{},

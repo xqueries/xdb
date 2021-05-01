@@ -2,7 +2,9 @@ package engine
 
 import (
 	"github.com/rs/zerolog"
+
 	"github.com/xqueries/xdb/internal/engine/profile"
+	"github.com/xqueries/xdb/internal/engine/transaction"
 )
 
 // Option is an option that can is applied to an Engine on creation.
@@ -37,5 +39,13 @@ func WithTimeProvider(tp timeProvider) Option {
 func WithRandomProvider(rp randomProvider) Option {
 	return func(e *Engine) {
 		e.randomProvider = rp
+	}
+}
+
+// WithTransactionManager sets a transaction manager that will be used by the
+// engine to start and submit transactions.
+func WithTransactionManager(txmgr transaction.Manager) Option {
+	return func(e *Engine) {
+		e.txmgr = txmgr
 	}
 }

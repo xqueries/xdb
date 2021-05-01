@@ -20,14 +20,19 @@ func NewFilteredCol(underlying Table, keep func(int, Col) bool) Table {
 }
 
 // Cols returns the filtered columns as a slice.
-func (t filteredColTable) Cols() []Col {
+func (t filteredColTable) Cols() ([]Col, error) {
+	underlyingCols, err := t.underlying.Cols()
+	if err != nil {
+		return nil, err
+	}
+
 	var cols []Col
-	for i, col := range t.underlying.Cols() {
+	for i, col := range underlyingCols {
 		if t.keep(i, col) {
 			cols = append(cols, col)
 		}
 	}
-	return cols
+	return cols, nil
 }
 
 // Rows returns a row iterator that will obtain rows from the underlying

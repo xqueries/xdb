@@ -21,7 +21,7 @@ type TableSuite struct {
 func (suite *TableSuite) TestCreateTable() {
 	const tblName = "myTbl"
 
-	suite.False(suite.engine.HasTable(tblName))
+	suite.False(suite.ctx.tx.HasTable(tblName))
 
 	result, err := suite.engine.evaluateCreateTable(suite.ctx, command.CreateTable{
 		Name: tblName,
@@ -38,9 +38,9 @@ func (suite *TableSuite) TestCreateTable() {
 	})
 	suite.NoError(err)
 	suite.EqualTables(table.Empty, result)
-	suite.True(suite.engine.HasTable(tblName))
+	suite.True(suite.ctx.tx.HasTable(tblName))
 
-	tbl, err := suite.engine.LoadTable(tblName)
+	tbl, err := suite.engine.LoadTable(suite.ctx.tx, tblName)
 	suite.NoError(err)
 	suite.EqualTables(table.NewInMemory(
 		[]table.Col{
@@ -56,8 +56,8 @@ func (suite *TableSuite) TestEngine_LoadTable() {
 		tableName = "myTable"
 	)
 
-	tbl, err := suite.engine.LoadTable(tableName)
-	suite.EqualError(err, "table: table '"+tableName+"' does not exist")
+	tbl, err := suite.engine.LoadTable(suite.ctx.tx, tableName)
+	suite.EqualError(err, "table '"+tableName+"' does not exist")
 	suite.Zero(tbl)
 
 	_, err = suite.engine.evaluateCreateTable(suite.ctx, command.CreateTable{
@@ -69,7 +69,7 @@ func (suite *TableSuite) TestEngine_LoadTable() {
 	})
 	suite.NoError(err)
 
-	tbl, err = suite.engine.LoadTable(tableName)
+	tbl, err = suite.engine.LoadTable(suite.ctx.tx, tableName)
 	suite.NoError(err)
 	suite.Equal(tableName, tbl.(Namer).Name())
 

@@ -8,7 +8,7 @@ import (
 )
 
 func (e Engine) evaluateInsert(ctx ExecutionContext, c command.Insert) (table.Table, error) {
-	tbl, err := e.LoadTable(c.Table.QualifiedName())
+	tbl, err := e.LoadTable(ctx.tx, c.Table.QualifiedName())
 	if err != nil {
 		return nil, fmt.Errorf("load table: %w", err)
 	}

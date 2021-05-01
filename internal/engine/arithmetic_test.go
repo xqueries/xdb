@@ -1,15 +1,11 @@
 package engine
 
 import (
-	"testing"
-
-	"github.com/stretchr/testify/assert"
 	"github.com/xqueries/xdb/internal/engine/types"
 )
 
-func TestEngine_add(t *testing.T) {
+func (suite *EngineSuite) TestAdd() {
 	type args struct {
-		ctx   ExecutionContext
 		left  types.Value
 		right types.Value
 	}
@@ -22,7 +18,6 @@ func TestEngine_add(t *testing.T) {
 		{
 			"nils",
 			args{
-				newEmptyExecutionContext(),
 				nil,
 				nil,
 			},
@@ -32,7 +27,6 @@ func TestEngine_add(t *testing.T) {
 		{
 			"left nil",
 			args{
-				newEmptyExecutionContext(),
 				nil,
 				types.NewInteger(5),
 			},
@@ -42,7 +36,6 @@ func TestEngine_add(t *testing.T) {
 		{
 			"right nil",
 			args{
-				newEmptyExecutionContext(),
 				types.NewInteger(5),
 				nil,
 			},
@@ -52,7 +45,6 @@ func TestEngine_add(t *testing.T) {
 		{
 			"simple",
 			args{
-				newEmptyExecutionContext(),
 				types.NewInteger(5),
 				types.NewInteger(6),
 			},
@@ -62,7 +54,6 @@ func TestEngine_add(t *testing.T) {
 		{
 			"zero",
 			args{
-				newEmptyExecutionContext(),
 				types.NewInteger(0),
 				types.NewInteger(0),
 			},
@@ -72,7 +63,6 @@ func TestEngine_add(t *testing.T) {
 		{
 			"both negative",
 			args{
-				newEmptyExecutionContext(),
 				types.NewInteger(-5),
 				types.NewInteger(-5),
 			},
@@ -82,7 +72,6 @@ func TestEngine_add(t *testing.T) {
 		{
 			"left negative",
 			args{
-				newEmptyExecutionContext(),
 				types.NewInteger(-5),
 				types.NewInteger(10),
 			},
@@ -92,7 +81,6 @@ func TestEngine_add(t *testing.T) {
 		{
 			"right negative",
 			args{
-				newEmptyExecutionContext(),
 				types.NewInteger(10),
 				types.NewInteger(-5),
 			},
@@ -102,7 +90,6 @@ func TestEngine_add(t *testing.T) {
 		{
 			"overflow",
 			args{
-				newEmptyExecutionContext(),
 				types.NewInteger((1 << 63) - 1),
 				types.NewInteger(5),
 			},
@@ -112,7 +99,6 @@ func TestEngine_add(t *testing.T) {
 		{
 			"negative overflow",
 			args{
-				newEmptyExecutionContext(),
 				types.NewInteger(-(1 << 63)),
 				types.NewInteger(-1),
 			},
@@ -121,17 +107,14 @@ func TestEngine_add(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			assert := assert.New(t)
-
-			e := createEngineOnEmptyDatabase(t)
-			got, err := e.add(tt.args.ctx, tt.args.left, tt.args.right)
+		suite.Run(tt.name, func() {
+			got, err := suite.engine.add(suite.ctx, tt.args.left, tt.args.right)
 			if tt.wantErr != "" {
-				assert.EqualError(err, tt.wantErr)
+				suite.EqualError(err, tt.wantErr)
 			} else {
-				assert.NoError(err)
+				suite.NoError(err)
 			}
-			assert.Equal(tt.want, got)
+			suite.Equal(tt.want, got)
 		})
 	}
 }

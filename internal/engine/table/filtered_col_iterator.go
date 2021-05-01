@@ -1,6 +1,7 @@
 package table
 
 import (
+	"fmt"
 	"sort"
 
 	"github.com/xqueries/xdb/internal/engine/types"
@@ -13,8 +14,13 @@ type filteredColIterator struct {
 }
 
 func newFilteredColIterator(origin Table, keep func(int, Col) bool) (*filteredColIterator, error) {
+	originCols, err := origin.Cols()
+	if err != nil {
+		return nil, fmt.Errorf("origin cols: %w", err)
+	}
+
 	var keepIndices []int
-	for i, col := range origin.Cols() {
+	for i, col := range originCols {
 		if keep(i, col) {
 			keepIndices = append(keepIndices, i)
 		}
