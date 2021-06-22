@@ -8,6 +8,11 @@ jobs:
         go_version: [ 1.13, 1.14, 1.15, 1.16 ]
         os: [ubuntu-latest, windows-latest, macOS-latest]
     steps:
+    - name: Checkout LF
+      if: matrix.os == 'windows-latest'
+      run: |
+        git config --system core.autocrlf false
+        git config --system core.eol lf
     - uses: actions/cache@v2
       with:
         path: ~/go/pkg/mod
