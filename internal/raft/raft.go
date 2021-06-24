@@ -1,0 +1,591 @@
+package raft
+
+import (
+	"context"
+	"fmt"
+	"io"
+	"log"
+	"math/rand"
+	"strconv"
+	"sync"
+	"sync/atomic"
+	"time"
+
+	"github.com/rs/zerolog"
+	"github.com/xqueries/xdb/internal/id"
+	"github.com/xqueries/xdb/internal/network"
+	"github.com/xqueries/xdb/internal/raft/message"
+)
+
+// Server is a description of a raft server.
+type Server interface {
+	Start(context.Context) error
+	OnReplication(ReplicationHandler)
+	Input(*message.Command)
+	io.Closer
+}
+
+// ReplicationHandler is a handler setter.
+// It takes in the log entries as a string and returns the number
+// of succeeded application of entries.
+type ReplicationHandler func([]*message.Command) int
+
+// Node describes the current state of a raft node.
+// The raft paper describes this as a "State" but node
+// seemed more intuitive.
+type Node struct {
+	State string
+	log   zerolog.Logger
+
+	PersistentState     *PersistentState
+	VolatileState       *VolatileState
+	VolatileStateLeader *VolatileStateLeader
+
+	Closed bool
+}
+
+// PersistentState describes the persistent state data on a raft node.
+type PersistentState struct {
+	CurrentTerm int32
+	VotedFor    id.ID // VotedFor is nil at init, and id.ID of the node after voting is complete.
+	Log         []*message.LogData // Logs are commands for the state machine to execute.
+
+	peerIPs []network.Conn // peerIPs has the connection variables of all the other nodes in the cluster.
+
+	SelfID    id.ID
+	LeaderID  id.ID         // LeaderID is nil at init, and the ID of the node after the leader is elected.
+	ConnIDMap map[id.ID]int // ConnIDMap has a mapping of the ID of the server to its connection.
+	mu        sync.Mutex
+}
+
+// VolatileState describes the volatile state data on a raft node.
+type VolatileState struct {
+	CommitIndex int32
+	LastApplied int32
+	Votes       int32
+
+	mu sync.Mutex
+}
+
+// VolatileStateLeader describes the volatile state data
+// that exists on a raft leader.
+type VolatileStateLeader struct {
+	NextIndex  []int // Holds the nextIndex value for each of the followers in the cluster.
+	MatchIndex []int // Holds the matchIndex value for each of the followers in the cluster.
+}
+
+var _ Server = (*SimpleServer)(nil)
+
+// SimpleServer implements a server in a cluster.
+type SimpleServer struct {
+	node            *Node
+	cluster         Cluster
+	log             zerolog.Logger
+	timeoutProvider func(*Node) *time.Timer
+	lock            sync.Mutex
+
+
+
+	// Function setters.
+	onReplication   ReplicationHandler
+	onRequestVotes          func(network.Conn)
+	onLeaderElected         func()
+	onAppendEntriesRequest  func(network.Conn)
+	onAppendEntriesResponse func()
+	// onCompleteOneRound signifies whether a single
+	// round of raft completed successfully(?).
+	onCompleteOneRound func()
+
+	timerReset chan struct{}
+}
+
+// incomingData describes every request that the server gets.
+type incomingData struct {
+	conn network.Conn
+	msg  message.Message
+}
+
+// NewServer enables starting a raft server/cluster.
+func NewServer(log zerolog.Logger, cluster Cluster) *SimpleServer {
+	return newServer(log, cluster, nil)
+}
+
+// newServer returns a new instance of a server that is connected
+// to the cluster that is provided as the argument.
+func newServer(log zerolog.Logger, cluster Cluster, timeoutProvider func(*Node) *time.Timer) *SimpleServer {
+	if timeoutProvider == nil {
+		timeoutProvider = randomTimer
+	}
+	resetChan := make(chan struct{}, 2)
+	return &SimpleServer{
+		log:             log.With().Str("component", "raft").Logger(),
+		cluster:         cluster,
+		timeoutProvider: timeoutProvider,
+		timerReset:      resetChan,
+	}
+}
+
+// NewRaftNode creates a raft node for the given cluster.
+//
+// It returns with default values for the raft variables
+// and accompanying data structures for operation.
+func NewRaftNode(cluster Cluster) *Node {
+	var nextIndex, matchIndex []int
+
+	for range cluster.Nodes() {
+		nextIndex = append(nextIndex, -1)
+		matchIndex = append(matchIndex, -1)
+	}
+
+	connIDMap := make(map[id.ID]int)
+	for i := range cluster.Nodes() {
+		connIDMap[cluster.Nodes()[i].RemoteID()] = i
+	}
+
+	node := &Node{
+		// All servers start as followers, on timeouts, they become candidates.
+		State: StateFollower.String(),
+		PersistentState: &PersistentState{
+			CurrentTerm: 0,
+			VotedFor:    nil,
+			SelfID:      cluster.OwnID(),
+			peerIPs:     cluster.Nodes(),
+			ConnIDMap:   connIDMap,
+		},
+		VolatileState: &VolatileState{
+			CommitIndex: -1,
+			LastApplied: -1,
+			Votes:       0,
+		},
+		VolatileStateLeader: &VolatileStateLeader{
+			NextIndex:  nextIndex,
+			MatchIndex: matchIndex,
+		},
+		Closed: false,
+	}
+	return node
+}
+
+// Start starts a single raft node into beginning raft operations.
+//
+// This function starts the leader election and keeps a check on whether
+// regular heartbeats to the node exists. It restarts leader election on
+// failure to do so. This function also continuously listens on all the
+// connections to the nodes and routes the requests to appropriate functions.
+//
+// This function is responsible for ALL the data entering this node.
+// Once a goroutine is spawned to requesting votes or appending logs, those
+// don't wait for the responses, instead those are waited for in this function.
+// This allows us to have a HQ for all data coming to the node and have all
+// related data that has to be worked on with the requests in the same place,
+// making it more efficient and easier.
+//
+// This function returns when the contextually upper level functions return
+// or the network/raft nodes are closed.
+func (s *SimpleServer) Start(ctx context.Context) (err error) {
+	// Making the function idempotent, returns whether the server is already open.
+	s.lock.Lock()
+	if s.node != nil && !s.node.Closed {
+		s.log.Debug().
+			Str("self-id", s.node.PersistentState.SelfID.String()).
+			Msg("already open")
+		s.lock.Unlock()
+		return network.ErrOpen
+	}
+
+	// Initialise all raft variables in this node.
+	node := NewRaftNode(s.cluster)
+	node.PersistentState.mu.Lock()
+	node.log = s.log
+	s.node = node
+
+	s.node.Closed = false
+
+	selfID := node.PersistentState.SelfID
+	node.PersistentState.mu.Unlock()
+	s.lock.Unlock()
+
+	// liveChan is a channel that passes the incomingData once received.
+	liveChan := make(chan *incomingData)
+	// Listen forever on all node connections.
+	go func() {
+		for {
+			s.node.PersistentState.mu.Lock()
+			if s.node.Closed {
+				s.node.PersistentState.mu.Unlock()
+				return
+			}
+			s.node.PersistentState.mu.Unlock()
+
+			// Parallelly start waiting for incoming data.
+			conn, msg, err := s.cluster.Receive(ctx)
+			if err != nil {
+				// log.Printf("error in receiving from the cluster: %v\n", err)
+				return
+			}
+
+			if msg != nil {
+				node.log.
+					Debug().
+					Str("self-id", selfID.String()).
+					Str("received", msg.Kind().String()).
+					Msg("received request")
+				liveChan <- newIncomingData(conn, msg)
+			}
+		}
+	}()
+
+	// This block of code checks what kind of request has to be serviced
+	// and calls the necessary function to complete it.
+	for {
+		// If any sort of request (heartbeat,appendEntries,requestVote)
+		// isn't received by the server(node) it restarts leader election.
+		s.node.PersistentState.mu.Lock()
+		if s.node.Closed {
+			s.node.PersistentState.mu.Unlock()
+			return
+		}
+		s.node.PersistentState.mu.Unlock()
+
+		select {
+		case <-s.timeoutProvider(node).C:
+			if s.node.PersistentState.LeaderID == s.node.PersistentState.SelfID {
+				break
+			}
+			s.lock.Lock()
+			if s.node.Closed {
+				log.Printf("node was closed, exiting")
+				s.lock.Unlock()
+				return
+			}
+			// If this node is already the leader the time-outs are irrelevant.
+			if s.node.PersistentState.LeaderID != s.node.PersistentState.SelfID {
+				// One round is said to be complete when the state machines
+				// are in the first non-initial term (i.e >=2)
+				if s.node.PersistentState.CurrentTerm != 1 && s.onCompleteOneRound != nil {
+					s.onCompleteOneRound()
+				}
+				s.lock.Unlock()
+				s.StartElection(ctx)
+			} else {
+				s.lock.Unlock()
+			}
+		case data := <-liveChan:
+			err = s.processIncomingData(ctx, data)
+			if err != nil {
+				log.Printf("error in processing data: %v\n", err)
+				return
+			}
+		case <-ctx.Done():
+			return
+		case <-s.timerReset:
+			// When a timer reset signal is received, this
+			// select loop is restarted, effectively restarting
+			// the timer.
+		}
+	}
+}
+
+// OnReplication is a handler setter.
+//
+// This must be called from the Database functions before
+// executing the commands that were received. Once this function's
+// handler returns the number of commands that were safely
+// replicated on a majority of the nodes, only then, those
+// commands will be executed by the Database functions.
+//
+// The actual details of the above functionality is handled by the
+// onReplication function and the ReplicationHandler, which is
+// called on a successful replication.
+func (s *SimpleServer) OnReplication(handler ReplicationHandler) {
+	s.onReplication = handler
+}
+
+// Input appends the input log into the leaders log, only if the
+// current node is the leader. If this was not a leader, the
+// request is routed to the leader.
+//
+// This function must be called by the Database functionalities
+// once am operation is received by it. This must be used in conjunction
+// with the OnReplication handler setter which 
+func (s *SimpleServer) Input(input *message.Command) {
+	s.node.PersistentState.mu.Lock()
+	defer s.node.PersistentState.mu.Unlock()
+
+	if s.node.State == StateLeader.String() {
+		logData := message.NewLogData(s.node.PersistentState.CurrentTerm, input)
+		s.node.PersistentState.Log = append(s.node.PersistentState.Log, logData)
+	} else {
+		// Relay data to leader.
+		logAppendRequest := message.NewLogAppendRequest(input)
+		s.relayDataToServer(logAppendRequest)
+	}
+}
+
+// Close closes the node and returns an error on failure.
+func (s *SimpleServer) Close() error {
+	s.lock.Lock()
+	// Maintaining idempotency of the close function.
+	if s.node.Closed {
+		return network.ErrClosed
+	}
+	s.node.
+		log.
+		Debug().
+		Str("self-id", s.node.PersistentState.SelfID.String()).
+		Msg("closing node")
+
+	s.node.PersistentState.mu.Lock()
+	s.node.Closed = true
+	s.node.PersistentState.mu.Unlock()
+
+	err := s.cluster.Close()
+	s.lock.Unlock()
+	return err
+}
+
+// randomTimer returns timers ranging from 150ms to 300ms.
+func randomTimer(node *Node) *time.Timer {
+	/* #nosec */
+	randomInt := rand.Intn(150) + 150
+	node.log.
+		Debug().
+		Str("self-id", node.PersistentState.SelfID.String()).
+		Int("random timer set to", randomInt).
+		Msg("heart beat timer")
+	return time.NewTimer(time.Duration(randomInt) * time.Millisecond)
+}
+
+// processIncomingData is responsible for parsing the incoming data and calling
+// appropriate functions based on the request type.
+// This function receives data from the core of the raft module's functionality.
+func (s *SimpleServer) processIncomingData(ctx context.Context, data *incomingData) error {
+
+	switch data.msg.Kind() {
+	case message.KindRequestVoteRequest:
+		requestVoteRequest := data.msg.(*message.RequestVoteRequest)
+		requestVoteResponse := s.RequestVoteResponse(requestVoteRequest)
+		payload, err := message.Marshal(requestVoteResponse)
+		if err != nil {
+			return err
+		}
+
+		err = data.conn.Send(ctx, payload)
+		if err != nil {
+			return err
+		}
+	case message.KindRequestVoteResponse:
+		requestVoteResponse := data.msg.(*message.RequestVoteResponse)
+		if requestVoteResponse.GetVoteGranted() {
+			s.lock.Lock()
+			voterID := s.getNodeID(data.conn)
+			s.node.log.
+				Debug().
+				Str("received vote from", voterID.String()).
+				Msg("voting from peer")
+			selfID := s.node.PersistentState.SelfID
+			s.lock.Unlock()
+			votesReceived := atomic.AddInt32(&s.node.VolatileState.Votes, 1)
+
+			// Check whether this node has already voted.
+			// Else it can vote for itself.
+			s.node.PersistentState.mu.Lock()
+
+			if s.node.PersistentState.VotedFor == nil {
+				s.node.PersistentState.VotedFor = selfID
+				s.node.log.
+					Debug().
+					Str("self-id", selfID.String()).
+					Msg("node voting for itself")
+				votesReceived = atomic.AddInt32(&s.node.VolatileState.Votes, 1)
+			}
+			// Election win criteria: votes this node has is majority in the cluster and
+			// this node is not already the Leader.
+			if votesReceived >= int32(len(s.node.PersistentState.peerIPs)/2) && s.node.State != StateLeader.String() {
+				// This node has won the election.
+				s.node.State = StateLeader.String()
+				s.node.PersistentState.LeaderID = selfID
+				s.node.log.
+					Debug().
+					Str("self-id", selfID.String()).
+					Msg("node elected leader at " + strconv.Itoa(int(votesReceived)) + " votes")
+				// Reset the votes of this term once its elected leader.
+				s.node.resetVolatileStateLeader()
+				s.node.setNextIndexValues()
+				s.node.VolatileState.Votes = 0
+				s.node.PersistentState.mu.Unlock()
+				s.startLeader(ctx, selfID.String())
+				return nil
+			}
+			s.node.PersistentState.mu.Unlock()
+		}
+	case message.KindAppendEntriesRequest:
+		// An appropriate AppendEntriesResponse is crafted using the
+		// dedicated function and returned using the same connection.
+		appendEntriesRequest := data.msg.(*message.AppendEntriesRequest)
+		appendEntriesResponse := s.AppendEntriesResponse(appendEntriesRequest)
+		payload, err := message.Marshal(appendEntriesResponse)
+		if err != nil {
+			return err
+		}
+		err = data.conn.Send(ctx, payload)
+		if err != nil {
+			log.Printf("error in sending AppendEntriesResponse: %v\n", err)
+			return err
+		}
+	case message.KindAppendEntriesResponse:
+
+		s.node.log.Debug().
+			Str("node-id", s.getNodeID(data.conn).String()).
+			Msg("received append entries response")
+
+		appendEntriesResponse := data.msg.(*message.AppendEntriesResponse)
+
+		s.node.PersistentState.mu.Lock()
+		savedCurrentTerm := s.node.PersistentState.CurrentTerm
+		selfID := s.node.PersistentState.SelfID.String()
+		s.node.PersistentState.mu.Unlock()
+
+		currNextIndex, offset := s.getNextIndex(data.conn)
+		// If the term in the other node is greater than this node's term,
+		// it means that this node is not up to date and has to step down
+		// from being a leader.
+		if appendEntriesResponse.Term > savedCurrentTerm {
+			s.node.log.Debug().
+				Str(selfID, "stale term").
+				Str("following newer node", data.conn.RemoteID().String())
+			s.node.becomeFollower(appendEntriesResponse.Term, s.getNodeID(data.conn))
+			return nil
+		}
+
+		if s.node.State == StateLeader.String() && appendEntriesResponse.Term == savedCurrentTerm {
+			if appendEntriesResponse.Success {
+				s.node.PersistentState.mu.Lock()
+				s.updateNextIndex(int(appendEntriesResponse.EntriesLength), offset, currNextIndex)
+				s.node.PersistentState.mu.Unlock()
+			} else {
+				// If this appendEntries request failed,
+				// proceed and retry in the next cycle.
+				s.node.log.
+					Debug().
+					Str("self-id", selfID).
+					Str("received failure to append entries from", data.conn.RemoteID().String()).
+					Msg("failed to append entries")
+			}
+		}
+	// When the leader gets a forwarded append input message from one of it's followers.
+	case message.KindLogAppendRequest:
+		// This log append request was meant to the leader ONLY.
+		// This handles issues where the leader changed in the transit.
+		if s.node.PersistentState.LeaderID != s.node.PersistentState.SelfID {
+			s.relayDataToServer(data.msg.(*message.LogAppendRequest))
+			return nil
+		}
+		logAppendRequest := data.msg.(*message.LogAppendRequest)
+		input := logAppendRequest.Data
+		logData := message.NewLogData(s.node.PersistentState.CurrentTerm, input)
+		s.node.PersistentState.Log = append(s.node.PersistentState.Log, logData)
+	}
+	return nil
+}
+
+// relayDataToServer sends the input log from the follower to a leader node.
+// TODO: Figure out what to do with the errors generated here.
+func (s *SimpleServer) relayDataToServer(req *message.LogAppendRequest) {
+	ctx := context.Background()
+
+	payload, _ := message.Marshal(req)
+
+	leaderNodeConn := s.cluster.Nodes()[s.node.PersistentState.ConnIDMap[s.node.PersistentState.LeaderID]]
+	_ = leaderNodeConn.Send(ctx, payload)
+}
+
+// OnRequestVotes is a hook setter for RequestVotesRequest.
+func (s *SimpleServer) OnRequestVotes(hook func(network.Conn)) {
+	s.onRequestVotes = hook
+}
+
+// OnLeaderElected is a hook setter for LeadeElectedRequest.
+func (s *SimpleServer) OnLeaderElected(hook func()) {
+	s.onLeaderElected = hook
+}
+
+// OnAppendEntriesRequest is a hook setter for AppenEntriesRequest.
+func (s *SimpleServer) OnAppendEntriesRequest(hook func(network.Conn)) {
+	s.onAppendEntriesRequest = hook
+}
+
+// OnAppendEntriesResponse is a hook setter for AppenEntriesRequest.
+func (s *SimpleServer) OnAppendEntriesResponse(hook func()) {
+	s.onAppendEntriesResponse = hook
+}
+
+// OnCompleteOneRound is a hook setter for completion for one round of raft.
+func (s *SimpleServer) OnCompleteOneRound(hook func()) {
+	s.onCompleteOneRound = hook
+}
+
+// getNodeID finds the ID of the node from it's connection.
+func (s *SimpleServer) getNodeID(conn network.Conn) id.ID {
+	s.node.PersistentState.mu.Lock()
+	for k, v := range s.node.PersistentState.ConnIDMap {
+		if s.node.PersistentState.peerIPs[v] == conn {
+			s.node.PersistentState.mu.Unlock()
+			return k
+		}
+	}
+	s.node.PersistentState.mu.Unlock()
+	return nil
+}
+
+// getNextIndex allows the leader to iterate through the available
+// slice of connections of its peers and find the respective "nextIndex"
+// value of the node which sent the AppendEntriesResponse. It returns
+// the nextIndex value and the offset of the node for future use.
+//
+// A -1 int is returned on not finding the connection - which is not
+// supposed to happen, EVER.
+func (s *SimpleServer) getNextIndex(conn network.Conn) (int, int) {
+	s.node.PersistentState.mu.Lock()
+	for i := range s.node.PersistentState.peerIPs {
+		if conn == s.node.PersistentState.peerIPs[i] {
+			s.node.PersistentState.mu.Unlock()
+			return s.node.VolatileStateLeader.NextIndex[i], i
+		}
+	}
+	s.node.PersistentState.mu.Unlock()
+	return -1, -1
+}
+
+func (s *SimpleServer) updateNextIndex(len, offset, currNextIndex int) {
+	s.node.VolatileStateLeader.NextIndex[offset] = currNextIndex + len
+}
+
+// resetVolatileState resets the volatile state of the given node.
+//
+// This assumes that the necessary locks are in place in the contextual
+// upper level to operate on the underlying parameters.
+func (node *Node) resetVolatileStateLeader() {
+	node.VolatileStateLeader.NextIndex = []int{}
+	node.VolatileStateLeader.MatchIndex = []int{}
+}
+
+// setNextIndexValues sets the values for the next index for each
+// node respectively. The value set will be the index just after the
+// last one in its log (leader's).
+func (node *Node) setNextIndexValues() {
+	nextIndex := len(node.PersistentState.Log)
+
+	for range node.PersistentState.peerIPs {
+		node.VolatileStateLeader.NextIndex = append(node.VolatileStateLeader.NextIndex,nextIndex)
+	}
+
+	fmt.Println("G")
+}
+
+func newIncomingData(conn network.Conn, msg message.Message) *incomingData {
+	return &incomingData{
+		conn,
+		msg,
+	}
+}

@@ -1,0 +1,917 @@
+[0xc000098e40 0xc000232080]
+[0xc000232040 0xc000232140]
+[0xc000098e80 0xc000232100]
+{"level":"debug","message":"beginning execution goroutine"}
+{"level":"debug","message":"initiating operation injection"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","random timer set to":281,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":237,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":197,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","term":1,"message":"starting election"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":209,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","request-vote sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"request vote"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","request-vote sent to":"01F0B6VE1KR0R2XQT0WWB8KHJA","message":"request vote"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindRequestVoteRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","received":"KindRequestVoteRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","vote granted to":"01F0B6VE1MT139V4VBQHGH609S","message":"voting a peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","vote granted to":"01F0B6VE1MT139V4VBQHGH609S","message":"voting a peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":181,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindRequestVoteResponse","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","random timer set to":168,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":175,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindRequestVoteResponse","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","random timer set to":290,"message":"heart beat timer"}
+{"level":"debug","component":"raft","received vote from":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"voting from peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"node voting for itself"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"node elected leader"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"starting leader election proceedings"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":256,"message":"heart beat timer"}
+{"level":"debug","component":"raft","received vote from":"01F0B6VE1KR0R2XQT0WWB8KHJA","message":"voting from peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":150,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1KR0R2XQT0WWB8KHJA","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"self term out of date, returning to follower state"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","message":"self term out of date, returning to follower state"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","message":"becoming follower"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"becoming follower"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","random timer set to":194,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":211,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":162,"message":"heart beat timer"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":239,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1KR0R2XQT0WWB8KHJA","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":178,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","random timer set to":224,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":261,"message":"heart beat timer"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":245,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1KR0R2XQT0WWB8KHJA","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":287,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","random timer set to":206,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":245,"message":"heart beat timer"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":216,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1KR0R2XQT0WWB8KHJA","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":278,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","random timer set to":208,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":297,"message":"heart beat timer"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":247,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1KR0R2XQT0WWB8KHJA","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":187,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","random timer set to":238,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":240,"message":"heart beat timer"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":165,"message":"heart beat timer"}
+{"level":"debug","executing":"2","message":"beginning execution"}
+{"level":"debug","message":"operation moved to execution channel"}
+{"level":"debug","message":"executing operation"}
+{"level":"debug","node ID":1,"message":"stopping the node"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","message":"closing node"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":241,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":258,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":287,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":281,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":279,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":206,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":237,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":181,"message":"heart beat timer"}
+2021/03/09 15:29:53 node was closed, exiting
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":285,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":276,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":163,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":190,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":244,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":213,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":283,"message":"heart beat timer"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":297,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":178,"message":"heart beat timer"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":274,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":259,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":153,"message":"heart beat timer"}
+{"level":"debug","executing":"4","message":"beginning execution"}
+{"level":"debug","message":"operation moved to execution channel"}
+{"level":"debug","message":"executing operation"}
+{"level":"debug","node ID":1,"message":"restarting the node"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","random timer set to":207,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":271,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":189,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":249,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":250,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":205,"message":"heart beat timer"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":188,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":288,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":253,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","term":1,"message":"starting election"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","random timer set to":155,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","request-vote sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"request vote"}
+already closed
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","request-vote sent to":"01F0B6VE1MT139V4VBQHGH609S","message":"request vote"}
+already closed
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":251,"message":"heart beat timer"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":210,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":255,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":156,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","term":2,"message":"starting election"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","random timer set to":166,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","request-vote sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"request vote"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+already closed
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","request-vote sent to":"01F0B6VE1MT139V4VBQHGH609S","message":"request vote"}
+already closed
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":278,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":161,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":152,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":233,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":296,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":163,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":276,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":152,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","term":3,"message":"starting election"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","random timer set to":218,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","request-vote sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"request vote"}
+already closed
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","request-vote sent to":"01F0B6VE1MT139V4VBQHGH609S","message":"request vote"}
+already closed
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":297,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":294,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":277,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":163,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":196,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":170,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":273,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":153,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","term":4,"message":"starting election"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","random timer set to":187,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","request-vote sent to":"01F0B6VE1MT139V4VBQHGH609S","message":"request vote"}
+already closed
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","request-vote sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"request vote"}
+already closed
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":283,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":191,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":259,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":233,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":293,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":191,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":202,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","term":5,"message":"starting election"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","random timer set to":278,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","request-vote sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"request vote"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":286,"message":"heart beat timer"}
+already closed
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","request-vote sent to":"01F0B6VE1MT139V4VBQHGH609S","message":"request vote"}
+already closed
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":246,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":157,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":240,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":253,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":252,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":243,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":205,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":248,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":225,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":151,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","term":6,"message":"starting election"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","random timer set to":165,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","request-vote sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"request vote"}
+already closed
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","request-vote sent to":"01F0B6VE1MT139V4VBQHGH609S","message":"request vote"}
+already closed
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":257,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":287,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":260,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":160,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":235,"message":"heart beat timer"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":240,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","term":7,"message":"starting election"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","random timer set to":232,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","request-vote sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"request vote"}
+already closed
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","request-vote sent to":"01F0B6VE1MT139V4VBQHGH609S","message":"request vote"}
+already closed
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":198,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":253,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":241,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":182,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":234,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":247,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":167,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":187,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","term":8,"message":"starting election"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","random timer set to":171,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","request-vote sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"request vote"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+already closed
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","request-vote sent to":"01F0B6VE1MT139V4VBQHGH609S","message":"request vote"}
+already closed
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":294,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":176,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":202,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":231,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":279,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":166,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":270,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":293,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","term":9,"message":"starting election"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","random timer set to":286,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","request-vote sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"request vote"}
+already closed
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","request-vote sent to":"01F0B6VE1MT139V4VBQHGH609S","message":"request vote"}
+already closed
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":169,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":231,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":252,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":225,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":235,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":260,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":237,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":199,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":278,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":218,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","term":10,"message":"starting election"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","random timer set to":234,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","request-vote sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"request vote"}
+already closed
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","request-vote sent to":"01F0B6VE1MT139V4VBQHGH609S","message":"request vote"}
+already closed
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":153,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":174,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":197,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":262,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":232,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":266,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":239,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":290,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":236,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":251,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","term":11,"message":"starting election"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","random timer set to":176,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","request-vote sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"request vote"}
+already closed
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","request-vote sent to":"01F0B6VE1MT139V4VBQHGH609S","message":"request vote"}
+already closed
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":190,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":151,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":244,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":214,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":155,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":283,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","term":12,"message":"starting election"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","random timer set to":201,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","request-vote sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"request vote"}
+already closed
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","request-vote sent to":"01F0B6VE1MT139V4VBQHGH609S","message":"request vote"}
+already closed
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":240,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":202,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":158,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":217,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":231,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":178,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":204,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":222,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","term":13,"message":"starting election"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","random timer set to":273,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","request-vote sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"request vote"}
+already closed
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","request-vote sent to":"01F0B6VE1MT139V4VBQHGH609S","message":"request vote"}
+already closed
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":192,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":258,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":243,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":268,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":216,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":210,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":185,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":240,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":254,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":262,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","term":14,"message":"starting election"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","random timer set to":157,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","request-vote sent to":"01F0B6VE1MT139V4VBQHGH609S","message":"request vote"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","request-vote sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"request vote"}
+already closed
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+already closed
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":165,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":171,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":239,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":280,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","returning success to append entries to":"01F0B6VE1MT139V4VBQHGH609S","message":"append entries success"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","random timer set to":213,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","received":"KindAppendEntriesResponse","message":"received request"}
+{"level":"debug","component":"raft","node-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"received append entries response"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","random timer set to":250,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"sending heartbeats"}
+{"level":"error","component":"raft","error":"already closed","Node":"01F0B6VE1MT139V4VBQHGH609S","message":"error"}
+{"level":"debug","message":"shutting down - reached round limit"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"sent heartbeat to peer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","received":"KindAppendEntriesRequest","message":"received request"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"closing node"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","term":15,"message":"starting election"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","random timer set to":159,"message":"heart beat timer"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","request-vote sent to":"01F0B6VE1HJM50QS5TB8SPHV6D","message":"request vote"}
+already closed
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","request-vote sent to":"01F0B6VE1MT139V4VBQHGH609S","message":"request vote"}
+already closed
+{"level":"debug","component":"raft","self-id":"01F0B6VE1KR0R2XQT0WWB8KHJA","message":"closing node"}
+{"level":"debug","component":"raft","self-id":"01F0B6VE1MT139V4VBQHGH609S","message":"closing node"}
+{"level":"debug","message":"gracefully shutting down"}
+{"level":"debug","message":"execution shutting down"}
+PASS
+ok  	github.com/xqueries/xdb/internal/raft	4.585s

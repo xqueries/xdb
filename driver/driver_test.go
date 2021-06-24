@@ -33,7 +33,7 @@ func TestStatement(t *testing.T) {
 
 	assert := assert.New(t)
 
-	pool, err := sql.Open("add", LocalDatabaseAddress)
+	pool, err := sql.Open("xdb", LocalDatabaseAddress)
 	assert.NoError(err)
 	assert.NoError(pool.Ping())
 	defer func() {

@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/rs/zerolog"
+	"github.com/xqueries/xdb/internal/id"
 	"github.com/xqueries/xdb/internal/network"
 )
 
@@ -26,7 +27,8 @@ func ExampleServer() {
 
 	<-srv.Listening() // wait for the server to come up
 
-	client, _ := network.DialTCP(ctx, ":59513")
+	clientID := id.Create()
+	client, _ := network.DialTCP(ctx, clientID, ":59513")
 	defer func() {
 		_ = client.Close()
 	}()
