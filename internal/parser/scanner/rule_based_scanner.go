@@ -174,8 +174,10 @@ func (s *ruleBasedScanner) drainComment() bool {
 					s.ConsumeRune()
 					if next == '*' {
 						upNext, ok := s.Lookahead()
-						if !ok || upNext == '/' {
+						if upNext == '/' {
 							s.ConsumeRune()
+							return true
+						} else if !ok {
 							return true
 						}
 					}
