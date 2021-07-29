@@ -2,6 +2,7 @@ package engine
 
 import (
 	"github.com/xqueries/xdb/internal/engine/table"
+	"github.com/xqueries/xdb/internal/engine/transaction"
 	"github.com/xqueries/xdb/internal/id"
 )
 
@@ -11,11 +12,13 @@ type ExecutionContext struct {
 	id id.ID
 
 	intermediateRow table.RowWithColInfo
+	tx              *transaction.TX
 }
 
-func newEmptyExecutionContext() ExecutionContext {
+func newEmptyExecutionContext(tx *transaction.TX) ExecutionContext {
 	return ExecutionContext{
 		id: id.Create(),
+		tx: tx,
 	}
 }
 

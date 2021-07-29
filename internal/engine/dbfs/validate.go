@@ -71,7 +71,7 @@ func Validate(fs afero.Fs) error {
 		file{TablesDirectory, TablesInfoFile},
 		custom(func() error {
 			// tables.info is available, check contents
-			tableInfos, err := dbfs.loadTablesInfo()
+			tableInfos, err := dbfs.LoadTablesInfo()
 			if err != nil {
 				return fmt.Errorf("load tables info: %w", err)
 			}

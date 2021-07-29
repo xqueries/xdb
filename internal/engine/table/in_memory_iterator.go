@@ -17,7 +17,7 @@ func (i *inMemoryRowIterator) Next() (Row, error) {
 
 // Reset resets the row index to zero, causing Next to return
 // the first row on the next call and restarting this iterator.
-func (i inMemoryRowIterator) Reset() error {
+func (i *inMemoryRowIterator) Reset() error {
 	i.index = 0
 	return nil
 }

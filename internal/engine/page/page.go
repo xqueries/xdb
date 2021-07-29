@@ -171,6 +171,18 @@ func (p *Page) CopyOfData() []byte {
 	return cp
 }
 
+// FreeSpace returns the amount of free bytes that are available on this page.
+func (p *Page) FreeSpace() uint16 {
+	return p.freeBlock().Size
+}
+
+// CanAccommodateRecord is used to determine whether or not a page has enough space
+// available to fit the given record cell.
+func (p *Page) CanAccommodateRecord(rec RecordCell) bool {
+	// FIXME: respect PCTFREE
+	return int(p.FreeSpace()) >= len(encodeRecordCell(rec))
+}
+
 func load(data []byte) (*Page, error) {
 	if len(data) > int(^uint16(0))-1 {
 		return nil, fmt.Errorf("page size too large: %v (max %v)", len(data), int(^uint16(0))-1)

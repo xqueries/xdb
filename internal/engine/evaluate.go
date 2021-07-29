@@ -36,7 +36,7 @@ func (e Engine) evaluateList(ctx ExecutionContext, l command.List) (table.Table,
 		}
 		return values, nil
 	case command.Scan:
-		scanned, err := e.evaluateScan(list)
+		scanned, err := e.evaluateScan(ctx, list)
 		if err != nil {
 			return nil, fmt.Errorf("scan: %w", err)
 		}

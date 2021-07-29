@@ -16,8 +16,8 @@ func NewInMemory(cols []Col, rows []Row) Table {
 }
 
 // Cols returns the cols of this table.
-func (t inMemoryTable) Cols() []Col {
-	return t.cols
+func (t inMemoryTable) Cols() ([]Col, error) {
+	return t.cols, nil
 }
 
 // Rows returns an in-memory row iterator that is iterating over

@@ -4,8 +4,6 @@ import (
 	"fmt"
 
 	"github.com/xqueries/xdb/internal/engine/page"
-
-	"github.com/xqueries/xdb/internal/engine/dbfs"
 	"github.com/xqueries/xdb/internal/engine/profile"
 	"github.com/xqueries/xdb/internal/engine/table"
 )
@@ -13,8 +11,8 @@ import (
 type tableRowIterator struct {
 	profiler *profile.Profiler
 
-	data *dbfs.PagedFile
-	cols []table.Col
+	table *Table
+	cols  []table.Col
 
 	pages            []page.ID
 	currentPageIndex int
@@ -24,18 +22,27 @@ type tableRowIterator struct {
 	currentSlot int
 }
 
-func newTableRowIterator(profiler *profile.Profiler, cols []table.Col, data *dbfs.PagedFile) *tableRowIterator {
-	return &tableRowIterator{
-		profiler: profiler,
-		cols:     cols,
-		data:     data,
-		pages:    data.Pages(),
+func newTableRowIterator(tbl *Table) (*tableRowIterator, error) {
+	cols, err := tbl.Cols()
+	if err != nil {
+		return nil, fmt.Errorf("cols: %w", err)
 	}
+	pages, err := tbl.tx.ExistingDataPagesForTable(tbl.name)
+	if err != nil {
+		return nil, fmt.Errorf("data pages: %w", err)
+	}
+	return &tableRowIterator{
+		table: tbl,
+		cols:  cols,
+		pages: pages,
+	}, nil
 }
 
 // Next returns the next row of this table iterator.
 func (i *tableRowIterator) Next() (table.Row, error) {
 	i.profiler.Enter("next row").Exit()
+
+	tx := i.table.tx
 
 	if len(i.pages) == 0 {
 		return table.Row{}, table.ErrEOT
@@ -49,7 +56,7 @@ start:
 
 	// no current page determined yet, choose the one under the currentPageIndex
 	if i.currentPage == nil {
-		p, err := i.data.LoadPage(i.pages[i.currentPageIndex])
+		p, err := tx.DataPage(i.table.name, i.pages[i.currentPageIndex])
 		if err != nil {
 			return table.Row{}, fmt.Errorf("load page: %w", err)
 		}
@@ -90,5 +97,5 @@ func (i *tableRowIterator) Reset() error {
 }
 
 func (i *tableRowIterator) Close() error {
-	return i.data.Close()
+	return nil
 }
