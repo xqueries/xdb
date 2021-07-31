@@ -205,6 +205,10 @@ func Test_PassAppendEntries3(t *testing.T) {
 	assert.Equal(t, int32(4),server.node.PersistentState.Log[2].GetTerm())
 }
 
+// prepareBaseSystem prepares the basis of all the tests on which Append Entries
+// functionality is being tested.
+// This involves creating a mock cluster with 3 nodes, which is created by adding
+// 2 mocked connections to the mock cluster.
 func prepareBaseSystem() (*Node,*raftmocks.Cluster,zerolog.Logger){
 	log := zerolog.New(os.Stdout).With().Logger().Level(zerolog.GlobalLevel())
 

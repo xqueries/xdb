@@ -41,9 +41,12 @@ func (s *SimpleServer) RequestVote(ctx context.Context, nodeConn network.Conn, r
 	return nil
 }
 
-// RequestVoteResponse function is called on a request from a candidate for a vote. This function
-// generates the response for the responder node to send back to the candidate node.
-func (s *SimpleServer) RequestVoteResponse(req *message.RequestVoteRequest) *message.RequestVoteResponse {
+// RequestVoteResponse function is called on a request from a
+// candidate for a vote. This function generates the response
+// for the responder node to send back to the candidate node.
+func (s *SimpleServer) RequestVoteResponse(
+	req *message.RequestVoteRequest,
+	) *message.RequestVoteResponse {
 	s.lock.Lock()
 	s.node.PersistentState.mu.Lock()
 	currentTerm := s.node.PersistentState.CurrentTerm
@@ -64,7 +67,8 @@ func (s *SimpleServer) RequestVoteResponse(req *message.RequestVoteRequest) *mes
 	}
 
 	s.node.PersistentState.mu.Lock()
-	// If this node hasn't voted for any other node, vote only then.
+	// If this node hasn't voted for any other node,
+	// vote only then.
 	// TODO: Check whether candidate's log is at least as up to date as mine only then grant vote.
 	isSelfTermLesser := currentTerm < req.GetTerm()
 	isSelfTermEqual := currentTerm == req.GetTerm()

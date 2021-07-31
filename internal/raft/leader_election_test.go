@@ -34,12 +34,6 @@ func Test_StartElection(t *testing.T) {
 	conn1 = addRemoteID(conn1)
 	conn2 = addRemoteID(conn2)
 
-	server := newServer(
-		log,
-		cluster,
-		timeoutProvider,
-	)
-
 	cluster.On("Nodes").Return(connSlice)
 	cluster.On("OwnID").Return(clusterID)
 
@@ -47,6 +41,12 @@ func Test_StartElection(t *testing.T) {
 	conn2.On("Send", ctx, mock.IsType([]byte{})).Return(nil)
 
 	node := NewRaftNode(cluster)
+
+	server := newServer(
+		log,
+		cluster,
+		timeoutProvider,
+	)
 	server.node = node
 	server.StartElection(ctx)
 

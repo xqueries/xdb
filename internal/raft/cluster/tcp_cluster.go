@@ -128,12 +128,13 @@ func (c *tcpCluster) Broadcast(ctx context.Context, msg message.Message) error {
 
 	errs, _ := errgroup.WithContext(ctx)
 	for _, conn := range c.conns {
-		errs.Go(func() error {
+		execFunc := func() error {
 			if err := c.sendMessage(ctx, conn, msg); err != nil {
 				return fmt.Errorf("send message: %w", err)
 			}
 			return nil
-		})
+		}
+		errs.Go(execFunc)
 	}
 	return errs.Wait()
 }

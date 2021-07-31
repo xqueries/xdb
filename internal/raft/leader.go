@@ -16,7 +16,6 @@ import (
 // is achieved by sending heartbeats when there are no logs that are to
 // be appended and two is achieved by sending the AppendEntriesRequest.
 //
-// The leader spawns a separate goroutine to ensure
 // The leader begins by sending append entries RPC to the nodes parallelly.
 // The leader sends periodic append entries request to the
 // followers to keep them alive.
