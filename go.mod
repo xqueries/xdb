@@ -4,7 +4,7 @@ go 1.13
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/google/go-cmp v0.5.6
+	github.com/google/go-cmp v0.5.8
 	github.com/oklog/ulid v1.3.1
 	github.com/rs/zerolog v1.21.0
 	github.com/spf13/afero v1.8.2
